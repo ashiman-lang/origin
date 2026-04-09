@@ -155,8 +155,8 @@ DAILY_SPEND_OVERRIDE_EUR = {
 }
 CURRENT_DATE = date(2026, 4, 8)
 RETENTION_RATE_BENCHMARKS = {
-    "monthly": {1: 0.55, 2: 0.38, 3: 0.20, 4: 0.14, 5: 0.07, 6: 0.05, 7: 0.03},
-    "quarterly": {3: 0.50, 6: 0.28, 9: 0.18, 12: 0.12},
+    "monthly": {1: 0.55, 2: 0.38, 3: 0.20, 4: 0.18, 5: 0.14, 6: 0.12, 7: 0.10, 8: 0.07, 9: 0.07, 10: 0.06, 11: 0.06, 12: 0.05},
+    "quarterly": {3: 0.50, 6: 0.20, 9: 0.15, 12: 0.10},
     "annual": {12: 0.30},
 }
 PLAN_REVENUE_SCHEDULES = {
@@ -1732,11 +1732,12 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       Revenue is shown in EUR and uses Stripe converted transaction amounts. Cohort membership and new-customer counts
       come from the customer export. Closed M1/M2/M3 values use transaction revenue through the milestone cutoff,
       while projected milestones use each customer's real subscription intro and full renewal price with benchmark
-      retention percentages by plan family. Monthly benchmark retention used: M1 55%, M2 38%, M3 20%, M4 14%,
-      M5 7%, M6 5%, M7 3%. Quarterly benchmark retention used: M3 50%, M6 28%, M9 18%, M12 12%. Annual benchmark
-      retention used: M12 30%. Upsell comes from first-day paid invoice transactions in the payments export and is
-      included in cumulative predicted ROAS. Spend comes from the daily spend export in EUR, with January overridden
-      from your screenshot values where the spend export was incomplete.
+      retention percentages by plan family. Monthly benchmark retention used: M1 55%, M2 38%, M3 20%, M4 18%,
+      M5 14%, M6 12%, M7 10%, M8 7%, M9 7%, M10 6%, M11 6%, M12 5%. Quarterly benchmark retention used:
+      M3 50%, M6 20%, M9 15%, M12 10%. Annual benchmark retention used: M12 30%. Upsell comes from first-day
+      paid invoice transactions in the payments export and is included in cumulative predicted ROAS. Spend comes
+      from the daily spend export in EUR, with January overridden from your screenshot values where the spend
+      export was incomplete.
     </section>
   </div>
 
