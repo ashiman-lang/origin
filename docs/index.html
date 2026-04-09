@@ -112,6 +112,31 @@
       margin-bottom: 22px;
     }
 
+    .tabs {
+      display: inline-flex;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .tab-button {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(12, 20, 38, 0.45);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .tab-button.active {
+      color: var(--text);
+      background: rgba(79, 139, 255, 0.22);
+      border-color: rgba(79, 139, 255, 0.45);
+      box-shadow: inset 0 0 0 1px rgba(79, 139, 255, 0.18);
+    }
+
     .section-head {
       display: flex;
       justify-content: space-between;
@@ -211,6 +236,8 @@
       left: 0;
       z-index: 1;
       background: linear-gradient(180deg, rgba(41, 56, 83, 0.98), rgba(27, 39, 61, 0.98));
+      min-width: 210px;
+      width: 210px;
     }
 
     th:first-child {
@@ -224,6 +251,18 @@
     .cohort {
       font-weight: 700;
       font-size: 1.05rem;
+      line-height: 1.2;
+    }
+
+    .cohort-code {
+      display: block;
+      white-space: nowrap;
+    }
+
+    .cohort-range {
+      display: block;
+      margin-top: 4px;
+      color: var(--text);
     }
 
     .money {
@@ -283,8 +322,8 @@
         <div class="eyebrow">Customer Export Dashboard</div>
         <h1>Jan-Apr 2026 Cohorts</h1>
         <p class="subtitle">
-          A screenshot-style cohort dashboard built directly from the unified customer export. It compares January,
-          February, March, and April acquisition cohorts across payment depth, active status, and refund incidence.
+          A cohort dashboard built directly from the customer and transactions exports. It compares January,
+          February, March, and April acquisition cohorts.
         </p>
       </div>
       <div class="card summary-grid">
@@ -308,10 +347,14 @@
     </section>
 
     <section class="card chart-card">
+      <div class="tabs" role="tablist" aria-label="Cohort views">
+        <button class="tab-button active" type="button" data-view="monthly">Monthly Cohorts</button>
+        <button class="tab-button" type="button" data-view="weekly">Weekly Cohorts</button>
+      </div>
       <div class="section-head">
         <div>
           <h2 class="section-title">Cohort Rate Comparison</h2>
-          <p class="section-note">Grouped bar chart for the four key rates available in the export.</p>
+          <p class="section-note" id="section-note">Grouped bar chart for the four key rates available in the export.</p>
         </div>
         <div class="legend">
           <span><i style="background: var(--cyan);"></i>Paid Rate</span>
@@ -338,10 +381,13 @@
               <th>#</th>
               <th>Avg</th>
               <th>D0 Rev</th>
-              <th>Rev To Date</th>
+              <th>Net Rev To Date</th>
+              <th>Refunds</th>
+              <th>Dispute Losses</th>
               <th>D0 ROAS</th>
               <th>ROAS To Date</th>
               <th>M1</th>
+              <th>M2</th>
               <th>M3</th>
               <th>M6</th>
               <th>M12</th>
@@ -353,135 +399,622 @@
     </section>
 
     <section class="card footer-note">
-      Revenue is normalized to USD using official ECB reference rates. January to March use ECB monthly average rates,
-      while April uses the ECB daily average for April 1-8, 2026 as a month-to-date proxy. Rows with blank currency
-      codes are treated as USD so they remain included. Upsell comes from first-day paid invoice transactions in the
-      payments export, joined back to cohort customers.
+      Revenue is shown in EUR and uses Stripe converted transaction amounts. Cohort membership and new-customer counts
+      come from the customer export. Closed M1/M2/M3 values use transaction revenue through the milestone cutoff,
+      while projected milestones use benchmark retention schedules. Upsell comes from first-day paid invoice
+      transactions in the payments export. Spend comes from the daily spend export in EUR, with January overridden
+      from your screenshot values where the spend export was incomplete.
     </section>
   </div>
 
   <script>
     const payload = {
-  "chart": [
-    {
-      "cohort": "January",
-      "paidRate": 91.1,
-      "activeRate": 51.3,
-      "repeatRate": 50.7,
-      "threePlusRate": 16.9
-    },
-    {
-      "cohort": "February",
-      "paidRate": 90.4,
-      "activeRate": 63.4,
-      "repeatRate": 47.6,
-      "threePlusRate": 10.4
-    },
-    {
-      "cohort": "March",
-      "paidRate": 90.3,
-      "activeRate": 75.6,
-      "repeatRate": 40.5,
-      "threePlusRate": 2.3
-    },
-    {
-      "cohort": "April",
-      "paidRate": 87.1,
-      "activeRate": 86.6,
-      "repeatRate": 54.1,
-      "threePlusRate": 0.5
-    }
-  ],
-  "rows": [
-    {
-      "spendUsd": 64378,
-      "cohort": "January 2026",
-      "spend": "$64,378",
-      "newCustomers": 889,
-      "cpa": "$72",
-      "upsell": "$2,862.88",
-      "upsellCount": 280,
-      "avg": "$10.22",
-      "d0Rev": "$23,085",
-      "revToDate": "$35,779",
-      "d0Roas": "35.9%",
-      "roasToDate": "55.6%",
-      "m1": "40.6%",
-      "m3": "81.8%",
-      "m6": "99.9%",
-      "m12": "117.0%",
-      "m1Projected": false,
-      "m3Projected": true,
-      "m6Projected": true,
-      "m12Projected": true
-    },
-    {
-      "spendUsd": 64867,
-      "cohort": "February 2026",
-      "spend": "$64,867",
-      "newCustomers": 874,
-      "cpa": "$74",
-      "upsell": "$3,408.71",
-      "upsellCount": 327,
-      "avg": "$10.42",
-      "d0Rev": "$23,429",
-      "revToDate": "$31,066",
-      "d0Roas": "36.1%",
-      "roasToDate": "47.9%",
-      "m1": "45.0%",
-      "m3": "78.4%",
-      "m6": "96.0%",
-      "m12": "114.0%",
-      "m1Projected": false,
-      "m3Projected": true,
-      "m6Projected": true,
-      "m12Projected": true
-    },
-    {
-      "spendUsd": 67835,
-      "cohort": "March 2026",
-      "spend": "$67,835",
-      "newCustomers": 740,
-      "cpa": "$92",
-      "upsell": "$3,053.80",
-      "upsellCount": 279,
-      "avg": "$10.95",
-      "d0Rev": "$19,486",
-      "revToDate": "$21,070",
-      "d0Roas": "28.7%",
-      "roasToDate": "31.1%",
-      "m1": "38.2%",
-      "m3": "65.5%",
-      "m6": "79.7%",
-      "m12": "93.7%",
-      "m1Projected": true,
-      "m3Projected": true,
-      "m6Projected": true,
-      "m12Projected": true
-    },
-    {
-      "spendUsd": 14726,
-      "cohort": "April 2026",
-      "spend": "$14,726",
-      "newCustomers": 171,
-      "cpa": "$86",
-      "upsell": "$1,428.28",
-      "upsellCount": 102,
-      "avg": "$14.00",
-      "d0Rev": "$5,310",
-      "revToDate": "$5,203",
-      "d0Roas": "36.1%",
-      "roasToDate": "35.3%",
-      "m1": "47.5%",
-      "m3": "81.6%",
-      "m6": "99.3%",
-      "m12": "115.6%",
-      "m1Projected": true,
-      "m3Projected": true,
-      "m6Projected": true,
-      "m12Projected": true
-    }
-  ],
+  "monthly": {
+    "chart": [
+      {
+        "cohort": "January",
+        "paidRate": 91.1,
+        "activeRate": 51.3,
+        "repeatRate": 50.7,
+        "threePlusRate": 16.9
+      },
+      {
+        "cohort": "February",
+        "paidRate": 90.4,
+        "activeRate": 63.4,
+        "repeatRate": 47.6,
+        "threePlusRate": 10.4
+      },
+      {
+        "cohort": "March",
+        "paidRate": 90.3,
+        "activeRate": 75.6,
+        "repeatRate": 40.5,
+        "threePlusRate": 2.3
+      },
+      {
+        "cohort": "April",
+        "paidRate": 87.1,
+        "activeRate": 86.6,
+        "repeatRate": 54.1,
+        "threePlusRate": 0.5
+      }
+    ],
+    "rows": [
+      {
+        "spendUsd": 54845.58,
+        "cohort": "January 2026",
+        "spend": "\u20ac54,846",
+        "newCustomers": 889,
+        "cpa": "\u20ac62",
+        "upsell": "\u20ac2,440.98",
+        "upsellCount": 280,
+        "avg": "\u20ac8.72",
+        "d0Rev": "\u20ac22,106",
+        "revToDate": "\u20ac35,762",
+        "refunds": "\u20ac1,224",
+        "disputeLosses": "\u20ac273",
+        "d0Roas": "40.3%",
+        "roasToDate": "65.2%",
+        "m1": "51.7%",
+        "m2": "59.0%",
+        "m3": "94.1%",
+        "m6": "115.1%",
+        "m12": "135.1%",
+        "m1Projected": false,
+        "m2Projected": false,
+        "m3Projected": true,
+        "m6Projected": true,
+        "m12Projected": true
+      },
+      {
+        "spendUsd": 54861.0,
+        "cohort": "February 2026",
+        "spend": "\u20ac54,861",
+        "newCustomers": 874,
+        "cpa": "\u20ac63",
+        "upsell": "\u20ac2,883.34",
+        "upsellCount": 327,
+        "avg": "\u20ac8.82",
+        "d0Rev": "\u20ac22,648",
+        "revToDate": "\u20ac30,151",
+        "refunds": "\u20ac285",
+        "disputeLosses": "\u20ac34",
+        "d0Roas": "41.3%",
+        "roasToDate": "55.0%",
+        "m1": "53.4%",
+        "m2": "59.4%",
+        "m3": "90.9%",
+        "m6": "111.3%",
+        "m12": "132.4%",
+        "m1Projected": false,
+        "m2Projected": true,
+        "m3Projected": true,
+        "m6Projected": true,
+        "m12Projected": true
+      },
+      {
+        "spendUsd": 58689.0,
+        "cohort": "March 2026",
+        "spend": "\u20ac58,689",
+        "newCustomers": 740,
+        "cpa": "\u20ac79",
+        "upsell": "\u20ac2,638.97",
+        "upsellCount": 279,
+        "avg": "\u20ac9.46",
+        "d0Rev": "\u20ac19,558",
+        "revToDate": "\u20ac21,229",
+        "refunds": "\u20ac249",
+        "disputeLosses": "\u20ac25",
+        "d0Roas": "33.3%",
+        "roasToDate": "36.2%",
+        "m1": "44.3%",
+        "m2": "51.9%",
+        "m3": "75.8%",
+        "m6": "92.1%",
+        "m12": "108.2%",
+        "m1Projected": true,
+        "m2Projected": true,
+        "m3Projected": true,
+        "m6Projected": true,
+        "m12Projected": true
+      },
+      {
+        "spendUsd": 14852.7,
+        "cohort": "April 2026",
+        "spend": "\u20ac14,853",
+        "newCustomers": 171,
+        "cpa": "\u20ac87",
+        "upsell": "\u20ac1,234.08",
+        "upsellCount": 102,
+        "avg": "\u20ac12.10",
+        "d0Rev": "\u20ac5,179",
+        "revToDate": "\u20ac5,179",
+        "refunds": "\u20ac61",
+        "disputeLosses": "\u20ac0",
+        "d0Roas": "34.9%",
+        "roasToDate": "34.9%",
+        "m1": "46.2%",
+        "m2": "54.0%",
+        "m3": "79.8%",
+        "m6": "97.4%",
+        "m12": "113.4%",
+        "m1Projected": true,
+        "m2Projected": true,
+        "m3Projected": true,
+        "m6Projected": true,
+        "m12Projected": true
+      }
+    ]
+  },
+  "weekly": {
+    "chart": [
+      {
+        "cohort": "W01",
+        "paidRate": 90.2,
+        "activeRate": 34.5,
+        "repeatRate": 62.6,
+        "threePlusRate": 23.0
+      },
+      {
+        "cohort": "W02",
+        "paidRate": 90.9,
+        "activeRate": 55.1,
+        "repeatRate": 46.6,
+        "threePlusRate": 17.6
+      },
+      {
+        "cohort": "W03",
+        "paidRate": 91.6,
+        "activeRate": 53.0,
+        "repeatRate": 49.0,
+        "threePlusRate": 17.3
+      },
+      {
+        "cohort": "W04",
+        "paidRate": 91.5,
+        "activeRate": 56.0,
+        "repeatRate": 51.4,
+        "threePlusRate": 12.8
+      },
+      {
+        "cohort": "W05",
+        "paidRate": 92.2,
+        "activeRate": 55.5,
+        "repeatRate": 46.5,
+        "threePlusRate": 15.5
+      },
+      {
+        "cohort": "W06",
+        "paidRate": 86.3,
+        "activeRate": 59.4,
+        "repeatRate": 46.6,
+        "threePlusRate": 11.9
+      },
+      {
+        "cohort": "W07",
+        "paidRate": 90.4,
+        "activeRate": 67.4,
+        "repeatRate": 49.1,
+        "threePlusRate": 11.3
+      },
+      {
+        "cohort": "W08",
+        "paidRate": 90.3,
+        "activeRate": 64.6,
+        "repeatRate": 47.1,
+        "threePlusRate": 8.9
+      },
+      {
+        "cohort": "W09",
+        "paidRate": 94.0,
+        "activeRate": 72.5,
+        "repeatRate": 47.0,
+        "threePlusRate": 6.0
+      },
+      {
+        "cohort": "W10",
+        "paidRate": 93.5,
+        "activeRate": 70.6,
+        "repeatRate": 43.8,
+        "threePlusRate": 2.0
+      },
+      {
+        "cohort": "W11",
+        "paidRate": 88.9,
+        "activeRate": 76.4,
+        "repeatRate": 29.3,
+        "threePlusRate": 0.5
+      },
+      {
+        "cohort": "W12",
+        "paidRate": 89.8,
+        "activeRate": 78.5,
+        "repeatRate": 36.7,
+        "threePlusRate": 1.1
+      },
+      {
+        "cohort": "W13",
+        "paidRate": 83.2,
+        "activeRate": 82.3,
+        "repeatRate": 49.6,
+        "threePlusRate": 0.0
+      },
+      {
+        "cohort": "W14",
+        "paidRate": 87.2,
+        "activeRate": 86.6,
+        "repeatRate": 55.2,
+        "threePlusRate": 0.6
+      }
+    ],
+    "rows": [
+      {
+        "spendUsd": 10676.0,
+        "cohort": "Jan 1-Jan 7",
+        "spend": "\u20ac10,676",
+        "newCustomers": 170,
+        "cpa": "\u20ac63",
+        "upsell": "\u20ac452.08",
+        "upsellCount": 53,
+        "avg": "\u20ac8.53",
+        "d0Rev": "\u20ac4,161",
+        "revToDate": "\u20ac8,792",
+        "refunds": "\u20ac431",
+        "disputeLosses": "\u20ac96",
+        "d0Roas": "39.0%",
+        "roasToDate": "82.4%",
+        "m1": "46.2%",
+        "m2": "52.6%",
+        "m3": "82.4%",
+        "m6": "113.9%",
+        "m12": "134.4%",
+        "m1Projected": false,
+        "m2Projected": false,
+        "m3Projected": false,
+        "m6Projected": true,
+        "m12Projected": true
+      },
+      {
+        "spendUsd": 9646.0,
+        "cohort": "Jan 8-Jan 14",
+        "spend": "\u20ac9,646",
+        "newCustomers": 165,
+        "cpa": "\u20ac58",
+        "upsell": "\u20ac385.99",
+        "upsellCount": 45,
+        "avg": "\u20ac8.58",
+        "d0Rev": "\u20ac4,196",
+        "revToDate": "\u20ac6,551",
+        "refunds": "\u20ac330",
+        "disputeLosses": "\u20ac34",
+        "d0Roas": "43.5%",
+        "roasToDate": "67.9%",
+        "m1": "55.8%",
+        "m2": "64.7%",
+        "m3": "100.9%",
+        "m6": "122.0%",
+        "m12": "143.9%",
+        "m1Projected": false,
+        "m2Projected": false,
+        "m3Projected": true,
+        "m6Projected": true,
+        "m12Projected": true
+      },
+      {
+        "spendUsd": 10762.0,
+        "cohort": "Jan 15-Jan 21",
+        "spend": "\u20ac10,762",
+        "newCustomers": 188,
+        "cpa": "\u20ac57",
+        "upsell": "\u20ac523.03",
+        "upsellCount": 61,
+        "avg": "\u20ac8.57",
+        "d0Rev": "\u20ac4,648",
+        "revToDate": "\u20ac7,066",
+        "refunds": "\u20ac311",
+        "disputeLosses": "\u20ac0",
+        "d0Roas": "43.2%",
+        "roasToDate": "65.7%",
+        "m1": "56.6%",
+        "m2": "65.3%",
+        "m3": "104.5%",
+        "m6": "126.6%",
+        "m12": "145.5%",
+        "m1Projected": false,
+        "m2Projected": false,
+        "m3Projected": true,
+        "m6Projected": true,
+        "m12Projected": true
+      },
+      {
+        "spendUsd": 18236.0,
+        "cohort": "Jan 22-Jan 28",
+        "spend": "\u20ac18,236",
+        "newCustomers": 265,
+        "cpa": "\u20ac69",
+        "upsell": "\u20ac829.44",
+        "upsellCount": 93,
+        "avg": "\u20ac8.92",
+        "d0Rev": "\u20ac6,739",
+        "revToDate": "\u20ac9,793",
+        "refunds": "\u20ac102",
+        "disputeLosses": "\u20ac143",
+        "d0Roas": "37.0%",
+        "roasToDate": "53.7%",
+        "m1": "47.2%",
+        "m2": "53.7%",
+        "m3": "85.1%",
+        "m6": "104.8%",
+        "m12": "123.5%",
+        "m1Projected": false,
+        "m2Projected": false,
+        "m3Projected": true,
+        "m6Projected": true,
+        "m12Projected": true
+      },
+      {
+        "spendUsd": 13271.0,
+        "cohort": "Jan 29-Feb 4",
+        "spend": "\u20ac13,271",
+        "newCustomers": 230,
+        "cpa": "\u20ac58",
+        "upsell": "\u20ac729.08",
+        "upsellCount": 82,
+        "avg": "\u20ac8.89",
+        "d0Rev": "\u20ac5,605",
+        "revToDate": "\u20ac8,268",
+        "refunds": "\u20ac68",
+        "disputeLosses": "\u20ac0",
+        "d0Roas": "42.2%",
+        "roasToDate": "62.3%",
+        "m1": "55.7%",
+        "m2": "62.3%",
+        "m3": "92.9%",
+        "m6": "114.8%",
+        "m12": "136.1%",
+        "m1Projected": false,
+        "m2Projected": false,
+        "m3Projected": true,
+        "m6Projected": true,
+        "m12Projected": true
+      },
+      {
+        "spendUsd": 12034.0,
+        "cohort": "Feb 5-Feb 11",
+        "spend": "\u20ac12,034",
+        "newCustomers": 192,
+        "cpa": "\u20ac63",
+        "upsell": "\u20ac657.03",
+        "upsellCount": 74,
+        "avg": "\u20ac8.88",
+        "d0Rev": "\u20ac5,023",
+        "revToDate": "\u20ac6,796",
+        "refunds": "\u20ac89",
+        "disputeLosses": "\u20ac21",
+        "d0Roas": "41.7%",
+        "roasToDate": "56.5%",
+        "m1": "54.2%",
+        "m2": "59.2%",
+        "m3": "91.0%",
+        "m6": "111.6%",
+        "m12": "132.8%",
+        "m1Projected": false,
+        "m2Projected": true,
+        "m3Projected": true,
+        "m6Projected": true,
+        "m12Projected": true
+      },
+      {
+        "spendUsd": 13453.0,
+        "cohort": "Feb 12-Feb 18",
+        "spend": "\u20ac13,453",
+        "newCustomers": 211,
+        "cpa": "\u20ac64",
+        "upsell": "\u20ac753.82",
+        "upsellCount": 85,
+        "avg": "\u20ac8.87",
+        "d0Rev": "\u20ac5,643",
+        "revToDate": "\u20ac7,399",
+        "refunds": "\u20ac96",
+        "disputeLosses": "\u20ac0",
+        "d0Roas": "41.9%",
+        "roasToDate": "55.0%",
+        "m1": "53.7%",
+        "m2": "58.1%",
+        "m3": "89.3%",
+        "m6": "109.3%",
+        "m12": "130.8%",
+        "m1Projected": false,
+        "m2Projected": true,
+        "m3Projected": true,
+        "m6Projected": true,
+        "m12Projected": true
+      },
+      {
+        "spendUsd": 15729.0,
+        "cohort": "Feb 19-Feb 25",
+        "spend": "\u20ac15,729",
+        "newCustomers": 234,
+        "cpa": "\u20ac67",
+        "upsell": "\u20ac762.27",
+        "upsellCount": 88,
+        "avg": "\u20ac8.66",
+        "d0Rev": "\u20ac5,961",
+        "revToDate": "\u20ac7,766",
+        "refunds": "\u20ac61",
+        "disputeLosses": "\u20ac13",
+        "d0Roas": "37.9%",
+        "roasToDate": "49.4%",
+        "m1": "47.8%",
+        "m2": "58.8%",
+        "m3": "87.0%",
+        "m6": "106.0%",
+        "m12": "125.1%",
+        "m1Projected": false,
+        "m2Projected": true,
+        "m3Projected": true,
+        "m6Projected": true,
+        "m12Projected": true
+      },
+      {
+        "spendUsd": 14084.0,
+        "cohort": "Feb 26-Mar 4",
+        "spend": "\u20ac14,084",
+        "newCustomers": 238,
+        "cpa": "\u20ac59",
+        "upsell": "\u20ac624.46",
+        "upsellCount": 71,
+        "avg": "\u20ac8.80",
+        "d0Rev": "\u20ac6,184",
+        "revToDate": "\u20ac7,993",
+        "refunds": "\u20ac44",
+        "disputeLosses": "\u20ac25",
+        "d0Roas": "43.9%",
+        "roasToDate": "56.8%",
+        "m1": "56.8%",
+        "m2": "64.9%",
+        "m3": "100.8%",
+        "m6": "124.3%",
+        "m12": "147.6%",
+        "m1Projected": false,
+        "m2Projected": true,
+        "m3Projected": true,
+        "m6Projected": true,
+        "m12Projected": true
+      },
+      {
+        "spendUsd": 14942.0,
+        "cohort": "Mar 5-Mar 11",
+        "spend": "\u20ac14,942",
+        "newCustomers": 189,
+        "cpa": "\u20ac79",
+        "upsell": "\u20ac619.67",
+        "upsellCount": 70,
+        "avg": "\u20ac8.85",
+        "d0Rev": "\u20ac5,063",
+        "revToDate": "\u20ac5,626",
+        "refunds": "\u20ac71",
+        "disputeLosses": "\u20ac0",
+        "d0Roas": "33.9%",
+        "roasToDate": "37.7%",
+        "m1": "44.0%",
+        "m2": "50.9%",
+        "m3": "75.3%",
+        "m6": "91.7%",
+        "m12": "108.5%",
+        "m1Projected": true,
+        "m2Projected": true,
+        "m3Projected": true,
+        "m6Projected": true,
+        "m12Projected": true
+      },
+      {
+        "spendUsd": 14952.0,
+        "cohort": "Mar 12-Mar 18",
+        "spend": "\u20ac14,952",
+        "newCustomers": 185,
+        "cpa": "\u20ac81",
+        "upsell": "\u20ac525.97",
+        "upsellCount": 59,
+        "avg": "\u20ac8.91",
+        "d0Rev": "\u20ac4,601",
+        "revToDate": "\u20ac4,601",
+        "refunds": "\u20ac0",
+        "disputeLosses": "\u20ac0",
+        "d0Roas": "30.8%",
+        "roasToDate": "30.8%",
+        "m1": "41.6%",
+        "m2": "49.1%",
+        "m3": "71.2%",
+        "m6": "86.4%",
+        "m12": "101.1%",
+        "m1Projected": true,
+        "m2Projected": true,
+        "m3Projected": true,
+        "m6Projected": true,
+        "m12Projected": true
+      },
+      {
+        "spendUsd": 11061.0,
+        "cohort": "Mar 19-Mar 25",
+        "spend": "\u20ac11,061",
+        "newCustomers": 161,
+        "cpa": "\u20ac69",
+        "upsell": "\u20ac628.60",
+        "upsellCount": 62,
+        "avg": "\u20ac10.14",
+        "d0Rev": "\u20ac4,091",
+        "revToDate": "\u20ac4,091",
+        "refunds": "\u20ac109",
+        "disputeLosses": "\u20ac0",
+        "d0Roas": "37.0%",
+        "roasToDate": "37.0%",
+        "m1": "50.6%",
+        "m2": "60.0%",
+        "m3": "84.9%",
+        "m6": "102.5%",
+        "m12": "119.1%",
+        "m1Projected": true,
+        "m2Projected": true,
+        "m3Projected": true,
+        "m6Projected": true,
+        "m12Projected": true
+      },
+      {
+        "spendUsd": 10679.0,
+        "cohort": "Mar 26-Apr 1",
+        "spend": "\u20ac10,679",
+        "newCustomers": 95,
+        "cpa": "\u20ac112",
+        "upsell": "\u20ac609.07",
+        "upsellCount": 53,
+        "avg": "\u20ac11.49",
+        "d0Rev": "\u20ac2,948",
+        "revToDate": "\u20ac2,948",
+        "refunds": "\u20ac60",
+        "disputeLosses": "\u20ac0",
+        "d0Roas": "27.6%",
+        "roasToDate": "27.6%",
+        "m1": "36.4%",
+        "m2": "42.4%",
+        "m3": "60.3%",
+        "m6": "72.7%",
+        "m12": "85.7%",
+        "m1Projected": true,
+        "m2Projected": true,
+        "m3Projected": true,
+        "m6Projected": true,
+        "m12Projected": true
+      },
+      {
+        "spendUsd": 12968.19,
+        "cohort": "Apr 2-Apr 8",
+        "spend": "\u20ac12,968",
+        "newCustomers": 151,
+        "cpa": "\u20ac86",
+        "upsell": "\u20ac1,096.86",
+        "upsellCount": 92,
+        "avg": "\u20ac11.92",
+        "d0Rev": "\u20ac4,630",
+        "revToDate": "\u20ac4,630",
+        "refunds": "\u20ac48",
+        "disputeLosses": "\u20ac0",
+        "d0Roas": "35.7%",
+        "roasToDate": "35.7%",
+        "m1": "47.0%",
+        "m2": "54.7%",
+        "m3": "81.0%",
+        "m6": "98.7%",
+        "m12": "115.3%",
+        "m1Projected": true,
+        "m2Projected": true,
+        "m3Projected": true,
+        "m6Projected": true,
+        "m12Projected": true
+      }
+    ]
+  },
   "totals": {
     "customers": 2907,
     "paid_customers": 2627,
@@ -489,13 +1022,25 @@
     "repeat_customers": 1368
   }
 };
+    let activeView = "monthly";
 
     function renderTable() {
       const tbody = document.getElementById("tbody");
+      const view = payload[activeView];
       const milestoneCell = (value, projected) => `<td class="${projected ? 'projected' : 'actual'}">${value}</td>`;
-      tbody.innerHTML = payload.rows.map((row) => `
+      const cohortCell = (label) => {
+        if (activeView !== "weekly") {
+          return `<td class="cohort">${label}</td>`;
+        }
+        const parts = label.split(" · ");
+        if (parts.length !== 2) {
+          return `<td class="cohort">${label}</td>`;
+        }
+        return `<td class="cohort"><span class="cohort-code">${parts[0]}</span><span class="cohort-range">${parts[1]}</span></td>`;
+      };
+      tbody.innerHTML = view.rows.map((row) => `
         <tr>
-          <td class="cohort">${row.cohort}</td>
+          ${cohortCell(row.cohort)}
           <td class="money">${row.spend}</td>
           <td>${row.newCustomers.toLocaleString()}</td>
           <td class="muted">${row.cpa}</td>
@@ -504,9 +1049,12 @@
           <td class="muted">${row.avg}</td>
           <td>${row.d0Rev}</td>
           <td>${row.revToDate}</td>
+          <td class="metric-red">${row.refunds}</td>
+          <td class="metric-red">${row.disputeLosses}</td>
           <td class="metric-amber">${row.d0Roas}</td>
           <td class="metric-blue">${row.roasToDate}</td>
           ${milestoneCell(row.m1, row.m1Projected)}
+          ${milestoneCell(row.m2, row.m2Projected)}
           ${milestoneCell(row.m3, row.m3Projected)}
           ${milestoneCell(row.m6, row.m6Projected)}
           ${milestoneCell(row.m12, row.m12Projected)}
@@ -516,13 +1064,14 @@
 
     function renderChart() {
       const svg = document.getElementById("chart");
+      const view = payload[activeView];
       const width = 1320;
       const height = 380;
       const margin = { top: 30, right: 20, bottom: 70, left: 72 };
       const innerWidth = width - margin.left - margin.right;
       const innerHeight = height - margin.top - margin.bottom;
       const maxValue = 100;
-      const groups = payload.chart.length;
+      const groups = view.chart.length;
       const groupWidth = innerWidth / groups;
       const barWidth = Math.min(40, groupWidth / 5.5);
       const series = [
@@ -542,7 +1091,7 @@
         markup += `<text x="${margin.left - 14}" y="${yPos + 4}" fill="#9cadca" text-anchor="end" font-size="12">${tick}%</text>`;
       });
 
-      payload.chart.forEach((row, groupIndex) => {
+      view.chart.forEach((row, groupIndex) => {
         const startX = margin.left + groupIndex * groupWidth + (groupWidth - barWidth * 4 - 18) / 2;
         series.forEach(([key, color], seriesIndex) => {
           const value = row[key];
@@ -557,8 +1106,24 @@
       svg.innerHTML = markup;
     }
 
-    renderTable();
-    renderChart();
+    function setView(nextView) {
+      activeView = nextView;
+      document.querySelectorAll(".tab-button").forEach((button) => {
+        button.classList.toggle("active", button.dataset.view === nextView);
+      });
+      document.getElementById("section-note").textContent =
+        nextView === "monthly"
+          ? "Grouped bar chart for the four key rates available in the export."
+          : "Weekly cohort comparison using the same rate definitions and milestone table.";
+      renderTable();
+      renderChart();
+    }
+
+    document.querySelectorAll(".tab-button").forEach((button) => {
+      button.addEventListener("click", () => setView(button.dataset.view));
+    });
+
+    setView("monthly");
   </script>
 </body>
 </html>
