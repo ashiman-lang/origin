@@ -401,8 +401,11 @@
     <section class="card footer-note">
       Revenue is shown in EUR and uses Stripe converted transaction amounts. Cohort membership and new-customer counts
       come from the customer export. Closed M1/M2/M3 values use transaction revenue through the milestone cutoff,
-      while projected milestones use benchmark retention schedules. Upsell comes from first-day paid invoice
-      transactions in the payments export. Spend comes from the daily spend export in EUR, with January overridden
+      while projected milestones use each customer's real subscription intro and full renewal price with benchmark
+      retention percentages by plan family. Monthly benchmark retention used: M1 55%, M2 38%, M3 20%, M4 14%,
+      M5 7%, M6 5%, M7 3%. Quarterly benchmark retention used: M3 50%, M6 28%, M9 18%, M12 12%. Annual benchmark
+      retention used: M12 30%. Upsell comes from first-day paid invoice transactions in the payments export and is
+      included in cumulative predicted ROAS. Spend comes from the daily spend export in EUR, with January overridden
       from your screenshot values where the spend export was incomplete.
     </section>
   </div>
