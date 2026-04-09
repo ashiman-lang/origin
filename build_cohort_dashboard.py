@@ -160,12 +160,12 @@ RETENTION_RATE_BENCHMARKS = {
     "annual": {12: 0.30},
 }
 PLAN_REVENUE_SCHEDULES = {
-    "monthly_19_60": {"family": "monthly", "intro": 19.60, "months": {1: 21.80, 2: 15.07, 3: 8.13, 4: 5.60, 5: 2.80, 6: 2.00, 7: 1.20}},
-    "monthly_15_60": {"family": "monthly", "intro": 15.60, "months": {1: 21.80, 2: 15.07, 3: 8.13, 4: 5.60, 5: 2.80, 6: 2.00, 7: 1.20}},
-    "quarterly_32_00": {"family": "quarterly", "intro": 32.00, "months": {3: 40.00, 6: 22.40, 9: 14.40, 12: 9.60}},
-    "quarterly_23_99": {"family": "quarterly", "intro": 23.99, "months": {3: 40.00, 4: 0.00, 5: 0.00, 6: 22.40, 7: 0.00, 8: 0.00, 9: 14.40, 10: 0.00, 11: 0.00, 12: 9.60}},
-    "annual_58_80": {"family": "annual", "intro": 58.80, "months": {12: 36.00}},
-    "annual_46_80": {"family": "annual", "intro": 46.80, "months": {12: 36.00}},
+    "monthly_19_60": {"family": "monthly", "intro": 19.60, "full_price": 39.99},
+    "monthly_15_60": {"family": "monthly", "intro": 15.60, "full_price": 39.99},
+    "quarterly_32_00": {"family": "quarterly", "intro": 32.00, "full_price": 79.99},
+    "quarterly_23_99": {"family": "quarterly", "intro": 23.99, "full_price": 79.99},
+    "annual_58_80": {"family": "annual", "intro": 58.80, "full_price": 119.99},
+    "annual_46_80": {"family": "annual", "intro": 46.80, "full_price": 119.99},
 }
 BLANK_SPEND_PATTERNS = {
     "usd": [
@@ -490,14 +490,60 @@ def plan_full_price_usd(plan_id: str, month_key: str) -> float | None:
     )
 
 
+def plan_full_price_eur(plan_id: str, month_key: str) -> float | None:
+    if not plan_id:
+        return None
+    meta = load_price_catalog().get(plan_id)
+    if not meta:
+        return None
+    if not is_core_subscription_plan(plan_id):
+        return None
+    return convert_to_eur(
+        parse_amount(meta.get("Amount", "0")),
+        meta.get("Currency", ""),
+        month_key,
+    )
+
+
+def load_subscription_creation_amounts() -> dict[str, float]:
+    cached = getattr(load_subscription_creation_amounts, "_cache", None)
+    if cached is not None:
+        return cached
+
+    first_amounts: dict[str, tuple[date, float]] = {}
+    for payment in load_payments_rows():
+        if payment.get("Status") != "Paid":
+            continue
+        customer_id = (payment.get("Customer ID") or "").strip()
+        if not customer_id:
+            continue
+        description = (payment.get("Description") or "").strip()
+        if description != "Subscription creation":
+            continue
+        created_raw = (payment.get("Created date (UTC)") or "")[:10]
+        if not created_raw:
+            continue
+        payment_date = datetime.strptime(created_raw, "%Y-%m-%d").date()
+        amount_eur = parse_amount(payment.get("Converted Amount", "0")) - parse_amount(payment.get("Converted Amount Refunded", "0"))
+        if amount_eur <= 0:
+            continue
+        existing = first_amounts.get(customer_id)
+        if existing is None or payment_date < existing[0]:
+            first_amounts[customer_id] = (payment_date, amount_eur)
+
+    result = {customer_id: amount for customer_id, (_, amount) in first_amounts.items()}
+    load_subscription_creation_amounts._cache = result
+    return result
+
+
 def infer_blank_usd_projection(total_spend: float) -> tuple[str, float] | None:
     candidates = [
-        ("monthly", 39.99, 16.80, 34.27),
-        ("monthly", 39.99, 13.37, 34.27),
-        ("quarterly", 79.99, 27.42, 57.92),
-        ("quarterly", 79.99, 20.57, 57.92),
-        ("annual", 119.99, 50.37, 0.0),
-        ("annual", 119.99, 40.09, 0.0),
+        ("monthly", 34.27, 16.80, 34.27),
+        ("monthly", 34.27, 13.37, 34.27),
+        ("quarterly", 57.92, 27.42, 57.92),
+        ("quarterly", 57.92, 20.57, 57.92),
+        ("annual", 102.85, 50.37, 0.0),
+        ("annual", 102.85, 40.09, 0.0),
     ]
     best: tuple[float, str, float] | None = None
     for family, full_price, intro, renewal in candidates:
@@ -549,16 +595,16 @@ def cumulative_from_blank_pattern(pattern: dict[str, float], billing_count: int)
     return intro
 
 
-def projection_spec_for_row(row: dict[str, str], month_key: str) -> tuple[str, float] | None:
+def projection_spec_for_row(row: dict[str, str], month_key: str, first_subscription_amount_eur: float | None = None) -> tuple[str, float] | None:
     plan_id = (row.get("Plan") or "").strip()
     currency = ((row.get("Currency") or "").strip() or "").lower()
     total_spend = parse_amount(row.get("Total Spend", "0"))
 
     if plan_id:
         family = classify_plan_family(plan_id, 0.0, currency)
-        full_price_usd = plan_full_price_usd(plan_id, month_key)
-        if family and full_price_usd:
-            return family, full_price_usd
+        full_price_eur = plan_full_price_eur(plan_id, month_key)
+        if family and full_price_eur:
+            return family, full_price_eur
         return None
 
     if currency == "usd":
@@ -567,9 +613,9 @@ def projection_spec_for_row(row: dict[str, str], month_key: str) -> tuple[str, f
     return None
 
 
-def projected_family_revenue(family: str, full_price_usd: float, milestone_months: int) -> float:
+def projected_family_revenue(family: str, full_price_eur: float, milestone_months: int) -> float:
     return sum(
-        full_price_usd * retention
+        full_price_eur * retention
         for month_number, retention in RETENTION_RATE_BENCHMARKS[family].items()
         if month_number <= milestone_months
     )
@@ -585,31 +631,13 @@ def required_payment_count(family: str, month_number: int) -> int:
     return 1
 
 
-def choose_plan_schedule(family: str, first_charge_usd: float) -> str | None:
-    options = [key for key, meta in PLAN_REVENUE_SCHEDULES.items() if meta["family"] == family]
-    if not options:
-        return None
-    best_key = min(options, key=lambda key: abs(first_charge_usd - PLAN_REVENUE_SCHEDULES[key]["intro"]))
-    if abs(first_charge_usd - PLAN_REVENUE_SCHEDULES[best_key]["intro"]) <= 4.0:
-        return best_key
-    return None
-
-
 def projected_benchmark_revenue(
     family: str,
-    full_price_usd: float,
-    schedule_key: str | None,
+    full_price_eur: float,
     milestone_months: int,
 ) -> float:
-    if schedule_key:
-        schedule = PLAN_REVENUE_SCHEDULES[schedule_key]
-        return sum(
-            amount
-            for month_number, amount in schedule["months"].items()
-            if month_number <= milestone_months
-        )
     return sum(
-        full_price_usd * retention
+        full_price_eur * retention
         for month_number, retention in RETENTION_RATE_BENCHMARKS[family].items()
         if month_number <= milestone_months
     )
@@ -762,6 +790,18 @@ def convert_to_usd(amount: float, currency: str, month_key: str) -> float:
     return amount / cur_per_eur * usd_per_eur
 
 
+def convert_to_eur(amount: float, currency: str, month_key: str) -> float:
+    code = (currency or "UNKNOWN").upper()
+    if amount == 0:
+        return 0.0
+    if code in {"EUR", "UNKNOWN"}:
+        return amount
+    cur_per_eur = ECB_CUR_PER_EUR[month_key].get(code)
+    if not cur_per_eur:
+        return 0.0
+    return amount / cur_per_eur
+
+
 def summarize_revenue_usd(rows: list[dict[str, str]]) -> float:
     total = 0.0
     for row in rows:
@@ -827,6 +867,7 @@ def build_metrics(
     customers_with_payment = sum(count >= 1 for count in payment_counts)
     first_charge_lookup = load_first_charge_lookup()
     cumulative_charge_lookup = load_cumulative_charge_lookup()
+    subscription_creation_amounts = load_subscription_creation_amounts()
     m1_subscription_counts = subscription_billing_counts_through(rows, add_months(cohort_end_date, 1))
     m2_subscription_counts = subscription_billing_counts_through(rows, add_months(cohort_end_date, 2))
     m3_subscription_counts = subscription_billing_counts_through(rows, add_months(cohort_end_date, 3))
@@ -847,32 +888,30 @@ def build_metrics(
             (row.get("Currency") or "").strip() or "blank",
         )
         plan_id = (row.get("Plan") or "").strip()
+        customer_id = (row.get("id") or "").strip()
         first_charge = first_charge_lookup.get(key)
         if first_charge is None:
             first_charge = parse_amount(row.get("Total Spend", "0")) if parse_amount(row.get("Total Spend", "0")) > 0 else 0.0
         created_date = datetime.strptime((row.get("Created (UTC)") or "")[:10], "%Y-%m-%d").date()
         age_days = (CURRENT_DATE - created_date).days
         fx_month = (row.get("Created (UTC)") or "")[:7]
-        projection_spec = projection_spec_for_row(row, fx_month)
+        first_subscription_amount_eur = subscription_creation_amounts.get(customer_id)
+        projection_spec = projection_spec_for_row(row, fx_month, first_subscription_amount_eur)
         blank_pattern = None
         if not plan_id:
             blank_pattern = infer_blank_spend_pattern(parse_amount(row.get("Total Spend", "0")), key[1])
-        first_charge_usd = first_charge
-        schedule_key = None
-        if projection_spec:
-            family, _ = projection_spec
-            schedule_key = choose_plan_schedule(family, first_charge_usd)
-        prepared_rows.append((row, payment_count, key, plan_id, first_charge, first_charge_usd, age_days, projection_spec, schedule_key, fx_month, blank_pattern))
+        first_charge_eur = first_subscription_amount_eur if first_subscription_amount_eur is not None else first_charge
+        prepared_rows.append((row, payment_count, key, plan_id, first_charge, first_charge_eur, age_days, projection_spec, fx_month, blank_pattern))
 
-    for row, payment_count, key, plan_id, first_charge, first_charge_usd, age_days, projection_spec, schedule_key, fx_month, blank_pattern in prepared_rows:
-        d0_revenue_base += first_charge_usd
+    for row, payment_count, key, plan_id, first_charge, first_charge_eur, age_days, projection_spec, fx_month, blank_pattern in prepared_rows:
+        d0_revenue_base += first_charge_eur
         if projection_spec:
-            family, full_price_usd = projection_spec
-            projected["m1"] += projected_benchmark_revenue(family, full_price_usd, schedule_key, 1)
-            projected["m2"] += projected_benchmark_revenue(family, full_price_usd, schedule_key, 2)
-            projected["m3"] += projected_benchmark_revenue(family, full_price_usd, schedule_key, 3)
-            projected["m6"] += projected_benchmark_revenue(family, full_price_usd, schedule_key, 6)
-            projected["m12"] += projected_benchmark_revenue(family, full_price_usd, schedule_key, 12)
+            family, full_price_eur = projection_spec
+            projected["m1"] += projected_benchmark_revenue(family, full_price_eur, 1)
+            projected["m2"] += projected_benchmark_revenue(family, full_price_eur, 2)
+            projected["m3"] += projected_benchmark_revenue(family, full_price_eur, 3)
+            projected["m6"] += projected_benchmark_revenue(family, full_price_eur, 6)
+            projected["m12"] += projected_benchmark_revenue(family, full_price_eur, 12)
 
         customer_id = (row.get("id") or "").strip()
 
