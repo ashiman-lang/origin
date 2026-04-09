@@ -12,6 +12,7 @@ from statistics import median
 
 INPUT_CSV = Path("/Users/annashiman/Downloads/unified_customers (51).csv")
 PRICES_CSV = Path("/Users/annashiman/Downloads/prices (3).csv")
+PAYMENTS_CSV = Path("/Users/annashiman/Downloads/unified_payments (34).csv")
 OUTPUT_HTML = Path("/Users/annashiman/Documents/Playground/cohort_dashboard_jan_apr.html")
 PAGES_HTML = Path("/Users/annashiman/Documents/Playground/docs/index.html")
 NOJEKYLL_FILE = Path("/Users/annashiman/Documents/Playground/docs/.nojekyll")
@@ -632,48 +633,13 @@ def build_metrics(rows: list[dict[str, str]], month_key: str) -> CohortMetrics:
         m12_cumulative = cumulative_charge_lookup.get((key[0], key[1], m12_target_payment_count), first_charge)
         m12_revenue_actual += convert_to_usd(m12_cumulative, key[1], month_key)
 
-    hidden_upsell_rows = []
-    for row in rows:
-        currency = ((row.get("Currency") or "").strip() or "").lower()
-        if currency not in HIDDEN_UPSELL_UNITS:
-            continue
-        if not is_core_subscription_plan((row.get("Plan") or "").strip()):
-            continue
-        hidden_upsell_rows.append(row)
-
-    groups: defaultdict[tuple[str, str], list[float]] = defaultdict(list)
-    for row in hidden_upsell_rows:
-        key = (
-            (row.get("Plan") or "(blank)").strip() or "(blank)",
-            ((row.get("Currency") or "").strip() or "").lower(),
-        )
-        groups[key].append(round(parse_amount(row.get("Total Spend", "0")), 2))
-
-    baselines: dict[tuple[str, str], float] = {}
-    for key, values in groups.items():
-        positive_values = [value for value in values if value > 0]
-        if not positive_values:
-            baselines[key] = 0.0
-            continue
-        counts = Counter(positive_values)
-        baselines[key] = min(value for value, count in counts.items() if count == max(counts.values()))
-
-    upsell_count = 0
-    upsell_revenue = 0.0
-    for row in hidden_upsell_rows:
-        currency = ((row.get("Currency") or "").strip() or "").lower()
-        key = (
-            (row.get("Plan") or "(blank)").strip() or "(blank)",
-            currency,
-        )
-        residual = round(parse_amount(row.get("Total Spend", "0")) - baselines.get(key, 0.0), 2)
-        unit = HIDDEN_UPSELL_UNITS[currency]
-        multiple = round(residual / unit) if unit else 0
-        if residual <= 0.5:
-            continue
-        if multiple >= 1 and abs(residual - multiple * unit) <= 0.45:
-            upsell_count += 1
-            upsell_revenue += convert_to_usd(unit, currency.upper(), month_key)
+    transaction_upsell = compute_transaction_upsells().get(
+        month_key,
+        {"count": 0, "billing_count": 0, "revenue": 0.0},
+    )
+    upsell_count = int(transaction_upsell["count"])
+    upsell_billing_count = int(transaction_upsell["billing_count"])
+    upsell_revenue = float(transaction_upsell["revenue"])
 
     active_customers = sum((row.get("Status") or "") == "active" for row in rows)
     past_due_customers = sum((row.get("Status") or "") == "past_due" for row in rows)
@@ -701,7 +667,7 @@ def build_metrics(rows: list[dict[str, str]], month_key: str) -> CohortMetrics:
         m12_revenue=m12_revenue,
         net_revenue=summarize_revenue_usd(rows, month_key),
         upsell_count=upsell_count,
-        upsell_billing_count=upsell_count,
+        upsell_billing_count=upsell_billing_count,
         upsell_avg=(upsell_revenue / upsell_count) if upsell_count else 0.0,
         upsell_revenue=upsell_revenue,
         active_customers=active_customers,
@@ -726,6 +692,65 @@ def build_metrics(rows: list[dict[str, str]], month_key: str) -> CohortMetrics:
 def load_rows() -> list[dict[str, str]]:
     with INPUT_CSV.open(newline="", encoding="utf-8-sig") as handle:
         return list(csv.DictReader(handle))
+
+
+def load_payments_rows() -> list[dict[str, str]]:
+    cached = getattr(load_payments_rows, "_cache", None)
+    if cached is not None:
+        return cached
+
+    with PAYMENTS_CSV.open(newline="", encoding="utf-8-sig") as handle:
+        rows = list(csv.DictReader(handle))
+
+    load_payments_rows._cache = rows
+    return rows
+
+
+def compute_transaction_upsells() -> dict[str, dict[str, float]]:
+    cached = getattr(compute_transaction_upsells, "_cache", None)
+    if cached is not None:
+        return cached
+
+    cohort_map: dict[str, tuple[str, str]] = {}
+    for row in load_rows():
+        month_key = (row.get("Created (UTC)") or "")[:7]
+        if month_key in TARGET_MONTHS:
+            cohort_map[row["id"]] = (month_key, (row.get("Created (UTC)") or "")[:10])
+
+    paid_payments = [
+        row
+        for row in load_payments_rows()
+        if row.get("Status") == "Paid" and (row.get("Customer ID") or "") in cohort_map
+    ]
+
+    by_customer: defaultdict[str, list[dict[str, str]]] = defaultdict(list)
+    for row in paid_payments:
+        by_customer[row["Customer ID"]].append(row)
+
+    results = {
+        month_key: {"count": 0, "billing_count": 0, "revenue": 0.0}
+        for month_key in TARGET_MONTHS
+    }
+
+    for customer_id, items in by_customer.items():
+        month_key, cohort_day = cohort_map[customer_id]
+        first_day_items = [
+            row
+            for row in sorted(items, key=lambda value: value["Created date (UTC)"])
+            if (row.get("Created date (UTC)") or "")[:10] == cohort_day
+        ]
+        invoice_items = [row for row in first_day_items if row.get("Description") == "Payment for Invoice"]
+        if not invoice_items:
+            continue
+
+        results[month_key]["count"] += 1
+        results[month_key]["billing_count"] += len(invoice_items)
+        for row in invoice_items:
+            amount = parse_amount(row.get("Amount", "0")) - parse_amount(row.get("Amount Refunded", "0"))
+            results[month_key]["revenue"] += convert_to_usd(amount, row.get("Currency", ""), month_key)
+
+    compute_transaction_upsells._cache = results
+    return results
 
 
 def render_html(metrics: list[CohortMetrics]) -> str:
