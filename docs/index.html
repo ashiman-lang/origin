@@ -334,12 +334,10 @@
               <th>Spend</th>
               <th>New</th>
               <th>CPA</th>
-              <th>Sub D0</th>
               <th>Upsell</th>
               <th>#</th>
               <th>Avg</th>
               <th>D0 Rev</th>
-              <th>Renewals</th>
               <th>Rev To Date</th>
               <th>D0 ROAS</th>
               <th>ROAS To Date</th>
@@ -357,10 +355,8 @@
     <section class="card footer-note">
       Revenue is normalized to USD using official ECB reference rates. January to March use ECB monthly average rates,
       while April uses the ECB daily average for April 1-8, 2026 as a month-to-date proxy. Rows with blank currency
-      codes are treated as USD so they remain included. Upsell follows the earlier heuristic: we infer hidden upsells
-      from spend-pattern gaps above each plan/currency baseline, using the recurring add-on gap signatures from the
-      price sheet. To keep the signal stable, the hidden-upsell inference is limited to the core non-localized
-      subscription signatures.
+      codes are treated as USD so they remain included. Upsell comes from first-day paid invoice transactions in the
+      payments export, joined back to cohort customers.
     </section>
   </div>
 
@@ -403,12 +399,10 @@
       "spend": "$64,378",
       "newCustomers": 889,
       "cpa": "$72",
-      "subD0": "858",
       "upsell": "$2,862.88",
       "upsellCount": 280,
       "avg": "$10.22",
       "d0Rev": "$23,085",
-      "renewals": "\u2014",
       "revToDate": "$35,779",
       "d0Roas": "35.9%",
       "roasToDate": "55.6%",
@@ -427,12 +421,10 @@
       "spend": "$64,867",
       "newCustomers": 874,
       "cpa": "$74",
-      "subD0": "864",
       "upsell": "$3,408.71",
       "upsellCount": 327,
       "avg": "$10.42",
       "d0Rev": "$23,429",
-      "renewals": "\u2014",
       "revToDate": "$31,066",
       "d0Roas": "36.1%",
       "roasToDate": "47.9%",
@@ -451,12 +443,10 @@
       "spend": "$67,835",
       "newCustomers": 740,
       "cpa": "$92",
-      "subD0": "736",
       "upsell": "$3,053.80",
       "upsellCount": 279,
       "avg": "$10.95",
       "d0Rev": "$19,486",
-      "renewals": "\u2014",
       "revToDate": "$21,070",
       "d0Roas": "28.7%",
       "roasToDate": "31.1%",
@@ -475,12 +465,10 @@
       "spend": "$14,726",
       "newCustomers": 171,
       "cpa": "$86",
-      "subD0": "169",
       "upsell": "$1,428.28",
       "upsellCount": 102,
       "avg": "$14.00",
       "d0Rev": "$5,310",
-      "renewals": "\u2014",
       "revToDate": "$5,203",
       "d0Roas": "36.1%",
       "roasToDate": "35.3%",
@@ -511,12 +499,10 @@
           <td class="money">${row.spend}</td>
           <td>${row.newCustomers.toLocaleString()}</td>
           <td class="muted">${row.cpa}</td>
-          <td class="metric-cyan">${row.subD0}</td>
           <td class="metric-amber">${row.upsell}</td>
           <td class="muted">${row.upsellCount}</td>
           <td class="muted">${row.avg}</td>
           <td>${row.d0Rev}</td>
-          <td class="metric-violet">${row.renewals}</td>
           <td>${row.revToDate}</td>
           <td class="metric-amber">${row.d0Roas}</td>
           <td class="metric-blue">${row.roasToDate}</td>

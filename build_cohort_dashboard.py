@@ -781,12 +781,10 @@ def render_html(metrics: list[CohortMetrics]) -> str:
             "cpa": format_cpa(
                 SCREENSHOT_SPEND_USD.get(item.month_key, item.usd_revenue) / item.customers_with_payment
             ) if item.customers_with_payment else "—",
-            "subD0": f"{item.paid_customers:,}",
             "upsell": format_money_2(item.upsell_revenue),
             "upsellCount": item.upsell_count if item.upsell_count else "—",
             "avg": f"${item.upsell_avg:.2f}" if item.upsell_count else "—",
             "d0Rev": format_usd(item.d0_revenue),
-            "renewals": "—",
             "revToDate": format_usd(item.net_revenue),
             "d0Roas": f"{(item.d0_revenue / SCREENSHOT_SPEND_USD.get(item.month_key, item.usd_revenue) * 100):.1f}%" if SCREENSHOT_SPEND_USD.get(item.month_key, item.usd_revenue) else "—",
             "roasToDate": f"{(item.net_revenue / SCREENSHOT_SPEND_USD.get(item.month_key, item.usd_revenue) * 100):.1f}%" if SCREENSHOT_SPEND_USD.get(item.month_key, item.usd_revenue) else "—",
@@ -1140,12 +1138,10 @@ def render_html(metrics: list[CohortMetrics]) -> str:
               <th>Spend</th>
               <th>New</th>
               <th>CPA</th>
-              <th>Sub D0</th>
               <th>Upsell</th>
               <th>#</th>
               <th>Avg</th>
               <th>D0 Rev</th>
-              <th>Renewals</th>
               <th>Rev To Date</th>
               <th>D0 ROAS</th>
               <th>ROAS To Date</th>
@@ -1163,10 +1159,8 @@ def render_html(metrics: list[CohortMetrics]) -> str:
     <section class="card footer-note">
       Revenue is normalized to USD using official ECB reference rates. January to March use ECB monthly average rates,
       while April uses the ECB daily average for April 1-8, 2026 as a month-to-date proxy. Rows with blank currency
-      codes are treated as USD so they remain included. Upsell follows the earlier heuristic: we infer hidden upsells
-      from spend-pattern gaps above each plan/currency baseline, using the recurring add-on gap signatures from the
-      price sheet. To keep the signal stable, the hidden-upsell inference is limited to the core non-localized
-      subscription signatures.
+      codes are treated as USD so they remain included. Upsell comes from first-day paid invoice transactions in the
+      payments export, joined back to cohort customers.
     </section>
   </div>
 
@@ -1182,12 +1176,10 @@ def render_html(metrics: list[CohortMetrics]) -> str:
           <td class="money">${{row.spend}}</td>
           <td>${{row.newCustomers.toLocaleString()}}</td>
           <td class="muted">${{row.cpa}}</td>
-          <td class="metric-cyan">${{row.subD0}}</td>
           <td class="metric-amber">${{row.upsell}}</td>
           <td class="muted">${{row.upsellCount}}</td>
           <td class="muted">${{row.avg}}</td>
           <td>${{row.d0Rev}}</td>
-          <td class="metric-violet">${{row.renewals}}</td>
           <td>${{row.revToDate}}</td>
           <td class="metric-amber">${{row.d0Roas}}</td>
           <td class="metric-blue">${{row.roasToDate}}</td>
