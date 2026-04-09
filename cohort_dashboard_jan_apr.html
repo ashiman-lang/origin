@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>January-April Cohort Dashboard</title>
+  <style>
+    :root {
+      --bg: #0d1730;
+      --panel: #1d2940;
+      --panel-alt: #24324b;
+      --stroke: rgba(166, 183, 214, 0.18);
+      --text: #e7eefc;
+      --muted: #9cadca;
+      --cyan: #18c7f3;
+      --blue: #4f8bff;
+      --violet: #a45dff;
+      --amber: #ffb02e;
+      --green: #40d37d;
+      --red: #ff7d8f;
+      --shadow: 0 18px 50px rgba(3, 10, 28, 0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(24, 199, 243, 0.12), transparent 30%),
+        radial-gradient(circle at top right, rgba(164, 93, 255, 0.12), transparent 30%),
+        linear-gradient(180deg, #0f1a35 0%, #0b1428 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 40px 28px 56px;
+    }
+
+    .shell {
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 20px;
+      margin-bottom: 22px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(41, 56, 83, 0.95), rgba(27, 39, 61, 0.95));
+      border: 1px solid var(--stroke);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-copy {
+      padding: 28px;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--cyan);
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      line-height: 1;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      max-width: 52ch;
+      line-height: 1.6;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      padding: 18px;
+    }
+
+    .summary-pill {
+      background: rgba(12, 20, 38, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .summary-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .summary-value {
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+    }
+
+    .chart-card {
+      padding: 22px 22px 12px;
+      margin-bottom: 22px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .section-note {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend i {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .chart-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .table-card {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .table-scroll {
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-gutter: stable both-edges;
+    }
+
+    table {
+      width: 100%;
+      min-width: 1540px;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    th, td {
+      padding: 18px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+    }
+
+    td {
+      font-size: 0.97rem;
+    }
+
+    th:first-child,
+    td:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: linear-gradient(180deg, rgba(41, 56, 83, 0.98), rgba(27, 39, 61, 0.98));
+    }
+
+    th:first-child {
+      z-index: 2;
+    }
+
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .cohort {
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .money {
+      max-width: 220px;
+      color: #dce7ff;
+      line-height: 1.45;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .metric-cyan { color: var(--cyan); }
+    .metric-blue { color: var(--blue); }
+    .metric-violet { color: var(--violet); }
+    .metric-amber { color: var(--amber); }
+    .metric-green { color: var(--green); }
+    .metric-red { color: var(--red); }
+    .actual {
+      font-weight: 700;
+      color: #dfe8fb;
+    }
+    .projected {
+      font-style: italic;
+      color: #8fa0bf;
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      padding: 18px 22px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 1024px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 20px 14px 34px;
+      }
+
+      th, td {
+        padding: 14px 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="card hero-copy">
+        <div class="eyebrow">Customer Export Dashboard</div>
+        <h1>Jan-Apr 2026 Cohorts</h1>
+        <p class="subtitle">
+          A screenshot-style cohort dashboard built directly from the unified customer export. It compares January,
+          February, March, and April acquisition cohorts across payment depth, active status, and refund incidence.
+        </p>
+      </div>
+      <div class="card summary-grid">
+        <div class="summary-pill">
+          <div class="summary-label">Customers</div>
+          <div class="summary-value">2,907</div>
+        </div>
+        <div class="summary-pill">
+          <div class="summary-label">Paid Customers</div>
+          <div class="summary-value">2,627</div>
+        </div>
+        <div class="summary-pill">
+          <div class="summary-label">Active Customers</div>
+          <div class="summary-value">1,873</div>
+        </div>
+        <div class="summary-pill">
+          <div class="summary-label">Repeat Customers</div>
+          <div class="summary-value">1,368</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card chart-card">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Cohort Rate Comparison</h2>
+          <p class="section-note">Grouped bar chart for the four key rates available in the export.</p>
+        </div>
+        <div class="legend">
+          <span><i style="background: var(--cyan);"></i>Paid Rate</span>
+          <span><i style="background: var(--blue);"></i>Active Rate</span>
+          <span><i style="background: var(--violet);"></i>2+ Payments</span>
+          <span><i style="background: var(--amber);"></i>3+ Payments</span>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <svg id="chart" viewBox="0 0 1320 380" preserveAspectRatio="xMidYMid meet" aria-label="Cohort chart"></svg>
+      </div>
+    </section>
+
+    <section class="card table-card">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Cohort</th>
+              <th>Spend</th>
+              <th>New</th>
+              <th>CPA</th>
+              <th>Sub D0</th>
+              <th>Upsell</th>
+              <th>#</th>
+              <th>Avg</th>
+              <th>D0 Rev</th>
+              <th>Renewals</th>
+              <th>Rev To Date</th>
+              <th>D0 ROAS</th>
+              <th>ROAS To Date</th>
+              <th>M1</th>
+              <th>M3</th>
+              <th>M6</th>
+              <th>M12</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card footer-note">
+      Revenue is normalized to USD using official ECB reference rates. January to March use ECB monthly average rates,
+      while April uses the ECB daily average for April 1-8, 2026 as a month-to-date proxy. Rows with blank currency
+      codes are treated as USD so they remain included. Upsell follows the earlier heuristic: we infer hidden upsells
+      from spend-pattern gaps above each plan/currency baseline, using the recurring add-on gap signatures from the
+      price sheet. To keep the signal stable, the hidden-upsell inference is limited to the core non-localized
+      subscription signatures.
+    </section>
+  </div>
+
+  <script>
+    const payload = {
+  "chart": [
+    {
+      "cohort": "January",
+      "paidRate": 91.1,
+      "activeRate": 51.3,
+      "repeatRate": 50.7,
+      "threePlusRate": 16.9
+    },
+    {
+      "cohort": "February",
+      "paidRate": 90.4,
+      "activeRate": 63.4,
+      "repeatRate": 47.6,
+      "threePlusRate": 10.4
+    },
+    {
+      "cohort": "March",
+      "paidRate": 90.3,
+      "activeRate": 75.6,
+      "repeatRate": 40.5,
+      "threePlusRate": 2.3
+    },
+    {
+      "cohort": "April",
+      "paidRate": 87.1,
+      "activeRate": 86.6,
+      "repeatRate": 54.1,
+      "threePlusRate": 0.5
+    }
+  ],
+  "rows": [
+    {
+      "spendUsd": 64378,
+      "cohort": "January 2026",
+      "spend": "$64,378",
+      "newCustomers": 889,
+      "cpa": "$72",
+      "subD0": "858",
+      "upsell": "$2,390.96",
+      "upsellCount": 276,
+      "avg": "$8.66",
+      "d0Rev": "$22,613",
+      "renewals": "\u2014",
+      "revToDate": "$35,779",
+      "d0Roas": "35.1%",
+      "roasToDate": "55.6%",
+      "m1": "39.9%",
+      "m3": "81.1%",
+      "m6": "99.1%",
+      "m12": "116.3%",
+      "m1Projected": false,
+      "m3Projected": true,
+      "m6Projected": true,
+      "m12Projected": true
+    },
+    {
+      "spendUsd": 64867,
+      "cohort": "February 2026",
+      "spend": "$64,867",
+      "newCustomers": 874,
+      "cpa": "$74",
+      "subD0": "864",
+      "upsell": "$1,523.65",
+      "upsellCount": 167,
+      "avg": "$9.12",
+      "d0Rev": "$21,543",
+      "renewals": "\u2014",
+      "revToDate": "$31,066",
+      "d0Roas": "33.2%",
+      "roasToDate": "47.9%",
+      "m1": "42.0%",
+      "m3": "75.5%",
+      "m6": "93.0%",
+      "m12": "111.1%",
+      "m1Projected": false,
+      "m3Projected": true,
+      "m6Projected": true,
+      "m12Projected": true
+    },
+    {
+      "spendUsd": 67835,
+      "cohort": "March 2026",
+      "spend": "$67,835",
+      "newCustomers": 740,
+      "cpa": "$92",
+      "subD0": "736",
+      "upsell": "$2,062.82",
+      "upsellCount": 230,
+      "avg": "$8.97",
+      "d0Rev": "$18,495",
+      "renewals": "\u2014",
+      "revToDate": "$21,070",
+      "d0Roas": "27.3%",
+      "roasToDate": "31.1%",
+      "m1": "36.8%",
+      "m3": "64.1%",
+      "m6": "78.2%",
+      "m12": "92.3%",
+      "m1Projected": true,
+      "m3Projected": true,
+      "m6Projected": true,
+      "m12Projected": true
+    },
+    {
+      "spendUsd": 14726,
+      "cohort": "April 2026",
+      "spend": "$14,726",
+      "newCustomers": 171,
+      "cpa": "$86",
+      "subD0": "169",
+      "upsell": "$452.47",
+      "upsellCount": 52,
+      "avg": "$8.70",
+      "d0Rev": "$4,334",
+      "renewals": "\u2014",
+      "revToDate": "$5,203",
+      "d0Roas": "29.4%",
+      "roasToDate": "35.3%",
+      "m1": "40.8%",
+      "m3": "75.0%",
+      "m6": "92.7%",
+      "m12": "109.0%",
+      "m1Projected": true,
+      "m3Projected": true,
+      "m6Projected": true,
+      "m12Projected": true
+    }
+  ],
+  "totals": {
+    "customers": 2907,
+    "paid_customers": 2627,
+    "active_customers": 1873,
+    "repeat_customers": 1368
+  }
+};
+
+    function renderTable() {
+      const tbody = document.getElementById("tbody");
+      const milestoneCell = (value, projected) => `<td class="${projected ? 'projected' : 'actual'}">${value}</td>`;
+      tbody.innerHTML = payload.rows.map((row) => `
+        <tr>
+          <td class="cohort">${row.cohort}</td>
+          <td class="money">${row.spend}</td>
+          <td>${row.newCustomers.toLocaleString()}</td>
+          <td class="muted">${row.cpa}</td>
+          <td class="metric-cyan">${row.subD0}</td>
+          <td class="metric-amber">${row.upsell}</td>
+          <td class="muted">${row.upsellCount}</td>
+          <td class="muted">${row.avg}</td>
+          <td>${row.d0Rev}</td>
+          <td class="metric-violet">${row.renewals}</td>
+          <td>${row.revToDate}</td>
+          <td class="metric-amber">${row.d0Roas}</td>
+          <td class="metric-blue">${row.roasToDate}</td>
+          ${milestoneCell(row.m1, row.m1Projected)}
+          ${milestoneCell(row.m3, row.m3Projected)}
+          ${milestoneCell(row.m6, row.m6Projected)}
+          ${milestoneCell(row.m12, row.m12Projected)}
+        </tr>
+      `).join("");
+    }
+
+    function renderChart() {
+      const svg = document.getElementById("chart");
+      const width = 1320;
+      const height = 380;
+      const margin = { top: 30, right: 20, bottom: 70, left: 72 };
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+      const maxValue = 100;
+      const groups = payload.chart.length;
+      const groupWidth = innerWidth / groups;
+      const barWidth = Math.min(40, groupWidth / 5.5);
+      const series = [
+        ["paidRate", "#18c7f3"],
+        ["activeRate", "#4f8bff"],
+        ["repeatRate", "#a45dff"],
+        ["threePlusRate", "#ffb02e"],
+      ];
+
+      const y = (value) => margin.top + innerHeight - (value / maxValue) * innerHeight;
+
+      let markup = "";
+
+      [0, 25, 50, 75, 100].forEach((tick) => {
+        const yPos = y(tick);
+        markup += `<line x1="${margin.left}" y1="${yPos}" x2="${width - margin.right}" y2="${yPos}" stroke="rgba(166,183,214,0.16)" stroke-dasharray="4 6" />`;
+        markup += `<text x="${margin.left - 14}" y="${yPos + 4}" fill="#9cadca" text-anchor="end" font-size="12">${tick}%</text>`;
+      });
+
+      payload.chart.forEach((row, groupIndex) => {
+        const startX = margin.left + groupIndex * groupWidth + (groupWidth - barWidth * 4 - 18) / 2;
+        series.forEach(([key, color], seriesIndex) => {
+          const value = row[key];
+          const barHeight = (value / maxValue) * innerHeight;
+          const x = startX + seriesIndex * (barWidth + 6);
+          const yPos = margin.top + innerHeight - barHeight;
+          markup += `<rect x="${x}" y="${yPos}" width="${barWidth}" height="${barHeight}" rx="7" fill="${color}" opacity="0.92" />`;
+        });
+        markup += `<text x="${margin.left + groupIndex * groupWidth + groupWidth / 2}" y="${height - 26}" fill="#9cadca" text-anchor="middle" font-size="15">${row.cohort}</text>`;
+      });
+
+      svg.innerHTML = markup;
+    }
+
+    renderTable();
+    renderChart();
+  </script>
+</body>
+</html>
