@@ -154,6 +154,7 @@ DAILY_SPEND_OVERRIDE_EUR = {
     "2026-01-31": 1611.93,
 }
 CURRENT_DATE = date(2026, 4, 8)
+PROJECTED_NET_REVENUE_FACTOR = 0.85
 RETENTION_RATE_BENCHMARKS = {
     "monthly": {1: 0.55, 2: 0.38, 3: 0.20, 4: 0.18, 5: 0.14, 6: 0.12, 7: 0.10, 8: 0.07, 9: 0.07, 10: 0.06, 11: 0.06, 12: 0.05},
     "quarterly": {3: 0.50, 6: 0.20, 9: 0.15, 12: 0.10},
@@ -266,6 +267,7 @@ class CohortMetrics:
     m2_revenue: float
     m3_revenue: float
     m6_revenue: float
+    m9_revenue: float
     m12_revenue: float
     net_revenue: float
     refunded_volume: float
@@ -636,11 +638,12 @@ def projected_benchmark_revenue(
     full_price_eur: float,
     milestone_months: int,
 ) -> float:
-    return sum(
+    gross_revenue = sum(
         full_price_eur * retention
         for month_number, retention in RETENTION_RATE_BENCHMARKS[family].items()
         if month_number <= milestone_months
     )
+    return gross_revenue * PROJECTED_NET_REVENUE_FACTOR
 
 
 def format_month(month_key: str) -> str:
@@ -877,7 +880,7 @@ def build_metrics(
     m3_revenue_actual = 0.0
     m6_revenue_actual = 0.0
     m12_revenue_actual = 0.0
-    projected = {"m1": 0.0, "m2": 0.0, "m3": 0.0, "m6": 0.0, "m12": 0.0}
+    projected = {"m1": 0.0, "m2": 0.0, "m3": 0.0, "m6": 0.0, "m9": 0.0, "m12": 0.0}
     prepared_rows = []
     for row in rows:
         payment_count = parse_int(row.get("Payment Count", ""))
@@ -911,6 +914,7 @@ def build_metrics(
             projected["m2"] += projected_benchmark_revenue(family, full_price_eur, 2)
             projected["m3"] += projected_benchmark_revenue(family, full_price_eur, 3)
             projected["m6"] += projected_benchmark_revenue(family, full_price_eur, 6)
+            projected["m9"] += projected_benchmark_revenue(family, full_price_eur, 9)
             projected["m12"] += projected_benchmark_revenue(family, full_price_eur, 12)
 
         customer_id = (row.get("id") or "").strip()
@@ -1023,6 +1027,7 @@ def build_metrics(
     m2_revenue = net_actual_revenue_through_rows(rows, m2_cutoff) if milestone_is_closed_from_end(cohort_end_date, 2) else (d0_revenue + projected["m2"])
     m3_revenue = net_actual_revenue_through_rows(rows, m3_cutoff) if milestone_is_closed_from_end(cohort_end_date, 3) else (d0_revenue + projected["m3"])
     m6_revenue = d0_revenue + projected["m6"]
+    m9_revenue = d0_revenue + projected["m9"]
     m12_revenue = d0_revenue + projected["m12"]
     refunded_volume = cohort_refunded_volume(rows)
     dispute_losses = cohort_dispute_losses(rows)
@@ -1042,6 +1047,7 @@ def build_metrics(
         m2_revenue=m2_revenue,
         m3_revenue=m3_revenue,
         m6_revenue=m6_revenue,
+        m9_revenue=m9_revenue,
         m12_revenue=m12_revenue,
         net_revenue=rev_to_date_revenue,
         refunded_volume=refunded_volume,
@@ -1298,17 +1304,110 @@ def build_view_payload(metrics: list[CohortMetrics]) -> dict[str, object]:
             "m2": f"{(item.m2_revenue / item.spend_usd * 100):.1f}%" if item.spend_usd else "—",
             "m3": f"{(item.m3_revenue / item.spend_usd * 100):.1f}%" if item.spend_usd else "—",
             "m6": f"{(item.m6_revenue / item.spend_usd * 100):.1f}%" if item.spend_usd else "—",
+            "m9": f"{(item.m9_revenue / item.spend_usd * 100):.1f}%" if item.spend_usd else "—",
             "m12": f"{(item.m12_revenue / item.spend_usd * 100):.1f}%" if item.spend_usd else "—",
             "m1Projected": not milestone_is_closed_from_end(item.cohort_end_date, 1),
             "m2Projected": not milestone_is_closed_from_end(item.cohort_end_date, 2),
             "m3Projected": not milestone_is_closed_from_end(item.cohort_end_date, 3),
             "m6Projected": True,
+            "m9Projected": True,
             "m12Projected": True,
         }
         for item in metrics
     ]
 
     return {"chart": chart_data, "rows": table_rows}
+
+
+def render_table_rows(rows: list[dict[str, object]], weekly: bool) -> str:
+    parts: list[str] = []
+    for row in rows:
+        cohort = str(row["cohort"])
+        if weekly:
+            cohort_html = f'<td class="cohort"><span class="cohort-range">{cohort}</span></td>'
+        else:
+            cohort_html = f'<td class="cohort">{cohort}</td>'
+
+        def milestone_cell(value_key: str, projected_key: str) -> str:
+            klass = "projected" if row[projected_key] else "actual"
+            return f'<td class="{klass}">{row[value_key]}</td>'
+
+        parts.append(
+            f"""
+        <tr>
+          {cohort_html}
+          <td class="money">{row["spend"]}</td>
+          <td>{int(row["newCustomers"]):,}</td>
+          <td class="muted">{row["cpa"]}</td>
+          <td class="metric-amber">{row["upsell"]}</td>
+          <td class="muted">{row["upsellCount"]}</td>
+          <td class="muted">{row["avg"]}</td>
+          <td>{row["d0Rev"]}</td>
+          <td>{row["revToDate"]}</td>
+          <td class="metric-red">{row["refunds"]}</td>
+          <td class="metric-red">{row["disputeLosses"]}</td>
+          <td class="metric-amber">{row["d0Roas"]}</td>
+          <td class="metric-blue">{row["roasToDate"]}</td>
+          {milestone_cell("m1", "m1Projected")}
+          {milestone_cell("m2", "m2Projected")}
+          {milestone_cell("m3", "m3Projected")}
+          {milestone_cell("m6", "m6Projected")}
+          {milestone_cell("m9", "m9Projected")}
+          {milestone_cell("m12", "m12Projected")}
+        </tr>
+        """
+        )
+    return "".join(parts)
+
+
+def render_chart_markup(chart_rows: list[dict[str, object]]) -> str:
+    width = 1320
+    height = 380
+    margin_top = 30
+    margin_right = 20
+    margin_bottom = 70
+    margin_left = 72
+    inner_width = width - margin_left - margin_right
+    inner_height = height - margin_top - margin_bottom
+    max_value = 100
+    groups = max(len(chart_rows), 1)
+    group_width = inner_width / groups
+    bar_width = min(40, group_width / 5.5)
+    series = [
+        ("paidRate", "#18c7f3"),
+        ("activeRate", "#4f8bff"),
+        ("repeatRate", "#a45dff"),
+        ("threePlusRate", "#ffb02e"),
+    ]
+
+    def y(value: float) -> float:
+        return margin_top + inner_height - (value / max_value) * inner_height
+
+    parts: list[str] = []
+    for tick in [0, 25, 50, 75, 100]:
+        y_pos = y(tick)
+        parts.append(
+            f'<line x1="{margin_left}" y1="{y_pos}" x2="{width - margin_right}" y2="{y_pos}" stroke="rgba(166,183,214,0.16)" stroke-dasharray="4 6" />'
+        )
+        parts.append(
+            f'<text x="{margin_left - 14}" y="{y_pos + 4}" fill="#9cadca" text-anchor="end" font-size="12">{tick}%</text>'
+        )
+
+    for group_index, row in enumerate(chart_rows):
+        start_x = margin_left + group_index * group_width + (group_width - bar_width * 4 - 18) / 2
+        for series_index, (key, color) in enumerate(series):
+            value = float(row[key])
+            bar_height = (value / max_value) * inner_height
+            x = start_x + series_index * (bar_width + 6)
+            y_pos = margin_top + inner_height - bar_height
+            parts.append(
+                f'<rect x="{x}" y="{y_pos}" width="{bar_width}" height="{bar_height}" rx="7" fill="{color}" opacity="0.92" />'
+            )
+        parts.append(
+            f'<text x="{margin_left + group_index * group_width + group_width / 2}" y="{height - 26}" fill="#9cadca" text-anchor="middle" font-size="15">{row["cohort"]}</text>'
+        )
+
+    return "".join(parts)
 
 
 def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[CohortMetrics]) -> str:
@@ -1318,12 +1417,45 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
         "active_customers": sum(item.active_customers for item in monthly_metrics),
         "repeat_customers": sum(item.repeat_customers for item in monthly_metrics),
     }
+    monthly_spend_map, weekly_spend_map = spend_maps_usd()
+    weekly_spend_upload_map = {
+        (item.cohort_end_date.fromordinal(item.cohort_end_date.toordinal() - 6)).isoformat(): item.spend_usd
+        for item in weekly_metrics
+    }
+    catalog_payload = {
+        price_id: {
+            "amount": parse_amount(meta.get("Amount", "0")),
+            "currency": meta.get("Currency", ""),
+            "interval": meta.get("Interval", ""),
+            "interval_count": meta.get("Interval Count", ""),
+            "product_name": meta.get("Product Name", ""),
+        }
+        for price_id, meta in load_price_catalog().items()
+    }
 
     payload = json.dumps(
         {
             "monthly": build_view_payload(monthly_metrics),
             "weekly": build_view_payload(weekly_metrics),
             "totals": totals,
+        },
+        indent=2,
+    )
+    initial_view = build_view_payload(monthly_metrics)
+    initial_table_rows = render_table_rows(initial_view["rows"], weekly=False)
+    initial_chart_markup = render_chart_markup(initial_view["chart"])
+    client_config = json.dumps(
+        {
+            "targetMonths": TARGET_MONTHS,
+            "currentDate": CURRENT_DATE.isoformat(),
+            "projectedNetRevenueFactor": PROJECTED_NET_REVENUE_FACTOR,
+            "retentionRates": RETENTION_RATE_BENCHMARKS,
+            "priceCatalog": catalog_payload,
+            "ecbCurPerEur": ECB_CUR_PER_EUR,
+            "defaultSpendMaps": {
+                "monthly": monthly_spend_map,
+                "weekly": weekly_spend_upload_map,
+            },
         },
         indent=2,
     )
@@ -1448,6 +1580,21 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       margin-bottom: 18px;
     }}
 
+    .toolbar {{
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }}
+
+    .toolbar-actions {{
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }}
+
     .tab-button {{
       border: 1px solid rgba(255, 255, 255, 0.08);
       background: rgba(12, 20, 38, 0.45);
@@ -1465,6 +1612,102 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       background: rgba(79, 139, 255, 0.22);
       border-color: rgba(79, 139, 255, 0.45);
       box-shadow: inset 0 0 0 1px rgba(79, 139, 255, 0.18);
+    }}
+
+    .action-button {{
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(12, 20, 38, 0.45);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }}
+
+    .action-button:hover {{
+      border-color: rgba(24, 199, 243, 0.4);
+    }}
+
+    .action-button.secondary {{
+      color: var(--muted);
+    }}
+
+    .action-button:disabled {{
+      cursor: not-allowed;
+      opacity: 0.5;
+    }}
+
+    .upload-card {{
+      padding: 18px 20px;
+      margin-bottom: 22px;
+    }}
+
+    .upload-card > summary {{
+      list-style: none;
+      cursor: pointer;
+    }}
+
+    .upload-card > summary::-webkit-details-marker {{
+      display: none;
+    }}
+
+    .upload-summary {{
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+    }}
+
+    .upload-summary-copy {{
+      min-width: 0;
+    }}
+
+    .upload-panel {{
+      display: grid;
+      grid-template-columns: repeat(4, minmax(180px, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }}
+
+    .upload-field {{
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }}
+
+    .upload-field label {{
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }}
+
+    .upload-field input[type="file"] {{
+      width: 100%;
+      color: var(--muted);
+      background: rgba(12, 20, 38, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-size: 0.88rem;
+    }}
+
+    .upload-status {{
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.5;
+    }}
+
+    .upload-status strong {{
+      color: var(--text);
+    }}
+
+    .upload-card:not([open]) .upload-panel,
+    .upload-card:not([open]) .toolbar {{
+      display: none;
     }}
 
     .section-head {{
@@ -1533,7 +1776,7 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
 
     table {{
       width: 100%;
-      min-width: 1540px;
+      min-width: 1660px;
       border-collapse: collapse;
     }}
 
@@ -1553,7 +1796,30 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.12em;
+      white-space: normal;
+      line-height: 1.25;
+      min-width: 86px;
+    }}
+
+    .th-two-line {{
+      display: inline-block;
       white-space: nowrap;
+      line-height: 1.2;
+    }}
+
+    th:nth-child(8),
+    td:nth-child(8),
+    th:nth-child(9),
+    td:nth-child(9),
+    th:nth-child(10),
+    td:nth-child(10),
+    th:nth-child(11),
+    td:nth-child(11),
+    th:nth-child(12),
+    td:nth-child(12),
+    th:nth-child(13),
+    td:nth-child(13) {{
+      min-width: 118px;
     }}
 
     td {{
@@ -1566,8 +1832,8 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       left: 0;
       z-index: 1;
       background: linear-gradient(180deg, rgba(41, 56, 83, 0.98), rgba(27, 39, 61, 0.98));
-      min-width: 210px;
-      width: 210px;
+      min-width: 170px;
+      width: 170px;
     }}
 
     th:first-child {{
@@ -1628,9 +1894,22 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       line-height: 1.7;
     }}
 
+    .footer-note ul {{
+      margin: 0;
+      padding-left: 20px;
+    }}
+
+    .footer-note li + li {{
+      margin-top: 8px;
+    }}
+
     @media (max-width: 1024px) {{
       .hero {{
         grid-template-columns: 1fr;
+      }}
+
+      .upload-panel {{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }}
     }}
 
@@ -1641,6 +1920,14 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
 
       th, td {{
         padding: 14px 12px;
+      }}
+
+      .toolbar {{
+        align-items: stretch;
+      }}
+
+      .upload-panel {{
+        grid-template-columns: 1fr;
       }}
     }}
   </style>
@@ -1659,27 +1946,64 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       <div class="card summary-grid">
         <div class="summary-pill">
           <div class="summary-label">Customers</div>
-          <div class="summary-value">{totals["customers"]:,}</div>
+          <div class="summary-value" id="summary-customers">{totals["customers"]:,}</div>
         </div>
         <div class="summary-pill">
           <div class="summary-label">Paid Customers</div>
-          <div class="summary-value">{totals["paid_customers"]:,}</div>
+          <div class="summary-value" id="summary-paid">{totals["paid_customers"]:,}</div>
         </div>
         <div class="summary-pill">
           <div class="summary-label">Active Customers</div>
-          <div class="summary-value">{totals["active_customers"]:,}</div>
+          <div class="summary-value" id="summary-active">{totals["active_customers"]:,}</div>
         </div>
         <div class="summary-pill">
           <div class="summary-label">Repeat Customers</div>
-          <div class="summary-value">{totals["repeat_customers"]:,}</div>
+          <div class="summary-value" id="summary-repeat">{totals["repeat_customers"]:,}</div>
         </div>
       </div>
     </section>
 
+    <details class="card upload-card" id="upload-card">
+      <summary class="upload-summary" id="toggle-upload">
+        <div class="upload-summary-copy">
+          <h2 class="section-title">Upload Exports</h2>
+          <p class="section-note">Load fresh CSV exports in-browser to recalculate the dashboard without rebuilding the page.</p>
+        </div>
+        <span class="action-button">Upload Exports</span>
+      </summary>
+      <div class="upload-panel" id="upload-panel">
+        <div class="upload-field">
+          <label for="customers-upload">Customers CSV</label>
+          <input id="customers-upload" type="file" accept=".csv,text/csv">
+        </div>
+        <div class="upload-field">
+          <label for="payments-upload">Payments CSV</label>
+          <input id="payments-upload" type="file" accept=".csv,text/csv">
+        </div>
+        <div class="upload-field">
+          <label for="spend-upload">Spend CSV</label>
+          <input id="spend-upload" type="file" accept=".csv,text/csv">
+        </div>
+        <div class="upload-field">
+          <label for="prices-upload">Prices CSV (Optional)</label>
+          <input id="prices-upload" type="file" accept=".csv,text/csv">
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="upload-status" id="upload-status"><strong>Using embedded exports.</strong> Upload customers and payments CSVs to recalculate monthly and weekly cohorts.</div>
+        <div class="toolbar-actions">
+          <button class="action-button secondary" type="button" id="reset-uploads" hidden>Use Embedded Data</button>
+          <button class="action-button" type="button" id="apply-uploads" disabled>Recalculate Dashboard</button>
+        </div>
+      </div>
+    </details>
+
     <section class="card chart-card">
-      <div class="tabs" role="tablist" aria-label="Cohort views">
-        <button class="tab-button active" type="button" data-view="monthly">Monthly Cohorts</button>
-        <button class="tab-button" type="button" data-view="weekly">Weekly Cohorts</button>
+      <div class="toolbar">
+        <div class="tabs" role="tablist" aria-label="Cohort views">
+          <button class="tab-button active" type="button" data-view="monthly">Monthly Cohorts</button>
+          <button class="tab-button" type="button" data-view="weekly">Weekly Cohorts</button>
+        </div>
       </div>
       <div class="section-head">
         <div>
@@ -1694,7 +2018,7 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
         </div>
       </div>
       <div class="chart-wrap">
-        <svg id="chart" viewBox="0 0 1320 380" preserveAspectRatio="xMidYMid meet" aria-label="Cohort chart"></svg>
+        <svg id="chart" viewBox="0 0 1320 380" preserveAspectRatio="xMidYMid meet" aria-label="Cohort chart">{initial_chart_markup}</svg>
       </div>
     </section>
 
@@ -1710,54 +2034,756 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
               <th>Upsell</th>
               <th>#</th>
               <th>Avg</th>
-              <th>D0 Rev</th>
-              <th>Net Rev To Date</th>
+              <th><span class="th-two-line">D0<br>Rev</span></th>
+              <th><span class="th-two-line">Net Rev<br>To Date</span></th>
               <th>Refunds</th>
-              <th>Dispute Losses</th>
-              <th>D0 ROAS</th>
-              <th>ROAS To Date</th>
+              <th><span class="th-two-line">Dispute<br>Losses</span></th>
+              <th><span class="th-two-line">D0<br>ROAS</span></th>
+              <th><span class="th-two-line">ROAS<br>To Date</span></th>
               <th>M1</th>
               <th>M2</th>
               <th>M3</th>
               <th>M6</th>
+              <th>M9</th>
               <th>M12</th>
             </tr>
           </thead>
-          <tbody id="tbody"></tbody>
+          <tbody id="tbody">{initial_table_rows}</tbody>
         </table>
       </div>
     </section>
 
     <section class="card footer-note">
-      Revenue is shown in EUR and uses Stripe converted transaction amounts. Cohort membership and new-customer counts
-      come from the customer export. Closed M1/M2/M3 values use transaction revenue through the milestone cutoff,
-      while projected milestones use each customer's real subscription intro and full renewal price with benchmark
-      retention percentages by plan family. Monthly benchmark retention used: M1 55%, M2 38%, M3 20%, M4 18%,
-      M5 14%, M6 12%, M7 10%, M8 7%, M9 7%, M10 6%, M11 6%, M12 5%. Quarterly benchmark retention used:
-      M3 50%, M6 20%, M9 15%, M12 10%. Annual benchmark retention used: M12 30%. Upsell comes from first-day
-      paid invoice transactions in the payments export and is included in cumulative predicted ROAS. Spend comes
-      from the daily spend export in EUR, with January overridden from your screenshot values where the spend
-      export was incomplete.
+      <ul>
+        <li>Revenue is shown in EUR and uses Stripe converted transaction amounts.</li>
+        <li>Cohort membership and new-customer counts come from the customer export.</li>
+        <li>Closed M1/M2/M3 values use transaction revenue through the milestone cutoff.</li>
+        <li>Projected milestones use each customer's real subscription intro and full renewal price with benchmark retention percentages by plan family.</li>
+        <li>Monthly benchmark retention used: M1 55%, M2 38%, M3 20%, M4 18%, M5 14%, M6 12%, M7 10%, M8 7%, M9 7%, M10 6%, M11 6%, M12 5%.</li>
+        <li>Quarterly benchmark retention used: M3 50%, M6 20%, M9 15%, M12 10%. Annual benchmark retention used: M12 30%.</li>
+        <li>Upsell comes from first-day paid invoice transactions in the payments export and is included in cumulative predicted ROAS.</li>
+        <li>Projected milestone revenue is additionally reduced by 15% to account for refunds and fees.</li>
+        <li>Spend comes from the daily spend export in EUR, with January overridden from your screenshot values where the spend export was incomplete.</li>
+      </ul>
     </section>
   </div>
 
   <script>
-    const payload = {payload};
+    const defaultPayload = {payload};
+    const clientConfig = {client_config};
+    const state = {{
+      payload: defaultPayload,
+      uploaded: false,
+    }};
     let activeView = "monthly";
+    const uploadFiles = {{
+      customers: null,
+      payments: null,
+      spend: null,
+      prices: null,
+    }};
+
+    function parseDelimited(text) {{
+      const sampleLine = text.split(/\r?\n/).find((line) => line.trim().length);
+      const delimiter = sampleLine && sampleLine.includes("\t") && !sampleLine.includes(",") ? "\t" : ",";
+      const rows = [];
+      let row = [];
+      let field = "";
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i += 1) {{
+        const char = text[i];
+        const next = text[i + 1];
+        if (char === '"') {{
+          if (inQuotes && next === '"') {{
+            field += '"';
+            i += 1;
+          }} else {{
+            inQuotes = !inQuotes;
+          }}
+          continue;
+        }}
+        if (!inQuotes && char === delimiter) {{
+          row.push(field);
+          field = "";
+          continue;
+        }}
+        if (!inQuotes && (char === "\n" || char === "\r")) {{
+          if (char === "\r" && next === "\n") {{
+            i += 1;
+          }}
+          row.push(field);
+          if (row.some((value) => value.trim() !== "")) {{
+            rows.push(row);
+          }}
+          row = [];
+          field = "";
+          continue;
+        }}
+        field += char;
+      }}
+      row.push(field);
+      if (row.some((value) => value.trim() !== "")) {{
+        rows.push(row);
+      }}
+      if (!rows.length) {{
+        return [];
+      }}
+      const headers = rows[0].map((value) => value.trim());
+      return rows.slice(1).map((values) => {{
+        const record = {{}};
+        headers.forEach((header, index) => {{
+          record[header] = (values[index] || "").trim();
+        }});
+        return record;
+      }});
+    }}
+
+    function parseAmount(value) {{
+      const raw = String(value || "").trim().replace(/€/g, "").replace(/\\$/g, "");
+      if (!raw) {{
+        return 0;
+      }}
+      if (raw.includes(",") && raw.includes(".")) {{
+        return raw.lastIndexOf(",") > raw.lastIndexOf(".")
+          ? Number(raw.replace(/\./g, "").replace(",", "."))
+          : Number(raw.replace(/,/g, ""));
+      }}
+      if (raw.includes(",")) {{
+        return Number(raw.replace(",", "."));
+      }}
+      return Number(raw);
+    }}
+
+    function parseIntValue(value) {{
+      const raw = String(value || "").trim();
+      return raw ? Number.parseInt(raw, 10) : 0;
+    }}
+
+    function parseCompactEuroAmount(value) {{
+      const raw = String(value || "").trim().replace(/€/g, "").replace(/\s+/g, "");
+      if (!raw) {{
+        return 0;
+      }}
+      const parts = raw.split(".");
+      if (parts.length === 2 && parts[1].length === 3) {{
+        return Number(parts[0] + parts[1]);
+      }}
+      return parseAmount(raw);
+    }}
+
+    function monthEnd(monthKey) {{
+      const [year, month] = monthKey.split("-").map(Number);
+      return new Date(Date.UTC(year, month, 0));
+    }}
+
+    function toIsoDate(dateObj) {{
+      return dateObj.toISOString().slice(0, 10);
+    }}
+
+    function addMonths(dateObj, months) {{
+      const year = dateObj.getUTCFullYear();
+      const month = dateObj.getUTCMonth();
+      const day = dateObj.getUTCDate();
+      const shifted = new Date(Date.UTC(year, month + months, 1));
+      const lastDay = new Date(Date.UTC(shifted.getUTCFullYear(), shifted.getUTCMonth() + 1, 0)).getUTCDate();
+      shifted.setUTCDate(Math.min(day, lastDay));
+      return shifted;
+    }}
+
+    function milestoneClosedFromEnd(cohortEndDate, milestoneMonths) {{
+      return toIsoDate(new Date(clientConfig.currentDate + "T00:00:00Z")) >= toIsoDate(addMonths(cohortEndDate, milestoneMonths));
+    }}
+
+    function anchoredWeekRange(dateString) {{
+      const anchor = new Date(Date.UTC(2026, 0, 1));
+      const current = new Date(dateString + "T00:00:00Z");
+      const diffDays = Math.max(0, Math.floor((current - anchor) / 86400000));
+      const weekIndex = Math.floor(diffDays / 7);
+      const weekStart = new Date(anchor.getTime() + weekIndex * 7 * 86400000);
+      const weekEnd = new Date(weekStart.getTime() + 6 * 86400000);
+      return [weekStart, weekEnd];
+    }}
+
+    function formatShortDate(dateObj) {{
+      return dateObj.toLocaleDateString("en-US", {{
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+      }}).replace(",", "");
+    }}
+
+    function formatMonth(monthKey) {{
+      return new Date(monthKey + "-01T00:00:00Z").toLocaleDateString("en-US", {{
+        month: "long",
+        year: "numeric",
+        timeZone: "UTC",
+      }});
+    }}
+
+    function formatWeekChartLabel(weekStart) {{
+      const anchor = new Date(Date.UTC(2026, 0, 1));
+      const weekNumber = Math.floor((weekStart - anchor) / (7 * 86400000)) + 1;
+      return `W${{String(weekNumber).padStart(2, "0")}}`;
+    }}
+
+    function modeValue(values) {{
+      const counts = new Map();
+      values.forEach((value) => {{
+        const rounded = Number(value.toFixed(2));
+        counts.set(rounded, (counts.get(rounded) || 0) + 1);
+      }});
+      let bestValue = 0;
+      let bestCount = -1;
+      Array.from(counts.entries()).forEach(([value, count]) => {{
+        if (count > bestCount || (count === bestCount && value < bestValue)) {{
+          bestValue = value;
+          bestCount = count;
+        }}
+      }});
+      return bestValue;
+    }}
+
+    function loadFirstChargeLookup(rows) {{
+      const groups = new Map();
+      rows.forEach((row) => {{
+        if (parseIntValue(row["Payment Count"]) !== 1) {{
+          return;
+        }}
+        const key = `${{(row.Plan || "(blank)").trim() || "(blank)"}}|||${{(row.Currency || "").trim() || "blank"}}`;
+        const value = Number(parseAmount(row["Total Spend"]).toFixed(2));
+        if (value <= 0) {{
+          return;
+        }}
+        if (!groups.has(key)) {{
+          groups.set(key, []);
+        }}
+        groups.get(key).push(value);
+      }});
+      const lookup = new Map();
+      groups.forEach((values, key) => lookup.set(key, modeValue(values)));
+      return lookup;
+    }}
+
+    function loadCumulativeChargeLookup(rows) {{
+      const groups = new Map();
+      rows.forEach((row) => {{
+        const paymentCount = parseIntValue(row["Payment Count"]);
+        if (paymentCount < 1) {{
+          return;
+        }}
+        const key = `${{(row.Plan || "(blank)").trim() || "(blank)"}}|||${{(row.Currency || "").trim() || "blank"}}|||${{paymentCount}}`;
+        const value = Number(parseAmount(row["Total Spend"]).toFixed(2));
+        if (value <= 0) {{
+          return;
+        }}
+        if (!groups.has(key)) {{
+          groups.set(key, []);
+        }}
+        groups.get(key).push(value);
+      }});
+      const lookup = new Map();
+      groups.forEach((values, key) => lookup.set(key, modeValue(values)));
+      return lookup;
+    }}
+
+    function isCoreSubscriptionPlan(meta) {{
+      if (!meta) {{
+        return true;
+      }}
+      const name = String(meta.product_name || "").toLowerCase();
+      return name.includes("subscription") && !name.includes("add-on") && !name.includes("upgrade") && !name.includes("one-time");
+    }}
+
+    function planIsMonthly(planId, catalog) {{
+      const meta = catalog[planId];
+      return Boolean(meta && meta.interval === "month" && String(meta.interval_count) === "1");
+    }}
+
+    function planIsQuarterly(planId, catalog) {{
+      const meta = catalog[planId];
+      return Boolean(meta && meta.interval === "month" && String(meta.interval_count) === "3");
+    }}
+
+    function planIsAnnual(planId, catalog) {{
+      const meta = catalog[planId];
+      return Boolean(meta && meta.interval === "year" && String(meta.interval_count) === "1");
+    }}
+
+    function convertToEur(amount, currency, monthKey) {{
+      const code = String(currency || "EUR").toUpperCase();
+      if (!amount) {{
+        return 0;
+      }}
+      if (code === "EUR" || code === "UNKNOWN") {{
+        return amount;
+      }}
+      const rate = clientConfig.ecbCurPerEur[monthKey]?.[code];
+      return rate ? amount / rate : amount;
+    }}
+
+    function planFullPriceEur(planId, monthKey, catalog) {{
+      const meta = catalog[planId];
+      if (!meta || !isCoreSubscriptionPlan(meta)) {{
+        return null;
+      }}
+      return convertToEur(parseAmount(meta.amount), meta.currency, monthKey);
+    }}
+
+    function classifyPlanFamily(planId, firstCharge, currency, catalog) {{
+      if (planIsMonthly(planId, catalog)) return "monthly";
+      if (planIsQuarterly(planId, catalog)) return "quarterly";
+      if (planIsAnnual(planId, catalog)) return "annual";
+      const code = String(currency || "").toLowerCase();
+      if (code === "usd" || code === "blank" || code === "") {{
+        if (firstCharge <= 19) return "monthly";
+        if (firstCharge <= 35) return "quarterly";
+        if (firstCharge <= 65) return "annual";
+      }}
+      if (code === "eur") {{
+        if (firstCharge <= 24) return "monthly";
+        if (firstCharge <= 40) return "quarterly";
+        if (firstCharge <= 65) return "annual";
+      }}
+      return null;
+    }}
+
+    function inferBlankUsdProjection(totalSpend) {{
+      const candidates = [
+        ["monthly", 34.27, 16.80, 34.27],
+        ["monthly", 34.27, 13.37, 34.27],
+        ["quarterly", 57.92, 27.42, 57.92],
+        ["quarterly", 57.92, 20.57, 57.92],
+        ["annual", 102.85, 50.37, 0.0],
+        ["annual", 102.85, 40.09, 0.0],
+      ];
+      let best = null;
+      candidates.forEach(([family, fullPrice, intro, renewal]) => {{
+        const maxRenewals = family === "monthly" ? 3 : 1;
+        for (let renewals = 0; renewals <= maxRenewals; renewals += 1) {{
+          for (let upsells = 0; upsells < 3; upsells += 1) {{
+            const estimate = intro + renewal * renewals + 8.56 * upsells;
+            const gap = Math.abs(totalSpend - estimate);
+            if (!best || gap < best.gap) {{
+              best = {{ gap, family, fullPrice }};
+            }}
+          }}
+        }}
+      }});
+      return best && best.gap <= 0.75 ? [best.family, best.fullPrice] : null;
+    }}
+
+    function projectionSpecForRow(row, monthKey, firstSubscriptionAmountEur, catalog) {{
+      const planId = String(row.Plan || "").trim();
+      const currency = String(row.Currency || "").trim().toLowerCase();
+      const totalSpend = parseAmount(row["Total Spend"]);
+      if (planId) {{
+        const family = classifyPlanFamily(planId, firstSubscriptionAmountEur || 0, currency, catalog);
+        const fullPriceEur = planFullPriceEur(planId, monthKey, catalog);
+        if (family && fullPriceEur) {{
+          return [family, fullPriceEur];
+        }}
+        return null;
+      }}
+      if (currency === "usd") {{
+        return inferBlankUsdProjection(totalSpend);
+      }}
+      return null;
+    }}
+
+    function projectedBenchmarkRevenue(family, fullPriceEur, milestoneMonths) {{
+      const rates = clientConfig.retentionRates[family] || {{}};
+      let total = 0;
+      Object.entries(rates).forEach(([monthNumber, retention]) => {{
+        if (Number(monthNumber) <= milestoneMonths) {{
+          total += fullPriceEur * retention;
+        }}
+      }});
+      return total * clientConfig.projectedNetRevenueFactor;
+    }}
+
+    function loadSubscriptionCreationAmounts(paymentsRows) {{
+      const first = new Map();
+      paymentsRows.forEach((payment) => {{
+        if (payment.Status !== "Paid") return;
+        const customerId = String(payment["Customer ID"] || "").trim();
+        if (!customerId) return;
+        if (String(payment.Description || "").trim() !== "Subscription creation") return;
+        const created = String(payment["Created date (UTC)"] || "").slice(0, 10);
+        if (!created) return;
+        const amount = parseAmount(payment["Converted Amount"]) - parseAmount(payment["Converted Amount Refunded"]);
+        if (amount <= 0) return;
+        const existing = first.get(customerId);
+        if (!existing || created < existing.date) {{
+          first.set(customerId, {{ date: created, amount }});
+        }}
+      }});
+      const result = new Map();
+      first.forEach((value, key) => result.set(key, value.amount));
+      return result;
+    }}
+
+    function subscriptionBillingCountsThrough(rows, paymentsRows, cutoffDate) {{
+      const cohortStarts = new Map();
+      rows.forEach((row) => {{
+        const id = String(row.id || "").trim();
+        const created = String(row["Created (UTC)"] || "").slice(0, 10);
+        if (id && created) {{
+          cohortStarts.set(id, created);
+        }}
+      }});
+      const counts = new Map(Array.from(cohortStarts.keys(), (id) => [id, 0]));
+      paymentsRows.forEach((payment) => {{
+        const customerId = String(payment["Customer ID"] || "").trim();
+        const created = String(payment["Created date (UTC)"] || "").slice(0, 10);
+        if (!cohortStarts.has(customerId) || payment.Status !== "Paid" || !created) return;
+        if (created < cohortStarts.get(customerId) || created > cutoffDate) return;
+        const description = String(payment.Description || "").trim();
+        if (description === "Subscription creation" || description === "Subscription update") {{
+          counts.set(customerId, (counts.get(customerId) || 0) + 1);
+        }}
+      }});
+      return counts;
+    }}
+
+    function actualRevenueThroughRows(rows, paymentsRows, cutoffDate, firstChargeLookup, cumulativeChargeLookup, catalog) {{
+      const cohortStarts = new Map();
+      rows.forEach((row) => {{
+        const id = String(row.id || "").trim();
+        const created = String(row["Created (UTC)"] || "").slice(0, 10);
+        if (id && created) {{
+          cohortStarts.set(id, created);
+        }}
+      }});
+      if (!cohortStarts.size) {{
+        return 0;
+      }}
+      const paymentsByCustomer = new Map();
+      paymentsRows.forEach((payment) => {{
+        const customerId = String(payment["Customer ID"] || "").trim();
+        if (!cohortStarts.has(customerId) || payment.Status !== "Paid") return;
+        if (!paymentsByCustomer.has(customerId)) {{
+          paymentsByCustomer.set(customerId, []);
+        }}
+        paymentsByCustomer.get(customerId).push(payment);
+      }});
+      let revenue = 0;
+      const customersWithPaymentRows = new Set();
+      paymentsByCustomer.forEach((items, customerId) => {{
+        const cohortStart = cohortStarts.get(customerId);
+        items.forEach((payment) => {{
+          const created = String(payment["Created date (UTC)"] || "").slice(0, 10);
+          if (!created) return;
+          if (created >= cohortStart && created <= cutoffDate) {{
+            revenue += parseAmount(payment["Converted Amount"]) - parseAmount(payment["Converted Amount Refunded"]);
+            customersWithPaymentRows.add(customerId);
+          }}
+        }});
+      }});
+      if (customersWithPaymentRows.size === cohortStarts.size) {{
+        return revenue;
+      }}
+      rows
+        .filter((row) => !customersWithPaymentRows.has(String(row.id || "").trim()))
+        .forEach((row) => {{
+          const paymentCount = parseIntValue(row["Payment Count"]);
+          if (paymentCount < 1) return;
+          const key = `${{(row.Plan || "(blank)").trim() || "(blank)"}}|||${{(row.Currency || "").trim() || "blank"}}`;
+          const createdDate = String(row["Created (UTC)"] || "").slice(0, 10);
+          if (!createdDate) return;
+          const currentCutoff = cutoffDate < clientConfig.currentDate ? cutoffDate : clientConfig.currentDate;
+          const ageDays = Math.floor((new Date(currentCutoff + "T00:00:00Z") - new Date(createdDate + "T00:00:00Z")) / 86400000);
+          if (ageDays < 0) return;
+          let firstCharge = firstChargeLookup.get(key);
+          if (firstCharge == null) {{
+            firstCharge = parseAmount(row["Total Spend"]) > 0 ? parseAmount(row["Total Spend"]) : 0;
+          }}
+          let targetPaymentCount = 1;
+          const planId = String(row.Plan || "").trim();
+          if (planIsMonthly(planId, catalog)) {{
+            if (ageDays >= 60 && paymentCount >= 3) targetPaymentCount = 3;
+            else if (ageDays >= 30 && paymentCount >= 2) targetPaymentCount = 2;
+          }} else if (planIsQuarterly(planId, catalog)) {{
+            if (ageDays >= 90 && paymentCount >= 2) targetPaymentCount = 2;
+          }}
+          revenue += cumulativeChargeLookup.get(`${{key}}|||${{targetPaymentCount}}`) ?? firstCharge;
+        }});
+      return revenue;
+    }}
+
+    function cohortDisputeLosses(rows) {{
+      return rows.reduce((sum, row) => sum + parseAmount(row["Dispute Losses"]), 0);
+    }}
+
+    function cohortRefundedVolume(rows) {{
+      return rows.reduce((sum, row) => sum + parseAmount(row["Refunded Volume"]), 0);
+    }}
+
+    function netActualRevenueThroughRows(rows, paymentsRows, cutoffDate, firstChargeLookup, cumulativeChargeLookup, catalog) {{
+      return actualRevenueThroughRows(rows, paymentsRows, cutoffDate, firstChargeLookup, cumulativeChargeLookup, catalog) - cohortDisputeLosses(rows);
+    }}
+
+    function computeTransactionUpsellsForRows(rows, paymentsRows) {{
+      const cohortDays = new Map();
+      rows.forEach((row) => {{
+        const id = String(row.id || "").trim();
+        const created = String(row["Created (UTC)"] || "").slice(0, 10);
+        if (id && created) cohortDays.set(id, created);
+      }});
+      const byCustomer = new Map();
+      paymentsRows.forEach((payment) => {{
+        const customerId = String(payment["Customer ID"] || "").trim();
+        if (!cohortDays.has(customerId) || payment.Status !== "Paid") return;
+        if (!byCustomer.has(customerId)) byCustomer.set(customerId, []);
+        byCustomer.get(customerId).push(payment);
+      }});
+      let count = 0;
+      let billingCount = 0;
+      let revenue = 0;
+      byCustomer.forEach((items, customerId) => {{
+        const cohortDay = cohortDays.get(customerId);
+        const firstDayItems = items
+          .slice()
+          .sort((a, b) => String(a["Created date (UTC)"]).localeCompare(String(b["Created date (UTC)"])))
+          .filter((row) => String(row["Created date (UTC)"] || "").slice(0, 10) === cohortDay);
+        const invoiceItems = firstDayItems.filter((row) => String(row.Description || "").trim() === "Payment for Invoice");
+        if (!invoiceItems.length) return;
+        count += 1;
+        billingCount += invoiceItems.length;
+        invoiceItems.forEach((row) => {{
+          revenue += parseAmount(row["Converted Amount"]) - parseAmount(row["Converted Amount Refunded"]);
+        }});
+      }});
+      return {{ count, billingCount, revenue }};
+    }}
+
+    function buildSpendMaps(spendRows) {{
+      if (!spendRows || !spendRows.length) {{
+        return clientConfig.defaultSpendMaps;
+      }}
+      const monthly = {{}};
+      const weekly = {{}};
+      spendRows.forEach((row) => {{
+        const values = Object.values(row);
+        const dayRaw = String(row.Day || values[0] || "").trim().slice(0, 10);
+        if (!dayRaw) return;
+        const amountRaw = row["Amount spent (EUR)"] ?? values[1];
+        const amount = parseCompactEuroAmount(amountRaw);
+        const monthKey = dayRaw.slice(0, 7);
+        if (!clientConfig.targetMonths.includes(monthKey)) return;
+        monthly[monthKey] = (monthly[monthKey] || 0) + amount;
+        const [weekStart] = anchoredWeekRange(dayRaw);
+        const weekKey = toIsoDate(weekStart);
+        weekly[weekKey] = (weekly[weekKey] || 0) + amount;
+      }});
+      return {{ monthly, weekly }};
+    }}
+
+    function formatMoney(amount) {{
+      return `€${{Math.round(amount).toLocaleString("en-US")}}`;
+    }}
+
+    function formatMoney2(amount) {{
+      return amount ? `€${{amount.toFixed(2)}}` : "—";
+    }}
+
+    function buildViewPayload(metrics) {{
+      return {{
+        chart: metrics.map((item) => ({{
+          cohort: item.chartLabel,
+          paidRate: Number(item.paidRate.toFixed(1)),
+          activeRate: Number(item.activeRate.toFixed(1)),
+          repeatRate: Number(item.repeatRate.toFixed(1)),
+          threePlusRate: Number(item.threePlusRate.toFixed(1)),
+        }})),
+        rows: metrics.map((item) => ({{
+          cohort: item.cohort,
+          spend: formatMoney(item.spend),
+          newCustomers: item.customersWithPayment,
+          cpa: item.customersWithPayment ? formatMoney(item.spend / item.customersWithPayment) : "—",
+          upsell: formatMoney2(item.upsellRevenue),
+          upsellCount: item.upsellCount || "—",
+          avg: item.upsellCount ? `€${{item.upsellAvg.toFixed(2)}}` : "—",
+          d0Rev: formatMoney(item.d0Revenue),
+          revToDate: formatMoney(item.netRevenue),
+          refunds: formatMoney(item.refundedVolume),
+          disputeLosses: formatMoney(item.disputeLosses),
+          d0Roas: item.spend ? `${{(item.d0Revenue / item.spend * 100).toFixed(1)}}%` : "—",
+          roasToDate: item.spend ? `${{(item.netRevenue / item.spend * 100).toFixed(1)}}%` : "—",
+          m1: item.spend ? `${{(item.m1Revenue / item.spend * 100).toFixed(1)}}%` : "—",
+          m2: item.spend ? `${{(item.m2Revenue / item.spend * 100).toFixed(1)}}%` : "—",
+          m3: item.spend ? `${{(item.m3Revenue / item.spend * 100).toFixed(1)}}%` : "—",
+          m6: item.spend ? `${{(item.m6Revenue / item.spend * 100).toFixed(1)}}%` : "—",
+          m9: item.spend ? `${{(item.m9Revenue / item.spend * 100).toFixed(1)}}%` : "—",
+          m12: item.spend ? `${{(item.m12Revenue / item.spend * 100).toFixed(1)}}%` : "—",
+          m1Projected: !milestoneClosedFromEnd(item.cohortEndDate, 1),
+          m2Projected: !milestoneClosedFromEnd(item.cohortEndDate, 2),
+          m3Projected: !milestoneClosedFromEnd(item.cohortEndDate, 3),
+          m6Projected: true,
+          m9Projected: true,
+          m12Projected: true,
+        }})),
+      }};
+    }}
+
+    function buildMetrics(rows, cohortKey, cohortLabel, chartLabel, cohortEndDate, spend, paymentsRows, catalog, lookups, subscriptionCreationAmounts) {{
+      const paymentCounts = rows.map((row) => parseIntValue(row["Payment Count"]));
+      const customers = rows.length;
+      const paidCustomers = rows.filter((row) => parseAmount(row["Total Spend"]) > 0).length;
+      const customersWithPayment = rows.filter((row) => parseIntValue(row["Payment Count"]) >= 1).length;
+      const m1SubscriptionCounts = subscriptionBillingCountsThrough(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 1)));
+      const m2SubscriptionCounts = subscriptionBillingCountsThrough(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 2)));
+      const m3SubscriptionCounts = subscriptionBillingCountsThrough(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 3)));
+      const projected = {{ m1: 0, m2: 0, m3: 0, m6: 0, m9: 0, m12: 0 }};
+
+      rows.forEach((row) => {{
+        if (parseIntValue(row["Payment Count"]) < 1) return;
+        const customerId = String(row.id || "").trim();
+        const monthKey = String(row["Created (UTC)"] || "").slice(0, 7);
+        const projectionSpec = projectionSpecForRow(row, monthKey, subscriptionCreationAmounts.get(customerId), catalog);
+        if (!projectionSpec) return;
+        const [family, fullPriceEur] = projectionSpec;
+        projected.m1 += projectedBenchmarkRevenue(family, fullPriceEur, 1);
+        projected.m2 += projectedBenchmarkRevenue(family, fullPriceEur, 2);
+        projected.m3 += projectedBenchmarkRevenue(family, fullPriceEur, 3);
+        projected.m6 += projectedBenchmarkRevenue(family, fullPriceEur, 6);
+        projected.m9 += projectedBenchmarkRevenue(family, fullPriceEur, 9);
+        projected.m12 += projectedBenchmarkRevenue(family, fullPriceEur, 12);
+      }});
+
+      const d0Revenue = actualRevenueThroughRows(rows, paymentsRows, toIsoDate(cohortEndDate), lookups.firstCharge, lookups.cumulative, catalog);
+      const m1Revenue = milestoneClosedFromEnd(cohortEndDate, 1)
+        ? netActualRevenueThroughRows(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 1)), lookups.firstCharge, lookups.cumulative, catalog)
+        : d0Revenue + projected.m1;
+      const m2Revenue = milestoneClosedFromEnd(cohortEndDate, 2)
+        ? netActualRevenueThroughRows(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 2)), lookups.firstCharge, lookups.cumulative, catalog)
+        : d0Revenue + projected.m2;
+      const m3Revenue = milestoneClosedFromEnd(cohortEndDate, 3)
+        ? netActualRevenueThroughRows(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 3)), lookups.firstCharge, lookups.cumulative, catalog)
+        : d0Revenue + projected.m3;
+      const m6Revenue = d0Revenue + projected.m6;
+      const m9Revenue = d0Revenue + projected.m9;
+      const m12Revenue = d0Revenue + projected.m12;
+      const refundedVolume = cohortRefundedVolume(rows);
+      const disputeLosses = cohortDisputeLosses(rows);
+      const netRevenue = actualRevenueThroughRows(rows, paymentsRows, clientConfig.currentDate, lookups.firstCharge, lookups.cumulative, catalog) - disputeLosses;
+      const upsell = computeTransactionUpsellsForRows(rows, paymentsRows);
+      const activeCustomers = rows.filter((row) => String(row.Status || "") === "active").length;
+      const repeatCustomers = paymentCounts.filter((count) => count >= 2).length;
+      const threePlusCustomers = paymentCounts.filter((count) => count >= 3).length;
+
+      return {{
+        cohort: cohortLabel,
+        chartLabel,
+        cohortEndDate,
+        spend,
+        customersWithPayment,
+        d0Revenue,
+        m1Revenue,
+        m2Revenue,
+        m3Revenue,
+        m6Revenue,
+        m9Revenue,
+        m12Revenue,
+        netRevenue,
+        refundedVolume,
+        disputeLosses,
+        upsellCount: upsell.count,
+        upsellAvg: upsell.count ? upsell.revenue / upsell.count : 0,
+        upsellRevenue: upsell.revenue,
+        paidRate: customers ? (paidCustomers / customers) * 100 : 0,
+        activeRate: customers ? (activeCustomers / customers) * 100 : 0,
+        repeatRate: customers ? (repeatCustomers / customers) * 100 : 0,
+        threePlusRate: customers ? (threePlusCustomers / customers) * 100 : 0,
+      }};
+    }}
+
+    function buildDashboardPayload(customersRows, paymentsRows, spendRows, catalog) {{
+      const groupedMonthly = new Map();
+      const groupedWeekly = new Map();
+      const weeklyRanges = new Map();
+      customersRows.forEach((row) => {{
+        const created = String(row["Created (UTC)"] || "");
+        const monthKey = created.slice(0, 7);
+        if (!clientConfig.targetMonths.includes(monthKey)) return;
+        if (!groupedMonthly.has(monthKey)) groupedMonthly.set(monthKey, []);
+        groupedMonthly.get(monthKey).push(row);
+        const day = created.slice(0, 10);
+        const [weekStart, weekEnd] = anchoredWeekRange(day);
+        const weekKey = toIsoDate(weekStart);
+        if (!groupedWeekly.has(weekKey)) groupedWeekly.set(weekKey, []);
+        groupedWeekly.get(weekKey).push(row);
+        weeklyRanges.set(weekKey, [weekStart, weekEnd]);
+      }});
+
+      const spendMaps = buildSpendMaps(spendRows);
+      const firstChargeLookup = loadFirstChargeLookup(customersRows);
+      const cumulativeChargeLookup = loadCumulativeChargeLookup(customersRows);
+      const subscriptionCreationAmounts = loadSubscriptionCreationAmounts(paymentsRows);
+      const lookups = {{ firstCharge: firstChargeLookup, cumulative: cumulativeChargeLookup }};
+
+      const monthlyMetrics = clientConfig.targetMonths.map((monthKey) => buildMetrics(
+        groupedMonthly.get(monthKey) || [],
+        monthKey,
+        formatMonth(monthKey),
+        formatMonth(monthKey).replace(" 2026", ""),
+        monthEnd(monthKey),
+        spendMaps.monthly[monthKey] || 0,
+        paymentsRows,
+        catalog,
+        lookups,
+        subscriptionCreationAmounts,
+      ));
+
+      const weeklyMetrics = Array.from(groupedWeekly.keys())
+        .sort((a, b) => a.localeCompare(b))
+        .map((weekKey) => {{
+          const [weekStart, weekEnd] = weeklyRanges.get(weekKey);
+          return buildMetrics(
+            groupedWeekly.get(weekKey) || [],
+            weekKey,
+            `${{formatShortDate(weekStart)}}-${{formatShortDate(weekEnd)}}`,
+            formatWeekChartLabel(weekStart),
+            weekEnd,
+            spendMaps.weekly[weekKey] || 0,
+            paymentsRows,
+            catalog,
+            lookups,
+            subscriptionCreationAmounts,
+          );
+        }});
+
+      const cohortRows = customersRows.filter((row) => clientConfig.targetMonths.includes(String(row["Created (UTC)"] || "").slice(0, 7)));
+      const totals = {{
+        customers: cohortRows.length,
+        paid_customers: cohortRows.filter((row) => parseAmount(row["Total Spend"]) > 0).length,
+        active_customers: cohortRows.filter((row) => String(row.Status || "") === "active").length,
+        repeat_customers: cohortRows.filter((row) => parseIntValue(row["Payment Count"]) >= 2).length,
+      }};
+
+      return {{
+        monthly: buildViewPayload(monthlyMetrics),
+        weekly: buildViewPayload(weeklyMetrics),
+        totals,
+      }};
+    }}
+
+    function renderSummary() {{
+      const totals = state.payload.totals || {{}};
+      document.getElementById("summary-customers").textContent = Number(totals.customers || 0).toLocaleString("en-US");
+      document.getElementById("summary-paid").textContent = Number(totals.paid_customers || 0).toLocaleString("en-US");
+      document.getElementById("summary-active").textContent = Number(totals.active_customers || 0).toLocaleString("en-US");
+      document.getElementById("summary-repeat").textContent = Number(totals.repeat_customers || 0).toLocaleString("en-US");
+    }}
 
     function renderTable() {{
       const tbody = document.getElementById("tbody");
-      const view = payload[activeView];
+      const view = state.payload[activeView];
       const milestoneCell = (value, projected) => `<td class="${{projected ? 'projected' : 'actual'}}">${{value}}</td>`;
       const cohortCell = (label) => {{
         if (activeView !== "weekly") {{
           return `<td class="cohort">${{label}}</td>`;
         }}
-        const parts = label.split(" · ");
-        if (parts.length !== 2) {{
-          return `<td class="cohort">${{label}}</td>`;
-        }}
-        return `<td class="cohort"><span class="cohort-code">${{parts[0]}}</span><span class="cohort-range">${{parts[1]}}</span></td>`;
+        return `<td class="cohort"><span class="cohort-range">${{label}}</span></td>`;
       }};
       tbody.innerHTML = view.rows.map((row) => `
         <tr>
@@ -1778,6 +2804,7 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
           ${{milestoneCell(row.m2, row.m2Projected)}}
           ${{milestoneCell(row.m3, row.m3Projected)}}
           ${{milestoneCell(row.m6, row.m6Projected)}}
+          ${{milestoneCell(row.m9, row.m9Projected)}}
           ${{milestoneCell(row.m12, row.m12Projected)}}
         </tr>
       `).join("");
@@ -1785,7 +2812,7 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
 
     function renderChart() {{
       const svg = document.getElementById("chart");
-      const view = payload[activeView];
+      const view = state.payload[activeView];
       const width = 1320;
       const height = 380;
       const margin = {{ top: 30, right: 20, bottom: 70, left: 72 }};
@@ -1840,10 +2867,80 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       renderChart();
     }}
 
+    function updateUploadControls() {{
+      const ready = Boolean(uploadFiles.customers && uploadFiles.payments);
+      document.getElementById("apply-uploads").disabled = !ready;
+      document.getElementById("reset-uploads").hidden = !state.uploaded;
+    }}
+
+    async function recalculateFromUploads() {{
+      if (!uploadFiles.customers || !uploadFiles.payments) {{
+        return;
+      }}
+      const status = document.getElementById("upload-status");
+      status.innerHTML = "<strong>Recalculating…</strong> Parsing uploaded exports and rebuilding cohort views in your browser.";
+      const [customersText, paymentsText, spendText, pricesText] = await Promise.all([
+        uploadFiles.customers.text(),
+        uploadFiles.payments.text(),
+        uploadFiles.spend ? uploadFiles.spend.text() : Promise.resolve(""),
+        uploadFiles.prices ? uploadFiles.prices.text() : Promise.resolve(""),
+      ]);
+      const customersRows = parseDelimited(customersText);
+      const paymentsRows = parseDelimited(paymentsText);
+      const spendRows = spendText ? parseDelimited(spendText) : [];
+      const uploadedCatalogRows = pricesText ? parseDelimited(pricesText) : [];
+      const catalog = uploadedCatalogRows.length
+        ? Object.fromEntries(uploadedCatalogRows.map((row) => [row["Price ID"], {{
+            amount: parseAmount(row.Amount),
+            currency: row.Currency || "",
+            interval: row.Interval || "",
+            interval_count: row["Interval Count"] || "",
+            product_name: row["Product Name"] || "",
+          }}]))
+        : clientConfig.priceCatalog;
+      state.payload = buildDashboardPayload(customersRows, paymentsRows, spendRows, catalog);
+      state.uploaded = true;
+      status.innerHTML = `<strong>Loaded uploaded exports.</strong> Customers: ${{customersRows.length.toLocaleString()}} rows. Payments: ${{paymentsRows.length.toLocaleString()}} rows${{spendRows.length ? `. Spend: ${{spendRows.length.toLocaleString()}} rows.` : "."}}`;
+      updateUploadControls();
+      renderSummary();
+      renderTable();
+      renderChart();
+    }}
+
     document.querySelectorAll(".tab-button").forEach((button) => {{
       button.addEventListener("click", () => setView(button.dataset.view));
     }});
 
+    document.getElementById("reset-uploads").addEventListener("click", () => {{
+      state.payload = defaultPayload;
+      state.uploaded = false;
+      Object.keys(uploadFiles).forEach((key) => {{
+        uploadFiles[key] = null;
+      }});
+      ["customers-upload", "payments-upload", "spend-upload", "prices-upload"].forEach((id) => {{
+        document.getElementById(id).value = "";
+      }});
+      document.getElementById("upload-status").innerHTML = "<strong>Using embedded exports.</strong> Upload customers and payments CSVs to recalculate monthly and weekly cohorts.";
+      updateUploadControls();
+      renderSummary();
+      renderTable();
+      renderChart();
+    }});
+
+    [["customers-upload", "customers"], ["payments-upload", "payments"], ["spend-upload", "spend"], ["prices-upload", "prices"]].forEach(([id, key]) => {{
+      document.getElementById(id).addEventListener("change", (event) => {{
+        uploadFiles[key] = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+        updateUploadControls();
+      }});
+    }});
+
+    document.getElementById("apply-uploads").addEventListener("click", () => {{
+      recalculateFromUploads().catch((error) => {{
+        document.getElementById("upload-status").innerHTML = `<strong>Upload failed.</strong> ${{error.message}}`;
+      }});
+    }});
+
+    renderSummary();
     setView("monthly");
   </script>
 </body>

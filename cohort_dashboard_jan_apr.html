@@ -118,6 +118,21 @@
       margin-bottom: 18px;
     }
 
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .toolbar-actions {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
     .tab-button {
       border: 1px solid rgba(255, 255, 255, 0.08);
       background: rgba(12, 20, 38, 0.45);
@@ -135,6 +150,102 @@
       background: rgba(79, 139, 255, 0.22);
       border-color: rgba(79, 139, 255, 0.45);
       box-shadow: inset 0 0 0 1px rgba(79, 139, 255, 0.18);
+    }
+
+    .action-button {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(12, 20, 38, 0.45);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .action-button:hover {
+      border-color: rgba(24, 199, 243, 0.4);
+    }
+
+    .action-button.secondary {
+      color: var(--muted);
+    }
+
+    .action-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .upload-card {
+      padding: 18px 20px;
+      margin-bottom: 22px;
+    }
+
+    .upload-card > summary {
+      list-style: none;
+      cursor: pointer;
+    }
+
+    .upload-card > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .upload-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .upload-summary-copy {
+      min-width: 0;
+    }
+
+    .upload-panel {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(180px, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .upload-field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .upload-field label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .upload-field input[type="file"] {
+      width: 100%;
+      color: var(--muted);
+      background: rgba(12, 20, 38, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-size: 0.88rem;
+    }
+
+    .upload-status {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.5;
+    }
+
+    .upload-status strong {
+      color: var(--text);
+    }
+
+    .upload-card:not([open]) .upload-panel,
+    .upload-card:not([open]) .toolbar {
+      display: none;
     }
 
     .section-head {
@@ -203,7 +314,7 @@
 
     table {
       width: 100%;
-      min-width: 1540px;
+      min-width: 1660px;
       border-collapse: collapse;
     }
 
@@ -223,7 +334,30 @@
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.12em;
+      white-space: normal;
+      line-height: 1.25;
+      min-width: 86px;
+    }
+
+    .th-two-line {
+      display: inline-block;
       white-space: nowrap;
+      line-height: 1.2;
+    }
+
+    th:nth-child(8),
+    td:nth-child(8),
+    th:nth-child(9),
+    td:nth-child(9),
+    th:nth-child(10),
+    td:nth-child(10),
+    th:nth-child(11),
+    td:nth-child(11),
+    th:nth-child(12),
+    td:nth-child(12),
+    th:nth-child(13),
+    td:nth-child(13) {
+      min-width: 118px;
     }
 
     td {
@@ -236,8 +370,8 @@
       left: 0;
       z-index: 1;
       background: linear-gradient(180deg, rgba(41, 56, 83, 0.98), rgba(27, 39, 61, 0.98));
-      min-width: 210px;
-      width: 210px;
+      min-width: 170px;
+      width: 170px;
     }
 
     th:first-child {
@@ -298,9 +432,22 @@
       line-height: 1.7;
     }
 
+    .footer-note ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .footer-note li + li {
+      margin-top: 8px;
+    }
+
     @media (max-width: 1024px) {
       .hero {
         grid-template-columns: 1fr;
+      }
+
+      .upload-panel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
@@ -311,6 +458,14 @@
 
       th, td {
         padding: 14px 12px;
+      }
+
+      .toolbar {
+        align-items: stretch;
+      }
+
+      .upload-panel {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -329,27 +484,64 @@
       <div class="card summary-grid">
         <div class="summary-pill">
           <div class="summary-label">Customers</div>
-          <div class="summary-value">2,907</div>
+          <div class="summary-value" id="summary-customers">2,907</div>
         </div>
         <div class="summary-pill">
           <div class="summary-label">Paid Customers</div>
-          <div class="summary-value">2,627</div>
+          <div class="summary-value" id="summary-paid">2,627</div>
         </div>
         <div class="summary-pill">
           <div class="summary-label">Active Customers</div>
-          <div class="summary-value">1,873</div>
+          <div class="summary-value" id="summary-active">1,873</div>
         </div>
         <div class="summary-pill">
           <div class="summary-label">Repeat Customers</div>
-          <div class="summary-value">1,368</div>
+          <div class="summary-value" id="summary-repeat">1,368</div>
         </div>
       </div>
     </section>
 
+    <details class="card upload-card" id="upload-card">
+      <summary class="upload-summary" id="toggle-upload">
+        <div class="upload-summary-copy">
+          <h2 class="section-title">Upload Exports</h2>
+          <p class="section-note">Load fresh CSV exports in-browser to recalculate the dashboard without rebuilding the page.</p>
+        </div>
+        <span class="action-button">Upload Exports</span>
+      </summary>
+      <div class="upload-panel" id="upload-panel">
+        <div class="upload-field">
+          <label for="customers-upload">Customers CSV</label>
+          <input id="customers-upload" type="file" accept=".csv,text/csv">
+        </div>
+        <div class="upload-field">
+          <label for="payments-upload">Payments CSV</label>
+          <input id="payments-upload" type="file" accept=".csv,text/csv">
+        </div>
+        <div class="upload-field">
+          <label for="spend-upload">Spend CSV</label>
+          <input id="spend-upload" type="file" accept=".csv,text/csv">
+        </div>
+        <div class="upload-field">
+          <label for="prices-upload">Prices CSV (Optional)</label>
+          <input id="prices-upload" type="file" accept=".csv,text/csv">
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="upload-status" id="upload-status"><strong>Using embedded exports.</strong> Upload customers and payments CSVs to recalculate monthly and weekly cohorts.</div>
+        <div class="toolbar-actions">
+          <button class="action-button secondary" type="button" id="reset-uploads" hidden>Use Embedded Data</button>
+          <button class="action-button" type="button" id="apply-uploads" disabled>Recalculate Dashboard</button>
+        </div>
+      </div>
+    </details>
+
     <section class="card chart-card">
-      <div class="tabs" role="tablist" aria-label="Cohort views">
-        <button class="tab-button active" type="button" data-view="monthly">Monthly Cohorts</button>
-        <button class="tab-button" type="button" data-view="weekly">Weekly Cohorts</button>
+      <div class="toolbar">
+        <div class="tabs" role="tablist" aria-label="Cohort views">
+          <button class="tab-button active" type="button" data-view="monthly">Monthly Cohorts</button>
+          <button class="tab-button" type="button" data-view="weekly">Weekly Cohorts</button>
+        </div>
       </div>
       <div class="section-head">
         <div>
@@ -364,7 +556,7 @@
         </div>
       </div>
       <div class="chart-wrap">
-        <svg id="chart" viewBox="0 0 1320 380" preserveAspectRatio="xMidYMid meet" aria-label="Cohort chart"></svg>
+        <svg id="chart" viewBox="0 0 1320 380" preserveAspectRatio="xMidYMid meet" aria-label="Cohort chart"><line x1="72" y1="310.0" x2="1300" y2="310.0" stroke="rgba(166,183,214,0.16)" stroke-dasharray="4 6" /><text x="58" y="314.0" fill="#9cadca" text-anchor="end" font-size="12">0%</text><line x1="72" y1="240.0" x2="1300" y2="240.0" stroke="rgba(166,183,214,0.16)" stroke-dasharray="4 6" /><text x="58" y="244.0" fill="#9cadca" text-anchor="end" font-size="12">25%</text><line x1="72" y1="170.0" x2="1300" y2="170.0" stroke="rgba(166,183,214,0.16)" stroke-dasharray="4 6" /><text x="58" y="174.0" fill="#9cadca" text-anchor="end" font-size="12">50%</text><line x1="72" y1="100.0" x2="1300" y2="100.0" stroke="rgba(166,183,214,0.16)" stroke-dasharray="4 6" /><text x="58" y="104.0" fill="#9cadca" text-anchor="end" font-size="12">75%</text><line x1="72" y1="30.0" x2="1300" y2="30.0" stroke="rgba(166,183,214,0.16)" stroke-dasharray="4 6" /><text x="58" y="34.0" fill="#9cadca" text-anchor="end" font-size="12">100%</text><rect x="136.5" y="54.920000000000016" width="40" height="255.07999999999998" rx="7" fill="#18c7f3" opacity="0.92" /><rect x="182.5" y="166.35999999999999" width="40" height="143.64000000000001" rx="7" fill="#4f8bff" opacity="0.92" /><rect x="228.5" y="168.04" width="40" height="141.96" rx="7" fill="#a45dff" opacity="0.92" /><rect x="274.5" y="262.68" width="40" height="47.31999999999999" rx="7" fill="#ffb02e" opacity="0.92" /><text x="225.5" y="354" fill="#9cadca" text-anchor="middle" font-size="15">January</text><rect x="443.5" y="56.879999999999995" width="40" height="253.12" rx="7" fill="#18c7f3" opacity="0.92" /><rect x="489.5" y="132.48" width="40" height="177.52" rx="7" fill="#4f8bff" opacity="0.92" /><rect x="535.5" y="176.72" width="40" height="133.28" rx="7" fill="#a45dff" opacity="0.92" /><rect x="581.5" y="280.88" width="40" height="29.12" rx="7" fill="#ffb02e" opacity="0.92" /><text x="532.5" y="354" fill="#9cadca" text-anchor="middle" font-size="15">February</text><rect x="750.5" y="57.16" width="40" height="252.84" rx="7" fill="#18c7f3" opacity="0.92" /><rect x="796.5" y="98.32000000000002" width="40" height="211.67999999999998" rx="7" fill="#4f8bff" opacity="0.92" /><rect x="842.5" y="196.6" width="40" height="113.4" rx="7" fill="#a45dff" opacity="0.92" /><rect x="888.5" y="303.56" width="40" height="6.4399999999999995" rx="7" fill="#ffb02e" opacity="0.92" /><text x="839.5" y="354" fill="#9cadca" text-anchor="middle" font-size="15">March</text><rect x="1057.5" y="66.12" width="40" height="243.88" rx="7" fill="#18c7f3" opacity="0.92" /><rect x="1103.5" y="67.52000000000001" width="40" height="242.48" rx="7" fill="#4f8bff" opacity="0.92" /><rect x="1149.5" y="158.51999999999998" width="40" height="151.48000000000002" rx="7" fill="#a45dff" opacity="0.92" /><rect x="1195.5" y="308.6" width="40" height="1.4000000000000001" rx="7" fill="#ffb02e" opacity="0.92" /><text x="1146.5" y="354" fill="#9cadca" text-anchor="middle" font-size="15">April</text></svg>
       </div>
     </section>
 
@@ -380,39 +572,130 @@
               <th>Upsell</th>
               <th>#</th>
               <th>Avg</th>
-              <th>D0 Rev</th>
-              <th>Net Rev To Date</th>
+              <th><span class="th-two-line">D0<br>Rev</span></th>
+              <th><span class="th-two-line">Net Rev<br>To Date</span></th>
               <th>Refunds</th>
-              <th>Dispute Losses</th>
-              <th>D0 ROAS</th>
-              <th>ROAS To Date</th>
+              <th><span class="th-two-line">Dispute<br>Losses</span></th>
+              <th><span class="th-two-line">D0<br>ROAS</span></th>
+              <th><span class="th-two-line">ROAS<br>To Date</span></th>
               <th>M1</th>
               <th>M2</th>
               <th>M3</th>
               <th>M6</th>
+              <th>M9</th>
               <th>M12</th>
             </tr>
           </thead>
-          <tbody id="tbody"></tbody>
+          <tbody id="tbody">
+        <tr>
+          <td class="cohort">January 2026</td>
+          <td class="money">€54,846</td>
+          <td>889</td>
+          <td class="muted">€62</td>
+          <td class="metric-amber">€2,440.98</td>
+          <td class="muted">280</td>
+          <td class="muted">€8.72</td>
+          <td>€22,106</td>
+          <td>€35,762</td>
+          <td class="metric-red">€1,224</td>
+          <td class="metric-red">€273</td>
+          <td class="metric-amber">40.3%</td>
+          <td class="metric-blue">65.2%</td>
+          <td class="actual">51.7%</td>
+          <td class="actual">59.0%</td>
+          <td class="projected">79.4%</td>
+          <td class="projected">94.8%</td>
+          <td class="projected">104.7%</td>
+          <td class="projected">114.0%</td>
+        </tr>
+        
+        <tr>
+          <td class="cohort">February 2026</td>
+          <td class="money">€54,861</td>
+          <td>874</td>
+          <td class="muted">€63</td>
+          <td class="metric-amber">€2,883.34</td>
+          <td class="muted">327</td>
+          <td class="muted">€8.82</td>
+          <td>€22,648</td>
+          <td>€30,151</td>
+          <td class="metric-red">€285</td>
+          <td class="metric-red">€34</td>
+          <td class="metric-amber">41.3%</td>
+          <td class="metric-blue">55.0%</td>
+          <td class="actual">53.4%</td>
+          <td class="projected">54.6%</td>
+          <td class="projected">77.7%</td>
+          <td class="projected">92.0%</td>
+          <td class="projected">101.5%</td>
+          <td class="projected">110.9%</td>
+        </tr>
+        
+        <tr>
+          <td class="cohort">March 2026</td>
+          <td class="money">€58,689</td>
+          <td>740</td>
+          <td class="muted">€79</td>
+          <td class="metric-amber">€2,638.97</td>
+          <td class="muted">279</td>
+          <td class="muted">€9.46</td>
+          <td>€19,558</td>
+          <td>€21,229</td>
+          <td class="metric-red">€249</td>
+          <td class="metric-red">€25</td>
+          <td class="metric-amber">33.3%</td>
+          <td class="metric-blue">36.2%</td>
+          <td class="projected">41.5%</td>
+          <td class="projected">47.2%</td>
+          <td class="projected">64.8%</td>
+          <td class="projected">77.2%</td>
+          <td class="projected">85.2%</td>
+          <td class="projected">93.3%</td>
+        </tr>
+        
+        <tr>
+          <td class="cohort">April 2026</td>
+          <td class="money">€14,853</td>
+          <td>171</td>
+          <td class="muted">€87</td>
+          <td class="metric-amber">€1,234.08</td>
+          <td class="muted">102</td>
+          <td class="muted">€12.10</td>
+          <td>€5,179</td>
+          <td>€5,179</td>
+          <td class="metric-red">€61</td>
+          <td class="metric-red">€0</td>
+          <td class="metric-amber">34.9%</td>
+          <td class="metric-blue">34.9%</td>
+          <td class="projected">43.3%</td>
+          <td class="projected">49.2%</td>
+          <td class="projected">68.2%</td>
+          <td class="projected">81.4%</td>
+          <td class="projected">89.9%</td>
+          <td class="projected">97.5%</td>
+        </tr>
+        </tbody>
         </table>
       </div>
     </section>
 
     <section class="card footer-note">
-      Revenue is shown in EUR and uses Stripe converted transaction amounts. Cohort membership and new-customer counts
-      come from the customer export. Closed M1/M2/M3 values use transaction revenue through the milestone cutoff,
-      while projected milestones use each customer's real subscription intro and full renewal price with benchmark
-      retention percentages by plan family. Monthly benchmark retention used: M1 55%, M2 38%, M3 20%, M4 18%,
-      M5 14%, M6 12%, M7 10%, M8 7%, M9 7%, M10 6%, M11 6%, M12 5%. Quarterly benchmark retention used:
-      M3 50%, M6 20%, M9 15%, M12 10%. Annual benchmark retention used: M12 30%. Upsell comes from first-day
-      paid invoice transactions in the payments export and is included in cumulative predicted ROAS. Spend comes
-      from the daily spend export in EUR, with January overridden from your screenshot values where the spend
-      export was incomplete.
+      <ul>
+        <li>Revenue is shown in EUR and uses Stripe converted transaction amounts.</li>
+        <li>Cohort membership and new-customer counts come from the customer export.</li>
+        <li>Closed M1/M2/M3 values use transaction revenue through the milestone cutoff.</li>
+        <li>Projected milestones use each customer's real subscription intro and full renewal price with benchmark retention percentages by plan family.</li>
+        <li>Monthly benchmark retention used: M1 55%, M2 38%, M3 20%, M4 18%, M5 14%, M6 12%, M7 10%, M8 7%, M9 7%, M10 6%, M11 6%, M12 5%.</li>
+        <li>Quarterly benchmark retention used: M3 50%, M6 20%, M9 15%, M12 10%. Annual benchmark retention used: M12 30%.</li>
+        <li>Upsell comes from first-day paid invoice transactions in the payments export and is included in cumulative predicted ROAS.</li>
+        <li>Projected milestone revenue is additionally reduced by 15% to account for refunds and fees.</li>
+        <li>Spend comes from the daily spend export in EUR, with January overridden from your screenshot values where the spend export was incomplete.</li>
+      </ul>
     </section>
   </div>
 
   <script>
-    const payload = {
+    const defaultPayload = {
   "monthly": {
     "chart": [
       {
@@ -462,13 +745,15 @@
         "roasToDate": "65.2%",
         "m1": "51.7%",
         "m2": "59.0%",
-        "m3": "86.3%",
-        "m6": "104.4%",
-        "m12": "127.1%",
+        "m3": "79.4%",
+        "m6": "94.8%",
+        "m9": "104.7%",
+        "m12": "114.0%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": true,
         "m6Projected": true,
+        "m9Projected": true,
         "m12Projected": true
       },
       {
@@ -487,14 +772,16 @@
         "d0Roas": "41.3%",
         "roasToDate": "55.0%",
         "m1": "53.4%",
-        "m2": "57.0%",
-        "m3": "84.1%",
-        "m6": "101.0%",
-        "m12": "123.1%",
+        "m2": "54.6%",
+        "m3": "77.7%",
+        "m6": "92.0%",
+        "m9": "101.5%",
+        "m12": "110.9%",
         "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
         "m6Projected": true,
+        "m9Projected": true,
         "m12Projected": true
       },
       {
@@ -512,15 +799,17 @@
         "disputeLosses": "\u20ac25",
         "d0Roas": "33.3%",
         "roasToDate": "36.2%",
-        "m1": "43.0%",
-        "m2": "49.6%",
-        "m3": "70.4%",
-        "m6": "85.0%",
-        "m12": "103.9%",
+        "m1": "41.5%",
+        "m2": "47.2%",
+        "m3": "64.8%",
+        "m6": "77.2%",
+        "m9": "85.2%",
+        "m12": "93.3%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
         "m6Projected": true,
+        "m9Projected": true,
         "m12Projected": true
       },
       {
@@ -538,15 +827,17 @@
         "disputeLosses": "\u20ac0",
         "d0Roas": "34.9%",
         "roasToDate": "34.9%",
-        "m1": "44.8%",
-        "m2": "51.7%",
-        "m3": "74.1%",
-        "m6": "89.6%",
-        "m12": "108.5%",
+        "m1": "43.3%",
+        "m2": "49.2%",
+        "m3": "68.2%",
+        "m6": "81.4%",
+        "m9": "89.9%",
+        "m12": "97.5%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
         "m6Projected": true,
+        "m9Projected": true,
         "m12Projected": true
       }
     ]
@@ -671,12 +962,14 @@
         "m1": "46.2%",
         "m2": "52.6%",
         "m3": "82.4%",
-        "m6": "101.1%",
-        "m12": "123.0%",
+        "m6": "91.8%",
+        "m9": "101.5%",
+        "m12": "110.4%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": false,
         "m6Projected": true,
+        "m9Projected": true,
         "m12Projected": true
       },
       {
@@ -696,13 +989,15 @@
         "roasToDate": "67.9%",
         "m1": "55.8%",
         "m2": "64.7%",
-        "m3": "92.7%",
-        "m6": "112.0%",
-        "m12": "138.4%",
+        "m3": "85.3%",
+        "m6": "101.8%",
+        "m9": "112.2%",
+        "m12": "124.2%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": true,
         "m6Projected": true,
+        "m9Projected": true,
         "m12Projected": true
       },
       {
@@ -722,13 +1017,15 @@
         "roasToDate": "65.7%",
         "m1": "56.6%",
         "m2": "65.3%",
-        "m3": "95.7%",
-        "m6": "116.4%",
-        "m12": "141.2%",
+        "m3": "87.8%",
+        "m6": "105.4%",
+        "m9": "116.4%",
+        "m12": "126.5%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": true,
         "m6Projected": true,
+        "m9Projected": true,
         "m12Projected": true
       },
       {
@@ -748,13 +1045,15 @@
         "roasToDate": "53.7%",
         "m1": "47.2%",
         "m2": "53.7%",
-        "m3": "78.5%",
-        "m6": "94.9%",
-        "m12": "115.1%",
+        "m3": "72.3%",
+        "m6": "86.2%",
+        "m9": "95.4%",
+        "m12": "103.4%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": true,
         "m6Projected": true,
+        "m9Projected": true,
         "m12Projected": true
       },
       {
@@ -774,13 +1073,15 @@
         "roasToDate": "62.3%",
         "m1": "55.7%",
         "m2": "62.3%",
-        "m3": "85.9%",
-        "m6": "103.2%",
-        "m12": "124.5%",
+        "m3": "79.3%",
+        "m6": "94.0%",
+        "m9": "103.9%",
+        "m12": "112.2%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": true,
         "m6Projected": true,
+        "m9Projected": true,
         "m12Projected": true
       },
       {
@@ -799,14 +1100,16 @@
         "d0Roas": "41.7%",
         "roasToDate": "56.5%",
         "m1": "54.2%",
-        "m2": "56.8%",
-        "m3": "84.2%",
-        "m6": "101.0%",
-        "m12": "122.9%",
+        "m2": "54.6%",
+        "m3": "77.9%",
+        "m6": "92.1%",
+        "m9": "101.6%",
+        "m12": "110.7%",
         "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
         "m6Projected": true,
+        "m9Projected": true,
         "m12Projected": true
       },
       {
@@ -825,14 +1128,16 @@
         "d0Roas": "41.9%",
         "roasToDate": "55.0%",
         "m1": "53.7%",
-        "m2": "56.2%",
-        "m3": "83.4%",
-        "m6": "99.8%",
-        "m12": "121.8%",
+        "m2": "54.1%",
+        "m3": "77.2%",
+        "m6": "91.1%",
+        "m9": "100.4%",
+        "m12": "109.8%",
         "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
         "m6Projected": true,
+        "m9Projected": true,
         "m12Projected": true
       },
       {
@@ -851,14 +1156,16 @@
         "d0Roas": "37.9%",
         "roasToDate": "49.4%",
         "m1": "47.8%",
-        "m2": "56.0%",
-        "m3": "80.0%",
-        "m6": "96.6%",
-        "m12": "118.3%",
+        "m2": "53.3%",
+        "m3": "73.7%",
+        "m6": "87.8%",
+        "m9": "96.9%",
+        "m12": "106.2%",
         "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
         "m6Projected": true,
+        "m9Projected": true,
         "m12Projected": true
       },
       {
@@ -877,14 +1184,16 @@
         "d0Roas": "43.9%",
         "roasToDate": "56.8%",
         "m1": "56.8%",
-        "m2": "62.1%",
-        "m3": "93.1%",
-        "m6": "112.6%",
-        "m12": "137.4%",
+        "m2": "59.3%",
+        "m3": "85.7%",
+        "m6": "102.3%",
+        "m9": "113.2%",
+        "m12": "123.4%",
         "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
         "m6Projected": true,
+        "m9Projected": true,
         "m12Projected": true
       },
       {
@@ -902,15 +1211,17 @@
         "disputeLosses": "\u20ac0",
         "d0Roas": "33.9%",
         "roasToDate": "37.7%",
-        "m1": "42.7%",
-        "m2": "48.8%",
-        "m3": "69.9%",
-        "m6": "84.2%",
-        "m12": "103.1%",
+        "m1": "41.4%",
+        "m2": "46.5%",
+        "m3": "64.5%",
+        "m6": "76.6%",
+        "m9": "84.5%",
+        "m12": "92.7%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
         "m6Projected": true,
+        "m9Projected": true,
         "m12Projected": true
       },
       {
@@ -928,15 +1239,17 @@
         "disputeLosses": "\u20ac0",
         "d0Roas": "30.8%",
         "roasToDate": "30.8%",
-        "m1": "40.3%",
-        "m2": "46.9%",
-        "m3": "66.1%",
-        "m6": "80.0%",
-        "m12": "97.7%",
+        "m1": "38.9%",
+        "m2": "44.4%",
+        "m3": "60.8%",
+        "m6": "72.6%",
+        "m9": "80.2%",
+        "m12": "87.6%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
         "m6Projected": true,
+        "m9Projected": true,
         "m12Projected": true
       },
       {
@@ -954,15 +1267,17 @@
         "disputeLosses": "\u20ac0",
         "d0Roas": "37.0%",
         "roasToDate": "37.0%",
-        "m1": "49.0%",
-        "m2": "57.3%",
-        "m3": "78.9%",
-        "m6": "95.4%",
-        "m12": "116.4%",
+        "m1": "47.2%",
+        "m2": "54.3%",
+        "m3": "72.6%",
+        "m6": "86.7%",
+        "m9": "95.5%",
+        "m12": "104.5%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
         "m6Projected": true,
+        "m9Projected": true,
         "m12Projected": true
       },
       {
@@ -980,15 +1295,17 @@
         "disputeLosses": "\u20ac0",
         "d0Roas": "27.6%",
         "roasToDate": "27.6%",
-        "m1": "35.4%",
-        "m2": "40.7%",
-        "m3": "56.3%",
-        "m6": "67.7%",
-        "m12": "83.1%",
+        "m1": "34.2%",
+        "m2": "38.8%",
+        "m3": "52.0%",
+        "m6": "61.7%",
+        "m9": "67.8%",
+        "m12": "74.7%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
         "m6Projected": true,
+        "m9Projected": true,
         "m12Projected": true
       },
       {
@@ -1006,15 +1323,17 @@
         "disputeLosses": "\u20ac0",
         "d0Roas": "35.7%",
         "roasToDate": "35.7%",
-        "m1": "45.6%",
-        "m2": "52.4%",
-        "m3": "75.2%",
-        "m6": "90.8%",
-        "m12": "110.1%",
+        "m1": "44.1%",
+        "m2": "49.9%",
+        "m3": "69.3%",
+        "m6": "82.5%",
+        "m9": "91.1%",
+        "m12": "99.0%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
         "m6Projected": true,
+        "m9Projected": true,
         "m12Projected": true
       }
     ]
@@ -1026,21 +1345,2429 @@
     "repeat_customers": 1368
   }
 };
+    const clientConfig = {
+  "targetMonths": [
+    "2026-01",
+    "2026-02",
+    "2026-03",
+    "2026-04"
+  ],
+  "currentDate": "2026-04-08",
+  "projectedNetRevenueFactor": 0.85,
+  "retentionRates": {
+    "monthly": {
+      "1": 0.55,
+      "2": 0.38,
+      "3": 0.2,
+      "4": 0.18,
+      "5": 0.14,
+      "6": 0.12,
+      "7": 0.1,
+      "8": 0.07,
+      "9": 0.07,
+      "10": 0.06,
+      "11": 0.06,
+      "12": 0.05
+    },
+    "quarterly": {
+      "3": 0.5,
+      "6": 0.2,
+      "9": 0.15,
+      "12": 0.1
+    },
+    "annual": {
+      "12": 0.3
+    }
+  },
+  "priceCatalog": {
+    "price_1TI4EdGH7NUzwJnp4cloIkeS": {
+      "amount": 9.59,
+      "currency": "sgd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Discounted Offer (SGD 9.59)"
+    },
+    "price_1TI4DyGH7NUzwJnpfPUW0vR3": {
+      "amount": 12.99,
+      "currency": "sgd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Offer one-time (SGD 12.99)"
+    },
+    "price_1TI4DNGH7NUzwJnpkaQCLCy4": {
+      "amount": 149.99,
+      "currency": "sgd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly - Special offer (SGD 149.99)"
+    },
+    "price_1TI4CpGH7NUzwJnpH0jcd1oG": {
+      "amount": 99.99,
+      "currency": "sgd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly - Special offer (SGD 99.99)"
+    },
+    "price_1TI4CIGH7NUzwJnpEIN1DmTg": {
+      "amount": 49.99,
+      "currency": "sgd",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly - Special offer (SGD 49.99)"
+    },
+    "price_1TI4AOGH7NUzwJnphSO8c27M": {
+      "amount": 149.99,
+      "currency": "sgd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly (SGD 149.99)"
+    },
+    "price_1TI499GH7NUzwJnpU35Gjw5O": {
+      "amount": 99.99,
+      "currency": "sgd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly (SGD 99.99)"
+    },
+    "price_1TI48VGH7NUzwJnp8ADUCFuE": {
+      "amount": 49.99,
+      "currency": "sgd",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly (SGD 49.99)"
+    },
+    "price_1TI42aGH7NUzwJnplDQBDsSg": {
+      "amount": 29.59,
+      "currency": "myr",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Discounted Offer (MYR 29.59)"
+    },
+    "price_1TI40RGH7NUzwJnpl6FmWOEl": {
+      "amount": 39.99,
+      "currency": "myr",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Offer one-time (MYR 39.99)"
+    },
+    "price_1TI3goGH7NUzwJnp7Cc91z66": {
+      "amount": 479.99,
+      "currency": "myr",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly - Special offer (MYR 479.99)"
+    },
+    "price_1TI3g8GH7NUzwJnpCa1xXKAZ": {
+      "amount": 319.99,
+      "currency": "myr",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly - Special offer (MYR 319.99)"
+    },
+    "price_1TI3fUGH7NUzwJnpwz0qNq1x": {
+      "amount": 159.99,
+      "currency": "myr",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly - Special offer (MYR 159.99)"
+    },
+    "price_1TI3RDGH7NUzwJnpRYNIHoOg": {
+      "amount": 479.99,
+      "currency": "myr",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly (MYR 479.99)"
+    },
+    "price_1TI3QYGH7NUzwJnpf5IWoIpl": {
+      "amount": 319.99,
+      "currency": "myr",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly (MYR 319.99)"
+    },
+    "price_1TI3P2GH7NUzwJnp6keMii8T": {
+      "amount": 159.99,
+      "currency": "myr",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly (MYR 159.99)"
+    },
+    "price_1TEAN4GH7NUzwJnpYkGGvozj": {
+      "amount": 9.99,
+      "currency": "cad",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Special Offer (CA$9.99)"
+    },
+    "price_1TEAMNGH7NUzwJnpc9wNOefE": {
+      "amount": 10.99,
+      "currency": "aud",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Special Offer (A$10.99)"
+    },
+    "price_1TEALaGH7NUzwJnpjGEQCrjK": {
+      "amount": 73.99,
+      "currency": "nok",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Special Offer (NOK 73.99)"
+    },
+    "price_1TEAKeGH7NUzwJnpuYDe3yE3": {
+      "amount": 5.99,
+      "currency": "gbp",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Special Offer (\u00a35.99)"
+    },
+    "price_1TEAJyGH7NUzwJnpgSSwp6AQ": {
+      "amount": 66.59,
+      "currency": "sek",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Special Offer (SEK 66.59)"
+    },
+    "price_1TEAJNGH7NUzwJnph2omPHPl": {
+      "amount": 51.79,
+      "currency": "dkk",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Special Offer (DKK 51.79)"
+    },
+    "price_1TEAIoGH7NUzwJnpdANqcivL": {
+      "amount": 7.39,
+      "currency": "chf",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Special Offer (CHF 7.39)"
+    },
+    "price_1TEAEnGH7NUzwJnp0LPFj2lh": {
+      "amount": 7.39,
+      "currency": "eur",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Special Offer (\u20ac7.39)"
+    },
+    "price_1TEAEIGH7NUzwJnp3BxYJOIk": {
+      "amount": 7.39,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Special Offer (US$7.39)"
+    },
+    "price_1TE95wGH7NUzwJnpU92goqbW": {
+      "amount": 21.99,
+      "currency": "cad",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Discounted Offer (CA$21.99)"
+    },
+    "price_1TE95BGH7NUzwJnpopSlQ7p1": {
+      "amount": 21.99,
+      "currency": "aud",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Discounted Offer (A$21.99)"
+    },
+    "price_1TE93sGH7NUzwJnp1e5NvTpI": {
+      "amount": 10.99,
+      "currency": "gbp",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Discounted Offer (\u00a310.99)"
+    },
+    "price_1TE930GH7NUzwJnpiiY4geo4": {
+      "amount": 147.99,
+      "currency": "nok",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Discounted Offer (NOK 147.99)"
+    },
+    "price_1TE91rGH7NUzwJnp4ecFwEkv": {
+      "amount": 139.99,
+      "currency": "sek",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Discounted Offer (SEK 139.99)"
+    },
+    "price_1TE7tDGH7NUzwJnposqIZoJR": {
+      "amount": 95.99,
+      "currency": "dkk",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Discounted Offer (DKK 95.99)"
+    },
+    "price_1TE7sPGH7NUzwJnpihLkG7fr": {
+      "amount": 11.89,
+      "currency": "chf",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Discounted Offer (CHF 11.89)"
+    },
+    "price_1TE7rQGH7NUzwJnpE3ATpKMx": {
+      "amount": 14.79,
+      "currency": "eur",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Discounted Offer (\u20ac14.79)"
+    },
+    "price_1TE7pTGH7NUzwJnp0kex1wjM": {
+      "amount": 14.79,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "One-time Discounted Offer (US$14.79)"
+    },
+    "price_1TE6Z5GH7NUzwJnpCXx6XB6j": {
+      "amount": 29.99,
+      "currency": "cad",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Offer one-time (CA$29.99)"
+    },
+    "price_1TE6Y4GH7NUzwJnpa7gBSYDr": {
+      "amount": 29.99,
+      "currency": "aud",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Offer one-time (A$29.99)"
+    },
+    "price_1TE6PoGH7NUzwJnpaZm9Nbsq": {
+      "amount": 14.99,
+      "currency": "gbp",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Offer one-time (\u00a314.99)"
+    },
+    "price_1TE6MZGH7NUzwJnpKfUzsrmg": {
+      "amount": 199.99,
+      "currency": "nok",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Offer one-time (NOK 199.99)"
+    },
+    "price_1TE6LDGH7NUzwJnpkJb1lk9u": {
+      "amount": 189.99,
+      "currency": "sek",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Offer one-time (SEK 189.99)"
+    },
+    "price_1TE6KaGH7NUzwJnp1X9ls9EK": {
+      "amount": 129.99,
+      "currency": "dkk",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Offer one-time (DKK 129.99)"
+    },
+    "price_1TE6JmGH7NUzwJnpyPRZTnUy": {
+      "amount": 15.99,
+      "currency": "chf",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Offer one-time (CHF 15.99)"
+    },
+    "price_1TE6HLGH7NUzwJnpf51Pq5Fo": {
+      "amount": 19.99,
+      "currency": "eur",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Offer one-time (\u20ac19.99)"
+    },
+    "price_1TE6GWGH7NUzwJnpwwsUptON": {
+      "amount": 19.99,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Offer one-time (US$19.99)"
+    },
+    "price_1SzFgkGH7NUzwJnpiTWHUALQ": {
+      "amount": 14.99,
+      "currency": "aud",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Offer one-time (A$14.99)"
+    },
+    "price_1SzFfsGH7NUzwJnpM6rFmduy": {
+      "amount": 169.99,
+      "currency": "aud",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly (A$169.99)"
+    },
+    "price_1SzFf3GH7NUzwJnpNBjeNccI": {
+      "amount": 119.99,
+      "currency": "aud",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly (A$119.99)"
+    },
+    "price_1SzFdqGH7NUzwJnp4kGJfjjK": {
+      "amount": 59.99,
+      "currency": "aud",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly (A$59.99)"
+    },
+    "price_1SzFWIGH7NUzwJnplm4TAM54": {
+      "amount": 169.99,
+      "currency": "aud",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly - Special offer"
+    },
+    "price_1SzFVIGH7NUzwJnpITrQ5TxW": {
+      "amount": 119.99,
+      "currency": "aud",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly - Special offer"
+    },
+    "price_1SzFUhGH7NUzwJnpXfeUWuZI": {
+      "amount": 59.99,
+      "currency": "aud",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly - Special offer"
+    },
+    "price_1SzFRVGH7NUzwJnpgN0UnQLx": {
+      "amount": 13.99,
+      "currency": "cad",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Offer one-time (CA$13.99)"
+    },
+    "price_1SzFIJGH7NUzwJnpoxv17lAV": {
+      "amount": 159.99,
+      "currency": "cad",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly (CA$159.99)"
+    },
+    "price_1SzFHVGH7NUzwJnpUXy2u36u": {
+      "amount": 109.99,
+      "currency": "cad",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly (CA$109.99)"
+    },
+    "price_1SzFGjGH7NUzwJnpftbuDqd2": {
+      "amount": 59.99,
+      "currency": "cad",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly (CA$59.99)"
+    },
+    "price_1SzFFNGH7NUzwJnpmdzSYzfK": {
+      "amount": 159.99,
+      "currency": "cad",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly - Special offer"
+    },
+    "price_1SzFEGGH7NUzwJnpEpIDPnje": {
+      "amount": 109.99,
+      "currency": "cad",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly - Special offer"
+    },
+    "price_1SzFDMGH7NUzwJnpAhSiBAES": {
+      "amount": 59.99,
+      "currency": "cad",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly - Special offer"
+    },
+    "price_1SxUBjGH7NUzwJnpUx8bChlU": {
+      "amount": 1199.99,
+      "currency": "nok",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly - Special offer"
+    },
+    "price_1SxUB8GH7NUzwJnpHdvtFGT2": {
+      "amount": 799.99,
+      "currency": "nok",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly - Special offer"
+    },
+    "price_1SxUAgGH7NUzwJnpOBvgCTIJ": {
+      "amount": 399.99,
+      "currency": "nok",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly - Special offer"
+    },
+    "price_1SxU9eGH7NUzwJnp3DmNfTKC": {
+      "amount": 94.99,
+      "currency": "chf",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly - Special offer"
+    },
+    "price_1SxU8yGH7NUzwJnpvoTLlZqB": {
+      "amount": 62.99,
+      "currency": "chf",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly - Special offer"
+    },
+    "price_1SxU8LGH7NUzwJnpzoUoB2xw": {
+      "amount": 31.99,
+      "currency": "chf",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly - Special offer"
+    },
+    "price_1SxU7UGH7NUzwJnpSs0Xsn4K": {
+      "amount": 1099.99,
+      "currency": "sek",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly - Special offer"
+    },
+    "price_1SxU6ZGH7NUzwJnphZKvv4VO": {
+      "amount": 729.99,
+      "currency": "sek",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly - Special offer"
+    },
+    "price_1SxU4fGH7NUzwJnpDPjcoQPw": {
+      "amount": 369.99,
+      "currency": "sek",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly - Special offer"
+    },
+    "price_1SxU2lGH7NUzwJnp7EsGRLgZ": {
+      "amount": 769.99,
+      "currency": "dkk",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly - Special offer"
+    },
+    "price_1SxU29GH7NUzwJnpTtIP0GiI": {
+      "amount": 509.99,
+      "currency": "dkk",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly - Special offer"
+    },
+    "price_1SxU1RGH7NUzwJnpIYJAlUma": {
+      "amount": 259.99,
+      "currency": "dkk",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly - Special offer"
+    },
+    "price_1SxU02GH7NUzwJnpYuvfgPXO": {
+      "amount": 89.99,
+      "currency": "gbp",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly - Special offer"
+    },
+    "price_1SxTzMGH7NUzwJnp8KZP9qKR": {
+      "amount": 59.99,
+      "currency": "gbp",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly - Special offer"
+    },
+    "price_1SxTyNGH7NUzwJnpQ65U3Gd3": {
+      "amount": 29.99,
+      "currency": "gbp",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly - Special offer"
+    },
+    "price_1SxTmmGH7NUzwJnpyeAE0ayL": {
+      "amount": 119.99,
+      "currency": "eur",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly - Special offer"
+    },
+    "price_1SxTm5GH7NUzwJnpJFUVbYmk": {
+      "amount": 79.99,
+      "currency": "eur",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly - Special offer"
+    },
+    "price_1SxTlZGH7NUzwJnpDIivGBQ1": {
+      "amount": 39.99,
+      "currency": "eur",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly - Special offer"
+    },
+    "price_1SxTkJGH7NUzwJnpFo7iZ3yl": {
+      "amount": 119.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly - Special offer"
+    },
+    "price_1SxTiUGH7NUzwJnpdMVIT80Z": {
+      "amount": 79.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly - Special offer"
+    },
+    "price_1SxThTGH7NUzwJnp5KzMJFiM": {
+      "amount": 39.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly - Special offer"
+    },
+    "price_1SslwkGH7NUzwJnpKekmSqT1": {
+      "amount": 9.99,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Whatsapp Kai - US$9.99"
+    },
+    "price_1SsPr7GH7NUzwJnp04YLl9Ed": {
+      "amount": 99.99,
+      "currency": "nok",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Offer one-time (NOK 99.99)"
+    },
+    "price_1SsPqbGH7NUzwJnpXAKM0X3H": {
+      "amount": 9.99,
+      "currency": "chf",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Offer one-time (CHF 9.99)"
+    },
+    "price_1SsPpqGH7NUzwJnpqDlnwWKA": {
+      "amount": 89.99,
+      "currency": "sek",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Offer one-time (SEK 89.99)"
+    },
+    "price_1SsPp6GH7NUzwJnpPrBDUyQ9": {
+      "amount": 69.99,
+      "currency": "dkk",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Offer one-time (DKK 69.99)"
+    },
+    "price_1SsPnxGH7NUzwJnpV9QtOCD1": {
+      "amount": 7.99,
+      "currency": "gbp",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Offer one-time (\u00a37.99)"
+    },
+    "price_1SreOZGH7NUzwJnpQfgYV8lI": {
+      "amount": 1199.99,
+      "currency": "nok",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly (NOK 1,199.99)"
+    },
+    "price_1SreNsGH7NUzwJnp2vVJrdOp": {
+      "amount": 799.99,
+      "currency": "nok",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly (NOK 799.99)"
+    },
+    "price_1SreNFGH7NUzwJnpRPedPT9F": {
+      "amount": 399.99,
+      "currency": "nok",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly (NOK 399.99)"
+    },
+    "price_1Sre6OGH7NUzwJnpfZuHbWL6": {
+      "amount": 94.99,
+      "currency": "chf",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly (CHF 94.99)"
+    },
+    "price_1Sre58GH7NUzwJnpaOTUQvpl": {
+      "amount": 62.99,
+      "currency": "chf",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly (CHF 62.99)"
+    },
+    "price_1Sre4MGH7NUzwJnp38yMGuCW": {
+      "amount": 31.99,
+      "currency": "chf",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly (CHF 31.99)"
+    },
+    "price_1SrdrxGH7NUzwJnpPilEh5II": {
+      "amount": 1099.99,
+      "currency": "sek",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly (SEK 1,099.99)"
+    },
+    "price_1SrdqeGH7NUzwJnptr39hFM1": {
+      "amount": 729.99,
+      "currency": "sek",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly (SEK 729.99)"
+    },
+    "price_1SrdpsGH7NUzwJnpkHkb3aMy": {
+      "amount": 369.99,
+      "currency": "sek",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly (SEK 369.99)"
+    },
+    "price_1SrdRTGH7NUzwJnpiWj3ePcg": {
+      "amount": 769.99,
+      "currency": "dkk",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly (DKK 769.99)"
+    },
+    "price_1SrdPBGH7NUzwJnpzQEe6U1R": {
+      "amount": 509.99,
+      "currency": "dkk",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly (DKK 509.99)"
+    },
+    "price_1SrdNUGH7NUzwJnpd26cB4IK": {
+      "amount": 259.99,
+      "currency": "dkk",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly (DKK 259.99)"
+    },
+    "price_1SrconGH7NUzwJnpW5ldViNt": {
+      "amount": 89.99,
+      "currency": "gbp",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly (\u00a389.99)"
+    },
+    "price_1Srco3GH7NUzwJnpNqHKr0Qv": {
+      "amount": 59.99,
+      "currency": "gbp",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly (\u00a359.99)"
+    },
+    "price_1SrcnDGH7NUzwJnpEipLmZ7Z": {
+      "amount": 29.99,
+      "currency": "gbp",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly (\u00a329.99)"
+    },
+    "price_1Spq88GH7NUzwJnpusxSPbzd": {
+      "amount": 59.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Coaching Yearly Subscription Add-on"
+    },
+    "price_1Spq7SGH7NUzwJnp6nJj4lsi": {
+      "amount": 29.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Coaching 3-Month Subscription Add-on"
+    },
+    "price_1Spq54GH7NUzwJnplWT5uSUE": {
+      "amount": 9.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Coaching Monthly Subscription Add-on"
+    },
+    "price_1SmwL8GH7NUzwJnpg96S5TE5": {
+      "amount": 9.99,
+      "currency": "eur",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Whatsapp Kai - \u20ac9.99"
+    },
+    "price_1Smv2ZGH7NUzwJnpgicpeClz": {
+      "amount": 119.99,
+      "currency": "eur",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly"
+    },
+    "price_1Smv1dGH7NUzwJnpU0FBZWcV": {
+      "amount": 79.99,
+      "currency": "eur",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly"
+    },
+    "price_1Smv0HGH7NUzwJnpiIhrT9h3": {
+      "amount": 39.99,
+      "currency": "eur",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly"
+    },
+    "price_1Sc8DeGH7NUzwJnpOC3OyYfz": {
+      "amount": 119.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly"
+    },
+    "price_1Sc8CgGH7NUzwJnpGzpnueZV": {
+      "amount": 79.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly"
+    },
+    "price_1Sc8BCGH7NUzwJnpaEPvc3r8": {
+      "amount": 39.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly"
+    },
+    "price_1SY2qHGH7NUzwJnplTGCGiGg": {
+      "amount": 9.99,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Whatsapp Kai - $9.99"
+    },
+    "price_1SY1lUGH7NUzwJnpK28ZRjGO": {
+      "amount": 9.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly"
+    },
+    "price_1SXNgTGH7NUzwJnp1K8raRMg": {
+      "amount": 19.99,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Whatsapp Kai - One off"
+    },
+    "price_1SWzEVGH7NUzwJnpskkmFsB9": {
+      "amount": 49.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly"
+    },
+    "price_1SWzDnGH7NUzwJnprm5NoSVN": {
+      "amount": 29.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly"
+    },
+    "price_1SVe2JGH7NUzwJnppTSx2NHI": {
+      "amount": 49.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly"
+    },
+    "price_1SVe1pGH7NUzwJnpZqoqdCk9": {
+      "amount": 29.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly"
+    },
+    "price_1ST76MGH7NUzwJnpcm108sWQ": {
+      "amount": 21.99,
+      "currency": "eur",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly"
+    },
+    "price_1ST75xGH7NUzwJnpQYYHILjl": {
+      "amount": 44.99,
+      "currency": "eur",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - Quarterly"
+    },
+    "price_1ST75SGH7NUzwJnpU0j7UUZh": {
+      "amount": 109.99,
+      "currency": "eur",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly"
+    },
+    "price_1SKKJvGH7NUzwJnpY8Fg2KGd": {
+      "amount": 42.7,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - 3 monthly"
+    },
+    "price_1SKKHiGH7NUzwJnpz9Qml94K": {
+      "amount": 102.02,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - Yearly"
+    },
+    "price_1SGdVxGH7NUzwJnpaOsF9PQT": {
+      "amount": 23.65,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Monthly"
+    },
+    "price_1SE9UGGH7NUzwJnpH4Ca21ly": {
+      "amount": 24.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "One-time 24.99"
+    },
+    "price_1SDjSKGH7NUzwJnprrS3O9QZ": {
+      "amount": 23.65,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - Month"
+    },
+    "price_1SDjSCGH7NUzwJnp7N6uXg9Q": {
+      "amount": 42.7,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - 3 Month"
+    },
+    "price_1SDjRbGH7NUzwJnp94G06dls": {
+      "amount": 102.02,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - 1 Year"
+    },
+    "price_1RqYARGH7NUzwJnpktiN8vEv": {
+      "amount": 12.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "+1000 Messages Pack"
+    },
+    "price_1RqYAAGH7NUzwJnpxH9nSrsc": {
+      "amount": 9.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "+500 Messages Pack"
+    },
+    "price_1Rc4dLGH7NUzwJnpRSRr06Rn": {
+      "amount": 79.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Yearly Subscription / $79.99"
+    },
+    "price_1RGyrCGH7NUzwJnphw1IlRcx": {
+      "amount": 49.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "6",
+      "product_name": "Subscription - $49.99/6 months"
+    },
+    "price_1RGyqHGH7NUzwJnpEFLM0XVl": {
+      "amount": 39.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "6",
+      "product_name": "Subscription - $39.99/6 months"
+    },
+    "price_1QyqVEGH7NUzwJnpiAqsBvVu": {
+      "amount": 19.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Upgrade - $19.99"
+    },
+    "price_1QwqNYGH7NUzwJnp2OmqrsL2": {
+      "amount": 599.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Bulk Purchase #30"
+    },
+    "price_1Qp7igGH7NUzwJnpmm3LXdzj": {
+      "amount": 69.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - $69.99/year"
+    },
+    "price_1Qp7hmGH7NUzwJnpai8HvbNi": {
+      "amount": 14.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - $14.99/month"
+    },
+    "price_1QjADvGH7NUzwJnpLPXoxt9Q": {
+      "amount": 500.0,
+      "currency": "eur",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Founder Consulting - 60min"
+    },
+    "price_1QUql0GH7NUzwJnp7jhbRP9S": {
+      "amount": 599.0,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Oakhillranch (Yearly / 20 units)"
+    },
+    "price_1QQW26GH7NUzwJnpiV9qkLEC": {
+      "amount": 9.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Subscription - $9.99/month"
+    },
+    "price_1QK1QuGH7NUzwJnpO9zFGUhZ": {
+      "amount": 7998.99,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Schoeneckers Inc - Order"
+    },
+    "price_1QEudkGH7NUzwJnpsuuAo0Wl": {
+      "amount": 49.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - $49.99/12 months"
+    },
+    "price_1QEucvGH7NUzwJnpvvcnE3yu": {
+      "amount": 39.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Black Friday - $39.99/12 months"
+    },
+    "price_1QEubiGH7NUzwJnpk7ylQWug": {
+      "amount": 39.99,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Subscription - $39.99 (One-off)"
+    },
+    "price_1QEuaoGH7NUzwJnpRFNLqIGD": {
+      "amount": 29.99,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Subscription - $29.99 (One-off)"
+    },
+    "price_1QEuZwGH7NUzwJnpvp5eKHCk": {
+      "amount": 5.99,
+      "currency": "usd",
+      "interval": "week",
+      "interval_count": "1",
+      "product_name": "Subscription - $5.99/7 days"
+    },
+    "price_1Q8clGGH7NUzwJnpcCn3RPwd": {
+      "amount": 0.99,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "7 Day Trial - $0.99"
+    },
+    "price_1PnDnLGH7NUzwJnpl6kPzPM1": {
+      "amount": 149.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Lifetime - $149"
+    },
+    "price_1PnDnEGH7NUzwJnpn5py1j0g": {
+      "amount": 119.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Lifetime - $119"
+    },
+    "price_1PnDn7GH7NUzwJnpSPgv0x6I": {
+      "amount": 79.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - $79.99/12 months"
+    },
+    "price_1PnDmzGH7NUzwJnpWXrxxoHV": {
+      "amount": 59.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription - $59.99/12 months"
+    },
+    "price_1PnDmrGH7NUzwJnpVo7V7HJX": {
+      "amount": 29.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - $29.99/3 months"
+    },
+    "price_1PnDmjGH7NUzwJnpka62yGem": {
+      "amount": 19.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Subscription - $19.99/3 months"
+    },
+    "price_1PnDmcGH7NUzwJnpUIPWGrE8": {
+      "amount": 6.99,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "30 Day Trial - $6.99"
+    },
+    "price_1PnDmTGH7NUzwJnpIBa7GT0z": {
+      "amount": 4.99,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "30 Day Trial - $4.99"
+    },
+    "price_1PnDmJGH7NUzwJnp6vIQelR7": {
+      "amount": 0.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "7 Day Trial - $0"
+    },
+    "price_1Pkt2CGH7NUzwJnpVKtrI36J": {
+      "amount": 19.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Positivity Training Program - $19.99/3 months"
+    },
+    "price_1Pkt25GH7NUzwJnpl7faM3rF": {
+      "amount": 29.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Positivity Training Program - $29.99/3 months"
+    },
+    "price_1Pkt1xGH7NUzwJnpnQWMAu7p": {
+      "amount": 59.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Positivity Training Program - $59.99/year"
+    },
+    "price_1Pkt1rGH7NUzwJnpPAp8g9pq": {
+      "amount": 79.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Positivity Training Program - $79.99/year"
+    },
+    "price_1Pkt1jGH7NUzwJnppiAACppx": {
+      "amount": 4.99,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Positivity $4.99 One Month Trial"
+    },
+    "price_1Pkt1dGH7NUzwJnpgeLLvwio": {
+      "amount": 6.99,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Positivity $6.99 One Month Trial"
+    },
+    "price_1Pkt1WGH7NUzwJnpgTtbyRCa": {
+      "amount": 0.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Positivity One Week Free Trial"
+    },
+    "price_1Pkt0nGH7NUzwJnplvw16jGl": {
+      "amount": 149.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Positivity Training Program - $149 Lifetime"
+    },
+    "price_1PkszwGH7NUzwJnplmEF6mxi": {
+      "amount": 149.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Positivitu Training Program - $149 Lifetime"
+    },
+    "price_1PksyqGH7NUzwJnpk1uUafB3": {
+      "amount": 119.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Positivity Training Program - $119 Lifetime"
+    },
+    "price_1PksruGH7NUzwJnpDuGKU4Wy": {
+      "amount": 149.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Anxiety Training Program - $149 Lifetime"
+    },
+    "price_1PksqvGH7NUzwJnpYvajdF8Z": {
+      "amount": 119.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Anxiety Training Program - $119 Lifetime"
+    },
+    "price_1PksneGH7NUzwJnpQVgTtxPE": {
+      "amount": 19.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Anxiety Training Program - $19.99/3 months"
+    },
+    "price_1PksnSGH7NUzwJnpHlBavNbX": {
+      "amount": 29.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Anxiety Training Program - $29.99/3 months"
+    },
+    "price_1PksnKGH7NUzwJnp4wyHsovN": {
+      "amount": 59.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Anxiety Training Program - $59.99/year"
+    },
+    "price_1PksnDGH7NUzwJnpknvPi4bp": {
+      "amount": 79.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Anxiety Training Program - $79.99/year"
+    },
+    "price_1Pksn6GH7NUzwJnpwLxReEBz": {
+      "amount": 0.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Anxiety $4.99 One Month Trial"
+    },
+    "price_1PksmyGH7NUzwJnpgpURrngk": {
+      "amount": 0.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Anxiety $6.99 One Month Trial"
+    },
+    "price_1PksmrGH7NUzwJnpPiuvp0x1": {
+      "amount": 0.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Anxiety One Week Free Trial"
+    },
+    "price_1PkslCGH7NUzwJnpOVsfhcvt": {
+      "amount": 149.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Procrastination Training Program - $149 Lifetime"
+    },
+    "price_1Pksk4GH7NUzwJnpyqRkEL8e": {
+      "amount": 119.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Procrastination Training Program - $119 Lifetime"
+    },
+    "price_1Pksh7GH7NUzwJnpvHxlE3mH": {
+      "amount": 119.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Confidence Training Program - $119 Lifetime"
+    },
+    "price_1PksgxGH7NUzwJnppY9T8KHk": {
+      "amount": 149.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Confidence Training Program - $149 Lifetime"
+    },
+    "price_1PksUqGH7NUzwJnpV7H0QBCD": {
+      "amount": 29.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Procrastination Training Program - $29.99/3 months"
+    },
+    "price_1PksUhGH7NUzwJnpfFyMKFx4": {
+      "amount": 19.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Procrastination Training Program - $19.99/3 months"
+    },
+    "price_1PksUUGH7NUzwJnpgdUIKyYl": {
+      "amount": 6.99,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Procrastination $6.99 One Month Trial"
+    },
+    "price_1PksUMGH7NUzwJnpQ3nyKWiP": {
+      "amount": 4.99,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Procrastination $4.99 One Month Trial"
+    },
+    "price_1PksR4GH7NUzwJnpKmumGzOe": {
+      "amount": 19.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Confidence Training Program - $19.99/3 months"
+    },
+    "price_1PksQqGH7NUzwJnposqupUXI": {
+      "amount": 29.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Confidence Training Program - $29.99/3 months"
+    },
+    "price_1PksQSGH7NUzwJnpqJHc8RzF": {
+      "amount": 6.99,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Confidence $6.99 One Month Trial"
+    },
+    "price_1PksQFGH7NUzwJnp4zKsNGI1": {
+      "amount": 4.99,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Confidence $4.99 One Month Trial"
+    },
+    "price_1PksMHGH7NUzwJnpIJzH7PAR": {
+      "amount": 149.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Anger Training Program - $149 Lifetime"
+    },
+    "price_1PksM9GH7NUzwJnphoRtSqrk": {
+      "amount": 119.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Anger Training Program - $119 Lifetime"
+    },
+    "price_1Pi9umGH7NUzwJnpwrlZByJN": {
+      "amount": 29.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Anger Training Program - $29.99/3 months"
+    },
+    "price_1Pi9tNGH7NUzwJnpv8SCmZYL": {
+      "amount": 6.99,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Anger $6.99 One Month Trial"
+    },
+    "price_1Pi9qzGH7NUzwJnpB5teNLY1": {
+      "amount": 4.99,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Anger $4.99 One Month Trial"
+    },
+    "price_1Pi9oFGH7NUzwJnpOCdd3SMb": {
+      "amount": 19.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Anger Training Program - $19.99/3 months"
+    },
+    "price_1PZ66lGH7NUzwJnpNOzeTaf2": {
+      "amount": 29.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Family+ add on"
+    },
+    "price_1PYl9yGH7NUzwJnpyMkXNXPr": {
+      "amount": 99.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Lifetime"
+    },
+    "price_1OpCQvGH7NUzwJnpTYvLOLfM": {
+      "amount": 0.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Anger One Week Free Trial"
+    },
+    "price_1OpCQ6GH7NUzwJnpJqkS7US3": {
+      "amount": 0.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Procrastination One Week Free Trial"
+    },
+    "price_1OpBq3GH7NUzwJnpa8SHkQIe": {
+      "amount": 0.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Confidence One Week Free Trial"
+    },
+    "price_1OdqGkGH7NUzwJnpKSI4odTI": {
+      "amount": 1019.83,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Lifetime"
+    },
+    "price_1OYtFAGH7NUzwJnpi2wP1HBZ": {
+      "amount": 59.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription $59.99/year"
+    },
+    "price_1OXk2hGH7NUzwJnpW0CDtWFf": {
+      "amount": 99.0,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Ahead Family Sharing - 12 Month"
+    },
+    "price_1OWIM9GH7NUzwJnpqAEkNOLD": {
+      "amount": 199.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Lifetime $199"
+    },
+    "price_1OWDlIGH7NUzwJnpXYbZpFnO": {
+      "amount": 99.0,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Family Sharing / Yearly Subscription"
+    },
+    "price_1OVUOJGH7NUzwJnpK4quic3M": {
+      "amount": 99.0,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Ahead Family Sharing - 12 Month"
+    },
+    "price_1OU2jrGH7NUzwJnptRiPF8yq": {
+      "amount": 29.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Yearly Subscription / Discount"
+    },
+    "price_1OPLNSGH7NUzwJnpBFar5MHZ": {
+      "amount": 149.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Lifetime Subcription"
+    },
+    "price_1NcVAsGH7NUzwJnp3qYr260z": {
+      "amount": 79.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Subscription $79.99/year"
+    },
+    "price_1NYUicGH7NUzwJnpzsDNUEXh": {
+      "amount": 59.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Parent - Subscription $59.99/year"
+    },
+    "price_1NYUdCGH7NUzwJnpx0G3QKYy": {
+      "amount": 29.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "3",
+      "product_name": "Parent - Subscription $29.99/3 months"
+    },
+    "price_1NYUWVGH7NUzwJnp7CWg5f4K": {
+      "amount": 79.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Confidence - Subscription $79.99/year"
+    },
+    "price_1NYUQZGH7NUzwJnpKhRGCEcQ": {
+      "amount": 59.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Confidence - Subscription $59.99/year"
+    },
+    "price_1NYUNEGH7NUzwJnpueSibe1W": {
+      "amount": 9.41,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Confidence - One Week Trial $9.41"
+    },
+    "price_1NYUK6GH7NUzwJnposTHom6V": {
+      "amount": 7.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Confidence - One Week Trial $7"
+    },
+    "price_1NYUHdGH7NUzwJnpH7ldx6l7": {
+      "amount": 1.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Confidence - One Week Trial $1"
+    },
+    "price_1NYUBiGH7NUzwJnpWpCcJKWI": {
+      "amount": 79.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Procrastination - Subscription $79.99/year"
+    },
+    "price_1NYU4HGH7NUzwJnpS2h0a0Sg": {
+      "amount": 59.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Procrastination - Subscription $59.99/year"
+    },
+    "price_1NYU0EGH7NUzwJnpN67Cdj6X": {
+      "amount": 9.41,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Procrastination - One Week Trial $9.41"
+    },
+    "price_1NYTyiGH7NUzwJnpIiu7CcLK": {
+      "amount": 7.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Procrastination - One Week Trial $7"
+    },
+    "price_1NYTwmGH7NUzwJnpstC9rWEy": {
+      "amount": 1.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Procrastination - One Week Trial $1"
+    },
+    "price_1NL3NLGH7NUzwJnpixFJcXvU": {
+      "amount": 79.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Anger - Subscription $79.99/year"
+    },
+    "price_1NIyrUGH7NUzwJnpPdmIHlwZ": {
+      "amount": 9.99,
+      "currency": "usd",
+      "interval": "month",
+      "interval_count": "1",
+      "product_name": "Ahead - Monthly Discounted Subscription"
+    },
+    "price_1NDoZGGH7NUzwJnpaXymfBuu": {
+      "amount": 79.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Anger - Subscription $99.99/year"
+    },
+    "price_1MxZeBGH7NUzwJnpWLnbxpSB": {
+      "amount": 1.0,
+      "currency": "usd",
+      "interval": "day",
+      "interval_count": "1",
+      "product_name": "Test Recurring"
+    },
+    "price_1MxZczGH7NUzwJnpA5bUnPtq": {
+      "amount": 1.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Test One Week Trial"
+    },
+    "price_1MxZZVGH7NUzwJnpQZYJkDvQ": {
+      "amount": 99.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Anger - Subscription $99.99/year"
+    },
+    "price_1MxZYnGH7NUzwJnpFu8H9R2z": {
+      "amount": 59.99,
+      "currency": "usd",
+      "interval": "year",
+      "interval_count": "1",
+      "product_name": "Anger - Subscription $59.99/year"
+    },
+    "price_1MxZXnGH7NUzwJnp3gebin9X": {
+      "amount": 9.41,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Anger - One Week Trial $9.41"
+    },
+    "price_1MxZXFGH7NUzwJnpfoU34shb": {
+      "amount": 7.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Anger - One Week Trial $7"
+    },
+    "price_1MxZWnGH7NUzwJnpUFAw36m1": {
+      "amount": 4.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Anger - One Week Trial $4"
+    },
+    "price_1MxZVsGH7NUzwJnp49xXb3Wi": {
+      "amount": 1.0,
+      "currency": "usd",
+      "interval": "",
+      "interval_count": "",
+      "product_name": "Anger - One Week Trial $1"
+    }
+  },
+  "ecbCurPerEur": {
+    "2026-01": {
+      "AUD": 1.7304190476190475,
+      "CAD": 1.6173000000000002,
+      "CHF": 0.9271952380952381,
+      "DKK": 7.470266666666666,
+      "GBP": 0.8682809523809522,
+      "MYR": 4.726219047619049,
+      "NOK": 11.666966666666667,
+      "SEK": 10.681490476190476,
+      "SGD": 1.5026571428571427,
+      "USD": 1.1738238095238096
+    },
+    "2026-02": {
+      "AUD": 1.6762899999999998,
+      "CAD": 1.6140449999999997,
+      "CHF": 0.9140349999999999,
+      "DKK": 7.4702,
+      "GBP": 0.870315,
+      "MYR": 4.626055,
+      "NOK": 11.320600000000002,
+      "SEK": 10.635085,
+      "SGD": 1.49794,
+      "USD": 1.182395
+    },
+    "2026-03": {
+      "AUD": 1.646990909090909,
+      "CAD": 1.584795454545455,
+      "CHF": 0.9094272727272726,
+      "DKK": 7.471686363636365,
+      "GBP": 0.8663109090909092,
+      "MYR": 4.568736363636363,
+      "NOK": 11.165750000000003,
+      "SEK": 10.761431818181817,
+      "SGD": 1.4789999999999999,
+      "USD": 1.1558318181818181
+    },
+    "2026-04": {
+      "AUD": 1.66785,
+      "CAD": 1.611425,
+      "CHF": 0.921725,
+      "DKK": 7.472525,
+      "GBP": 0.871293,
+      "MYR": 4.660275,
+      "NOK": 11.19325,
+      "SEK": 10.9025,
+      "SGD": 1.4864,
+      "USD": 1.159825
+    }
+  },
+  "defaultSpendMaps": {
+    "monthly": {
+      "2026-04": 14852.7,
+      "2026-03": 58689.0,
+      "2026-02": 54861.0,
+      "2026-01": 54845.58
+    },
+    "weekly": {
+      "2026-01-01": 10676.0,
+      "2026-01-08": 9646.0,
+      "2026-01-15": 10762.0,
+      "2026-01-22": 18236.0,
+      "2026-01-29": 13271.0,
+      "2026-02-05": 12034.0,
+      "2026-02-12": 13453.0,
+      "2026-02-19": 15729.0,
+      "2026-02-26": 14084.0,
+      "2026-03-05": 14942.0,
+      "2026-03-12": 14952.0,
+      "2026-03-19": 11061.0,
+      "2026-03-26": 10679.0,
+      "2026-04-02": 12968.19
+    }
+  }
+};
+    const state = {
+      payload: defaultPayload,
+      uploaded: false,
+    };
     let activeView = "monthly";
+    const uploadFiles = {
+      customers: null,
+      payments: null,
+      spend: null,
+      prices: null,
+    };
+
+    function parseDelimited(text) {
+      const sampleLine = text.split(/?
+/).find((line) => line.trim().length);
+      const delimiter = sampleLine && sampleLine.includes("	") && !sampleLine.includes(",") ? "	" : ",";
+      const rows = [];
+      let row = [];
+      let field = "";
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i += 1) {
+        const char = text[i];
+        const next = text[i + 1];
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            field += '"';
+            i += 1;
+          } else {
+            inQuotes = !inQuotes;
+          }
+          continue;
+        }
+        if (!inQuotes && char === delimiter) {
+          row.push(field);
+          field = "";
+          continue;
+        }
+        if (!inQuotes && (char === "
+" || char === "")) {
+          if (char === "" && next === "
+") {
+            i += 1;
+          }
+          row.push(field);
+          if (row.some((value) => value.trim() !== "")) {
+            rows.push(row);
+          }
+          row = [];
+          field = "";
+          continue;
+        }
+        field += char;
+      }
+      row.push(field);
+      if (row.some((value) => value.trim() !== "")) {
+        rows.push(row);
+      }
+      if (!rows.length) {
+        return [];
+      }
+      const headers = rows[0].map((value) => value.trim());
+      return rows.slice(1).map((values) => {
+        const record = {};
+        headers.forEach((header, index) => {
+          record[header] = (values[index] || "").trim();
+        });
+        return record;
+      });
+    }
+
+    function parseAmount(value) {
+      const raw = String(value || "").trim().replace(/€/g, "").replace(/\$/g, "");
+      if (!raw) {
+        return 0;
+      }
+      if (raw.includes(",") && raw.includes(".")) {
+        return raw.lastIndexOf(",") > raw.lastIndexOf(".")
+          ? Number(raw.replace(/\./g, "").replace(",", "."))
+          : Number(raw.replace(/,/g, ""));
+      }
+      if (raw.includes(",")) {
+        return Number(raw.replace(",", "."));
+      }
+      return Number(raw);
+    }
+
+    function parseIntValue(value) {
+      const raw = String(value || "").trim();
+      return raw ? Number.parseInt(raw, 10) : 0;
+    }
+
+    function parseCompactEuroAmount(value) {
+      const raw = String(value || "").trim().replace(/€/g, "").replace(/\s+/g, "");
+      if (!raw) {
+        return 0;
+      }
+      const parts = raw.split(".");
+      if (parts.length === 2 && parts[1].length === 3) {
+        return Number(parts[0] + parts[1]);
+      }
+      return parseAmount(raw);
+    }
+
+    function monthEnd(monthKey) {
+      const [year, month] = monthKey.split("-").map(Number);
+      return new Date(Date.UTC(year, month, 0));
+    }
+
+    function toIsoDate(dateObj) {
+      return dateObj.toISOString().slice(0, 10);
+    }
+
+    function addMonths(dateObj, months) {
+      const year = dateObj.getUTCFullYear();
+      const month = dateObj.getUTCMonth();
+      const day = dateObj.getUTCDate();
+      const shifted = new Date(Date.UTC(year, month + months, 1));
+      const lastDay = new Date(Date.UTC(shifted.getUTCFullYear(), shifted.getUTCMonth() + 1, 0)).getUTCDate();
+      shifted.setUTCDate(Math.min(day, lastDay));
+      return shifted;
+    }
+
+    function milestoneClosedFromEnd(cohortEndDate, milestoneMonths) {
+      return toIsoDate(new Date(clientConfig.currentDate + "T00:00:00Z")) >= toIsoDate(addMonths(cohortEndDate, milestoneMonths));
+    }
+
+    function anchoredWeekRange(dateString) {
+      const anchor = new Date(Date.UTC(2026, 0, 1));
+      const current = new Date(dateString + "T00:00:00Z");
+      const diffDays = Math.max(0, Math.floor((current - anchor) / 86400000));
+      const weekIndex = Math.floor(diffDays / 7);
+      const weekStart = new Date(anchor.getTime() + weekIndex * 7 * 86400000);
+      const weekEnd = new Date(weekStart.getTime() + 6 * 86400000);
+      return [weekStart, weekEnd];
+    }
+
+    function formatShortDate(dateObj) {
+      return dateObj.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+      }).replace(",", "");
+    }
+
+    function formatMonth(monthKey) {
+      return new Date(monthKey + "-01T00:00:00Z").toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+        timeZone: "UTC",
+      });
+    }
+
+    function formatWeekChartLabel(weekStart) {
+      const anchor = new Date(Date.UTC(2026, 0, 1));
+      const weekNumber = Math.floor((weekStart - anchor) / (7 * 86400000)) + 1;
+      return `W${String(weekNumber).padStart(2, "0")}`;
+    }
+
+    function modeValue(values) {
+      const counts = new Map();
+      values.forEach((value) => {
+        const rounded = Number(value.toFixed(2));
+        counts.set(rounded, (counts.get(rounded) || 0) + 1);
+      });
+      let bestValue = 0;
+      let bestCount = -1;
+      Array.from(counts.entries()).forEach(([value, count]) => {
+        if (count > bestCount || (count === bestCount && value < bestValue)) {
+          bestValue = value;
+          bestCount = count;
+        }
+      });
+      return bestValue;
+    }
+
+    function loadFirstChargeLookup(rows) {
+      const groups = new Map();
+      rows.forEach((row) => {
+        if (parseIntValue(row["Payment Count"]) !== 1) {
+          return;
+        }
+        const key = `${(row.Plan || "(blank)").trim() || "(blank)"}|||${(row.Currency || "").trim() || "blank"}`;
+        const value = Number(parseAmount(row["Total Spend"]).toFixed(2));
+        if (value <= 0) {
+          return;
+        }
+        if (!groups.has(key)) {
+          groups.set(key, []);
+        }
+        groups.get(key).push(value);
+      });
+      const lookup = new Map();
+      groups.forEach((values, key) => lookup.set(key, modeValue(values)));
+      return lookup;
+    }
+
+    function loadCumulativeChargeLookup(rows) {
+      const groups = new Map();
+      rows.forEach((row) => {
+        const paymentCount = parseIntValue(row["Payment Count"]);
+        if (paymentCount < 1) {
+          return;
+        }
+        const key = `${(row.Plan || "(blank)").trim() || "(blank)"}|||${(row.Currency || "").trim() || "blank"}|||${paymentCount}`;
+        const value = Number(parseAmount(row["Total Spend"]).toFixed(2));
+        if (value <= 0) {
+          return;
+        }
+        if (!groups.has(key)) {
+          groups.set(key, []);
+        }
+        groups.get(key).push(value);
+      });
+      const lookup = new Map();
+      groups.forEach((values, key) => lookup.set(key, modeValue(values)));
+      return lookup;
+    }
+
+    function isCoreSubscriptionPlan(meta) {
+      if (!meta) {
+        return true;
+      }
+      const name = String(meta.product_name || "").toLowerCase();
+      return name.includes("subscription") && !name.includes("add-on") && !name.includes("upgrade") && !name.includes("one-time");
+    }
+
+    function planIsMonthly(planId, catalog) {
+      const meta = catalog[planId];
+      return Boolean(meta && meta.interval === "month" && String(meta.interval_count) === "1");
+    }
+
+    function planIsQuarterly(planId, catalog) {
+      const meta = catalog[planId];
+      return Boolean(meta && meta.interval === "month" && String(meta.interval_count) === "3");
+    }
+
+    function planIsAnnual(planId, catalog) {
+      const meta = catalog[planId];
+      return Boolean(meta && meta.interval === "year" && String(meta.interval_count) === "1");
+    }
+
+    function convertToEur(amount, currency, monthKey) {
+      const code = String(currency || "EUR").toUpperCase();
+      if (!amount) {
+        return 0;
+      }
+      if (code === "EUR" || code === "UNKNOWN") {
+        return amount;
+      }
+      const rate = clientConfig.ecbCurPerEur[monthKey]?.[code];
+      return rate ? amount / rate : amount;
+    }
+
+    function planFullPriceEur(planId, monthKey, catalog) {
+      const meta = catalog[planId];
+      if (!meta || !isCoreSubscriptionPlan(meta)) {
+        return null;
+      }
+      return convertToEur(parseAmount(meta.amount), meta.currency, monthKey);
+    }
+
+    function classifyPlanFamily(planId, firstCharge, currency, catalog) {
+      if (planIsMonthly(planId, catalog)) return "monthly";
+      if (planIsQuarterly(planId, catalog)) return "quarterly";
+      if (planIsAnnual(planId, catalog)) return "annual";
+      const code = String(currency || "").toLowerCase();
+      if (code === "usd" || code === "blank" || code === "") {
+        if (firstCharge <= 19) return "monthly";
+        if (firstCharge <= 35) return "quarterly";
+        if (firstCharge <= 65) return "annual";
+      }
+      if (code === "eur") {
+        if (firstCharge <= 24) return "monthly";
+        if (firstCharge <= 40) return "quarterly";
+        if (firstCharge <= 65) return "annual";
+      }
+      return null;
+    }
+
+    function inferBlankUsdProjection(totalSpend) {
+      const candidates = [
+        ["monthly", 34.27, 16.80, 34.27],
+        ["monthly", 34.27, 13.37, 34.27],
+        ["quarterly", 57.92, 27.42, 57.92],
+        ["quarterly", 57.92, 20.57, 57.92],
+        ["annual", 102.85, 50.37, 0.0],
+        ["annual", 102.85, 40.09, 0.0],
+      ];
+      let best = null;
+      candidates.forEach(([family, fullPrice, intro, renewal]) => {
+        const maxRenewals = family === "monthly" ? 3 : 1;
+        for (let renewals = 0; renewals <= maxRenewals; renewals += 1) {
+          for (let upsells = 0; upsells < 3; upsells += 1) {
+            const estimate = intro + renewal * renewals + 8.56 * upsells;
+            const gap = Math.abs(totalSpend - estimate);
+            if (!best || gap < best.gap) {
+              best = { gap, family, fullPrice };
+            }
+          }
+        }
+      });
+      return best && best.gap <= 0.75 ? [best.family, best.fullPrice] : null;
+    }
+
+    function projectionSpecForRow(row, monthKey, firstSubscriptionAmountEur, catalog) {
+      const planId = String(row.Plan || "").trim();
+      const currency = String(row.Currency || "").trim().toLowerCase();
+      const totalSpend = parseAmount(row["Total Spend"]);
+      if (planId) {
+        const family = classifyPlanFamily(planId, firstSubscriptionAmountEur || 0, currency, catalog);
+        const fullPriceEur = planFullPriceEur(planId, monthKey, catalog);
+        if (family && fullPriceEur) {
+          return [family, fullPriceEur];
+        }
+        return null;
+      }
+      if (currency === "usd") {
+        return inferBlankUsdProjection(totalSpend);
+      }
+      return null;
+    }
+
+    function projectedBenchmarkRevenue(family, fullPriceEur, milestoneMonths) {
+      const rates = clientConfig.retentionRates[family] || {};
+      let total = 0;
+      Object.entries(rates).forEach(([monthNumber, retention]) => {
+        if (Number(monthNumber) <= milestoneMonths) {
+          total += fullPriceEur * retention;
+        }
+      });
+      return total * clientConfig.projectedNetRevenueFactor;
+    }
+
+    function loadSubscriptionCreationAmounts(paymentsRows) {
+      const first = new Map();
+      paymentsRows.forEach((payment) => {
+        if (payment.Status !== "Paid") return;
+        const customerId = String(payment["Customer ID"] || "").trim();
+        if (!customerId) return;
+        if (String(payment.Description || "").trim() !== "Subscription creation") return;
+        const created = String(payment["Created date (UTC)"] || "").slice(0, 10);
+        if (!created) return;
+        const amount = parseAmount(payment["Converted Amount"]) - parseAmount(payment["Converted Amount Refunded"]);
+        if (amount <= 0) return;
+        const existing = first.get(customerId);
+        if (!existing || created < existing.date) {
+          first.set(customerId, { date: created, amount });
+        }
+      });
+      const result = new Map();
+      first.forEach((value, key) => result.set(key, value.amount));
+      return result;
+    }
+
+    function subscriptionBillingCountsThrough(rows, paymentsRows, cutoffDate) {
+      const cohortStarts = new Map();
+      rows.forEach((row) => {
+        const id = String(row.id || "").trim();
+        const created = String(row["Created (UTC)"] || "").slice(0, 10);
+        if (id && created) {
+          cohortStarts.set(id, created);
+        }
+      });
+      const counts = new Map(Array.from(cohortStarts.keys(), (id) => [id, 0]));
+      paymentsRows.forEach((payment) => {
+        const customerId = String(payment["Customer ID"] || "").trim();
+        const created = String(payment["Created date (UTC)"] || "").slice(0, 10);
+        if (!cohortStarts.has(customerId) || payment.Status !== "Paid" || !created) return;
+        if (created < cohortStarts.get(customerId) || created > cutoffDate) return;
+        const description = String(payment.Description || "").trim();
+        if (description === "Subscription creation" || description === "Subscription update") {
+          counts.set(customerId, (counts.get(customerId) || 0) + 1);
+        }
+      });
+      return counts;
+    }
+
+    function actualRevenueThroughRows(rows, paymentsRows, cutoffDate, firstChargeLookup, cumulativeChargeLookup, catalog) {
+      const cohortStarts = new Map();
+      rows.forEach((row) => {
+        const id = String(row.id || "").trim();
+        const created = String(row["Created (UTC)"] || "").slice(0, 10);
+        if (id && created) {
+          cohortStarts.set(id, created);
+        }
+      });
+      if (!cohortStarts.size) {
+        return 0;
+      }
+      const paymentsByCustomer = new Map();
+      paymentsRows.forEach((payment) => {
+        const customerId = String(payment["Customer ID"] || "").trim();
+        if (!cohortStarts.has(customerId) || payment.Status !== "Paid") return;
+        if (!paymentsByCustomer.has(customerId)) {
+          paymentsByCustomer.set(customerId, []);
+        }
+        paymentsByCustomer.get(customerId).push(payment);
+      });
+      let revenue = 0;
+      const customersWithPaymentRows = new Set();
+      paymentsByCustomer.forEach((items, customerId) => {
+        const cohortStart = cohortStarts.get(customerId);
+        items.forEach((payment) => {
+          const created = String(payment["Created date (UTC)"] || "").slice(0, 10);
+          if (!created) return;
+          if (created >= cohortStart && created <= cutoffDate) {
+            revenue += parseAmount(payment["Converted Amount"]) - parseAmount(payment["Converted Amount Refunded"]);
+            customersWithPaymentRows.add(customerId);
+          }
+        });
+      });
+      if (customersWithPaymentRows.size === cohortStarts.size) {
+        return revenue;
+      }
+      rows
+        .filter((row) => !customersWithPaymentRows.has(String(row.id || "").trim()))
+        .forEach((row) => {
+          const paymentCount = parseIntValue(row["Payment Count"]);
+          if (paymentCount < 1) return;
+          const key = `${(row.Plan || "(blank)").trim() || "(blank)"}|||${(row.Currency || "").trim() || "blank"}`;
+          const createdDate = String(row["Created (UTC)"] || "").slice(0, 10);
+          if (!createdDate) return;
+          const currentCutoff = cutoffDate < clientConfig.currentDate ? cutoffDate : clientConfig.currentDate;
+          const ageDays = Math.floor((new Date(currentCutoff + "T00:00:00Z") - new Date(createdDate + "T00:00:00Z")) / 86400000);
+          if (ageDays < 0) return;
+          let firstCharge = firstChargeLookup.get(key);
+          if (firstCharge == null) {
+            firstCharge = parseAmount(row["Total Spend"]) > 0 ? parseAmount(row["Total Spend"]) : 0;
+          }
+          let targetPaymentCount = 1;
+          const planId = String(row.Plan || "").trim();
+          if (planIsMonthly(planId, catalog)) {
+            if (ageDays >= 60 && paymentCount >= 3) targetPaymentCount = 3;
+            else if (ageDays >= 30 && paymentCount >= 2) targetPaymentCount = 2;
+          } else if (planIsQuarterly(planId, catalog)) {
+            if (ageDays >= 90 && paymentCount >= 2) targetPaymentCount = 2;
+          }
+          revenue += cumulativeChargeLookup.get(`${key}|||${targetPaymentCount}`) ?? firstCharge;
+        });
+      return revenue;
+    }
+
+    function cohortDisputeLosses(rows) {
+      return rows.reduce((sum, row) => sum + parseAmount(row["Dispute Losses"]), 0);
+    }
+
+    function cohortRefundedVolume(rows) {
+      return rows.reduce((sum, row) => sum + parseAmount(row["Refunded Volume"]), 0);
+    }
+
+    function netActualRevenueThroughRows(rows, paymentsRows, cutoffDate, firstChargeLookup, cumulativeChargeLookup, catalog) {
+      return actualRevenueThroughRows(rows, paymentsRows, cutoffDate, firstChargeLookup, cumulativeChargeLookup, catalog) - cohortDisputeLosses(rows);
+    }
+
+    function computeTransactionUpsellsForRows(rows, paymentsRows) {
+      const cohortDays = new Map();
+      rows.forEach((row) => {
+        const id = String(row.id || "").trim();
+        const created = String(row["Created (UTC)"] || "").slice(0, 10);
+        if (id && created) cohortDays.set(id, created);
+      });
+      const byCustomer = new Map();
+      paymentsRows.forEach((payment) => {
+        const customerId = String(payment["Customer ID"] || "").trim();
+        if (!cohortDays.has(customerId) || payment.Status !== "Paid") return;
+        if (!byCustomer.has(customerId)) byCustomer.set(customerId, []);
+        byCustomer.get(customerId).push(payment);
+      });
+      let count = 0;
+      let billingCount = 0;
+      let revenue = 0;
+      byCustomer.forEach((items, customerId) => {
+        const cohortDay = cohortDays.get(customerId);
+        const firstDayItems = items
+          .slice()
+          .sort((a, b) => String(a["Created date (UTC)"]).localeCompare(String(b["Created date (UTC)"])))
+          .filter((row) => String(row["Created date (UTC)"] || "").slice(0, 10) === cohortDay);
+        const invoiceItems = firstDayItems.filter((row) => String(row.Description || "").trim() === "Payment for Invoice");
+        if (!invoiceItems.length) return;
+        count += 1;
+        billingCount += invoiceItems.length;
+        invoiceItems.forEach((row) => {
+          revenue += parseAmount(row["Converted Amount"]) - parseAmount(row["Converted Amount Refunded"]);
+        });
+      });
+      return { count, billingCount, revenue };
+    }
+
+    function buildSpendMaps(spendRows) {
+      if (!spendRows || !spendRows.length) {
+        return clientConfig.defaultSpendMaps;
+      }
+      const monthly = {};
+      const weekly = {};
+      spendRows.forEach((row) => {
+        const values = Object.values(row);
+        const dayRaw = String(row.Day || values[0] || "").trim().slice(0, 10);
+        if (!dayRaw) return;
+        const amountRaw = row["Amount spent (EUR)"] ?? values[1];
+        const amount = parseCompactEuroAmount(amountRaw);
+        const monthKey = dayRaw.slice(0, 7);
+        if (!clientConfig.targetMonths.includes(monthKey)) return;
+        monthly[monthKey] = (monthly[monthKey] || 0) + amount;
+        const [weekStart] = anchoredWeekRange(dayRaw);
+        const weekKey = toIsoDate(weekStart);
+        weekly[weekKey] = (weekly[weekKey] || 0) + amount;
+      });
+      return { monthly, weekly };
+    }
+
+    function formatMoney(amount) {
+      return `€${Math.round(amount).toLocaleString("en-US")}`;
+    }
+
+    function formatMoney2(amount) {
+      return amount ? `€${amount.toFixed(2)}` : "—";
+    }
+
+    function buildViewPayload(metrics) {
+      return {
+        chart: metrics.map((item) => ({
+          cohort: item.chartLabel,
+          paidRate: Number(item.paidRate.toFixed(1)),
+          activeRate: Number(item.activeRate.toFixed(1)),
+          repeatRate: Number(item.repeatRate.toFixed(1)),
+          threePlusRate: Number(item.threePlusRate.toFixed(1)),
+        })),
+        rows: metrics.map((item) => ({
+          cohort: item.cohort,
+          spend: formatMoney(item.spend),
+          newCustomers: item.customersWithPayment,
+          cpa: item.customersWithPayment ? formatMoney(item.spend / item.customersWithPayment) : "—",
+          upsell: formatMoney2(item.upsellRevenue),
+          upsellCount: item.upsellCount || "—",
+          avg: item.upsellCount ? `€${item.upsellAvg.toFixed(2)}` : "—",
+          d0Rev: formatMoney(item.d0Revenue),
+          revToDate: formatMoney(item.netRevenue),
+          refunds: formatMoney(item.refundedVolume),
+          disputeLosses: formatMoney(item.disputeLosses),
+          d0Roas: item.spend ? `${(item.d0Revenue / item.spend * 100).toFixed(1)}%` : "—",
+          roasToDate: item.spend ? `${(item.netRevenue / item.spend * 100).toFixed(1)}%` : "—",
+          m1: item.spend ? `${(item.m1Revenue / item.spend * 100).toFixed(1)}%` : "—",
+          m2: item.spend ? `${(item.m2Revenue / item.spend * 100).toFixed(1)}%` : "—",
+          m3: item.spend ? `${(item.m3Revenue / item.spend * 100).toFixed(1)}%` : "—",
+          m6: item.spend ? `${(item.m6Revenue / item.spend * 100).toFixed(1)}%` : "—",
+          m9: item.spend ? `${(item.m9Revenue / item.spend * 100).toFixed(1)}%` : "—",
+          m12: item.spend ? `${(item.m12Revenue / item.spend * 100).toFixed(1)}%` : "—",
+          m1Projected: !milestoneClosedFromEnd(item.cohortEndDate, 1),
+          m2Projected: !milestoneClosedFromEnd(item.cohortEndDate, 2),
+          m3Projected: !milestoneClosedFromEnd(item.cohortEndDate, 3),
+          m6Projected: true,
+          m9Projected: true,
+          m12Projected: true,
+        })),
+      };
+    }
+
+    function buildMetrics(rows, cohortKey, cohortLabel, chartLabel, cohortEndDate, spend, paymentsRows, catalog, lookups, subscriptionCreationAmounts) {
+      const paymentCounts = rows.map((row) => parseIntValue(row["Payment Count"]));
+      const customers = rows.length;
+      const paidCustomers = rows.filter((row) => parseAmount(row["Total Spend"]) > 0).length;
+      const customersWithPayment = rows.filter((row) => parseIntValue(row["Payment Count"]) >= 1).length;
+      const m1SubscriptionCounts = subscriptionBillingCountsThrough(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 1)));
+      const m2SubscriptionCounts = subscriptionBillingCountsThrough(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 2)));
+      const m3SubscriptionCounts = subscriptionBillingCountsThrough(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 3)));
+      const projected = { m1: 0, m2: 0, m3: 0, m6: 0, m9: 0, m12: 0 };
+
+      rows.forEach((row) => {
+        if (parseIntValue(row["Payment Count"]) < 1) return;
+        const customerId = String(row.id || "").trim();
+        const monthKey = String(row["Created (UTC)"] || "").slice(0, 7);
+        const projectionSpec = projectionSpecForRow(row, monthKey, subscriptionCreationAmounts.get(customerId), catalog);
+        if (!projectionSpec) return;
+        const [family, fullPriceEur] = projectionSpec;
+        projected.m1 += projectedBenchmarkRevenue(family, fullPriceEur, 1);
+        projected.m2 += projectedBenchmarkRevenue(family, fullPriceEur, 2);
+        projected.m3 += projectedBenchmarkRevenue(family, fullPriceEur, 3);
+        projected.m6 += projectedBenchmarkRevenue(family, fullPriceEur, 6);
+        projected.m9 += projectedBenchmarkRevenue(family, fullPriceEur, 9);
+        projected.m12 += projectedBenchmarkRevenue(family, fullPriceEur, 12);
+      });
+
+      const d0Revenue = actualRevenueThroughRows(rows, paymentsRows, toIsoDate(cohortEndDate), lookups.firstCharge, lookups.cumulative, catalog);
+      const m1Revenue = milestoneClosedFromEnd(cohortEndDate, 1)
+        ? netActualRevenueThroughRows(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 1)), lookups.firstCharge, lookups.cumulative, catalog)
+        : d0Revenue + projected.m1;
+      const m2Revenue = milestoneClosedFromEnd(cohortEndDate, 2)
+        ? netActualRevenueThroughRows(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 2)), lookups.firstCharge, lookups.cumulative, catalog)
+        : d0Revenue + projected.m2;
+      const m3Revenue = milestoneClosedFromEnd(cohortEndDate, 3)
+        ? netActualRevenueThroughRows(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 3)), lookups.firstCharge, lookups.cumulative, catalog)
+        : d0Revenue + projected.m3;
+      const m6Revenue = d0Revenue + projected.m6;
+      const m9Revenue = d0Revenue + projected.m9;
+      const m12Revenue = d0Revenue + projected.m12;
+      const refundedVolume = cohortRefundedVolume(rows);
+      const disputeLosses = cohortDisputeLosses(rows);
+      const netRevenue = actualRevenueThroughRows(rows, paymentsRows, clientConfig.currentDate, lookups.firstCharge, lookups.cumulative, catalog) - disputeLosses;
+      const upsell = computeTransactionUpsellsForRows(rows, paymentsRows);
+      const activeCustomers = rows.filter((row) => String(row.Status || "") === "active").length;
+      const repeatCustomers = paymentCounts.filter((count) => count >= 2).length;
+      const threePlusCustomers = paymentCounts.filter((count) => count >= 3).length;
+
+      return {
+        cohort: cohortLabel,
+        chartLabel,
+        cohortEndDate,
+        spend,
+        customersWithPayment,
+        d0Revenue,
+        m1Revenue,
+        m2Revenue,
+        m3Revenue,
+        m6Revenue,
+        m9Revenue,
+        m12Revenue,
+        netRevenue,
+        refundedVolume,
+        disputeLosses,
+        upsellCount: upsell.count,
+        upsellAvg: upsell.count ? upsell.revenue / upsell.count : 0,
+        upsellRevenue: upsell.revenue,
+        paidRate: customers ? (paidCustomers / customers) * 100 : 0,
+        activeRate: customers ? (activeCustomers / customers) * 100 : 0,
+        repeatRate: customers ? (repeatCustomers / customers) * 100 : 0,
+        threePlusRate: customers ? (threePlusCustomers / customers) * 100 : 0,
+      };
+    }
+
+    function buildDashboardPayload(customersRows, paymentsRows, spendRows, catalog) {
+      const groupedMonthly = new Map();
+      const groupedWeekly = new Map();
+      const weeklyRanges = new Map();
+      customersRows.forEach((row) => {
+        const created = String(row["Created (UTC)"] || "");
+        const monthKey = created.slice(0, 7);
+        if (!clientConfig.targetMonths.includes(monthKey)) return;
+        if (!groupedMonthly.has(monthKey)) groupedMonthly.set(monthKey, []);
+        groupedMonthly.get(monthKey).push(row);
+        const day = created.slice(0, 10);
+        const [weekStart, weekEnd] = anchoredWeekRange(day);
+        const weekKey = toIsoDate(weekStart);
+        if (!groupedWeekly.has(weekKey)) groupedWeekly.set(weekKey, []);
+        groupedWeekly.get(weekKey).push(row);
+        weeklyRanges.set(weekKey, [weekStart, weekEnd]);
+      });
+
+      const spendMaps = buildSpendMaps(spendRows);
+      const firstChargeLookup = loadFirstChargeLookup(customersRows);
+      const cumulativeChargeLookup = loadCumulativeChargeLookup(customersRows);
+      const subscriptionCreationAmounts = loadSubscriptionCreationAmounts(paymentsRows);
+      const lookups = { firstCharge: firstChargeLookup, cumulative: cumulativeChargeLookup };
+
+      const monthlyMetrics = clientConfig.targetMonths.map((monthKey) => buildMetrics(
+        groupedMonthly.get(monthKey) || [],
+        monthKey,
+        formatMonth(monthKey),
+        formatMonth(monthKey).replace(" 2026", ""),
+        monthEnd(monthKey),
+        spendMaps.monthly[monthKey] || 0,
+        paymentsRows,
+        catalog,
+        lookups,
+        subscriptionCreationAmounts,
+      ));
+
+      const weeklyMetrics = Array.from(groupedWeekly.keys())
+        .sort((a, b) => a.localeCompare(b))
+        .map((weekKey) => {
+          const [weekStart, weekEnd] = weeklyRanges.get(weekKey);
+          return buildMetrics(
+            groupedWeekly.get(weekKey) || [],
+            weekKey,
+            `${formatShortDate(weekStart)}-${formatShortDate(weekEnd)}`,
+            formatWeekChartLabel(weekStart),
+            weekEnd,
+            spendMaps.weekly[weekKey] || 0,
+            paymentsRows,
+            catalog,
+            lookups,
+            subscriptionCreationAmounts,
+          );
+        });
+
+      const cohortRows = customersRows.filter((row) => clientConfig.targetMonths.includes(String(row["Created (UTC)"] || "").slice(0, 7)));
+      const totals = {
+        customers: cohortRows.length,
+        paid_customers: cohortRows.filter((row) => parseAmount(row["Total Spend"]) > 0).length,
+        active_customers: cohortRows.filter((row) => String(row.Status || "") === "active").length,
+        repeat_customers: cohortRows.filter((row) => parseIntValue(row["Payment Count"]) >= 2).length,
+      };
+
+      return {
+        monthly: buildViewPayload(monthlyMetrics),
+        weekly: buildViewPayload(weeklyMetrics),
+        totals,
+      };
+    }
+
+    function renderSummary() {
+      const totals = state.payload.totals || {};
+      document.getElementById("summary-customers").textContent = Number(totals.customers || 0).toLocaleString("en-US");
+      document.getElementById("summary-paid").textContent = Number(totals.paid_customers || 0).toLocaleString("en-US");
+      document.getElementById("summary-active").textContent = Number(totals.active_customers || 0).toLocaleString("en-US");
+      document.getElementById("summary-repeat").textContent = Number(totals.repeat_customers || 0).toLocaleString("en-US");
+    }
 
     function renderTable() {
       const tbody = document.getElementById("tbody");
-      const view = payload[activeView];
+      const view = state.payload[activeView];
       const milestoneCell = (value, projected) => `<td class="${projected ? 'projected' : 'actual'}">${value}</td>`;
       const cohortCell = (label) => {
         if (activeView !== "weekly") {
           return `<td class="cohort">${label}</td>`;
         }
-        const parts = label.split(" · ");
-        if (parts.length !== 2) {
-          return `<td class="cohort">${label}</td>`;
-        }
-        return `<td class="cohort"><span class="cohort-code">${parts[0]}</span><span class="cohort-range">${parts[1]}</span></td>`;
+        return `<td class="cohort"><span class="cohort-range">${label}</span></td>`;
       };
       tbody.innerHTML = view.rows.map((row) => `
         <tr>
@@ -1061,6 +3788,7 @@
           ${milestoneCell(row.m2, row.m2Projected)}
           ${milestoneCell(row.m3, row.m3Projected)}
           ${milestoneCell(row.m6, row.m6Projected)}
+          ${milestoneCell(row.m9, row.m9Projected)}
           ${milestoneCell(row.m12, row.m12Projected)}
         </tr>
       `).join("");
@@ -1068,7 +3796,7 @@
 
     function renderChart() {
       const svg = document.getElementById("chart");
-      const view = payload[activeView];
+      const view = state.payload[activeView];
       const width = 1320;
       const height = 380;
       const margin = { top: 30, right: 20, bottom: 70, left: 72 };
@@ -1123,10 +3851,80 @@
       renderChart();
     }
 
+    function updateUploadControls() {
+      const ready = Boolean(uploadFiles.customers && uploadFiles.payments);
+      document.getElementById("apply-uploads").disabled = !ready;
+      document.getElementById("reset-uploads").hidden = !state.uploaded;
+    }
+
+    async function recalculateFromUploads() {
+      if (!uploadFiles.customers || !uploadFiles.payments) {
+        return;
+      }
+      const status = document.getElementById("upload-status");
+      status.innerHTML = "<strong>Recalculating…</strong> Parsing uploaded exports and rebuilding cohort views in your browser.";
+      const [customersText, paymentsText, spendText, pricesText] = await Promise.all([
+        uploadFiles.customers.text(),
+        uploadFiles.payments.text(),
+        uploadFiles.spend ? uploadFiles.spend.text() : Promise.resolve(""),
+        uploadFiles.prices ? uploadFiles.prices.text() : Promise.resolve(""),
+      ]);
+      const customersRows = parseDelimited(customersText);
+      const paymentsRows = parseDelimited(paymentsText);
+      const spendRows = spendText ? parseDelimited(spendText) : [];
+      const uploadedCatalogRows = pricesText ? parseDelimited(pricesText) : [];
+      const catalog = uploadedCatalogRows.length
+        ? Object.fromEntries(uploadedCatalogRows.map((row) => [row["Price ID"], {
+            amount: parseAmount(row.Amount),
+            currency: row.Currency || "",
+            interval: row.Interval || "",
+            interval_count: row["Interval Count"] || "",
+            product_name: row["Product Name"] || "",
+          }]))
+        : clientConfig.priceCatalog;
+      state.payload = buildDashboardPayload(customersRows, paymentsRows, spendRows, catalog);
+      state.uploaded = true;
+      status.innerHTML = `<strong>Loaded uploaded exports.</strong> Customers: ${customersRows.length.toLocaleString()} rows. Payments: ${paymentsRows.length.toLocaleString()} rows${spendRows.length ? `. Spend: ${spendRows.length.toLocaleString()} rows.` : "."}`;
+      updateUploadControls();
+      renderSummary();
+      renderTable();
+      renderChart();
+    }
+
     document.querySelectorAll(".tab-button").forEach((button) => {
       button.addEventListener("click", () => setView(button.dataset.view));
     });
 
+    document.getElementById("reset-uploads").addEventListener("click", () => {
+      state.payload = defaultPayload;
+      state.uploaded = false;
+      Object.keys(uploadFiles).forEach((key) => {
+        uploadFiles[key] = null;
+      });
+      ["customers-upload", "payments-upload", "spend-upload", "prices-upload"].forEach((id) => {
+        document.getElementById(id).value = "";
+      });
+      document.getElementById("upload-status").innerHTML = "<strong>Using embedded exports.</strong> Upload customers and payments CSVs to recalculate monthly and weekly cohorts.";
+      updateUploadControls();
+      renderSummary();
+      renderTable();
+      renderChart();
+    });
+
+    [["customers-upload", "customers"], ["payments-upload", "payments"], ["spend-upload", "spend"], ["prices-upload", "prices"]].forEach(([id, key]) => {
+      document.getElementById(id).addEventListener("change", (event) => {
+        uploadFiles[key] = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+        updateUploadControls();
+      });
+    });
+
+    document.getElementById("apply-uploads").addEventListener("click", () => {
+      recalculateFromUploads().catch((error) => {
+        document.getElementById("upload-status").innerHTML = `<strong>Upload failed.</strong> ${error.message}`;
+      });
+    });
+
+    renderSummary();
     setView("monthly");
   </script>
 </body>
