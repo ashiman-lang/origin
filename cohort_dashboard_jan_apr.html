@@ -3065,8 +3065,7 @@
     };
 
     function parseDelimited(text) {
-      const sampleLine = text.split(/?
-/).find((line) => line.trim().length);
+      const sampleLine = text.split(/\\r?\\n/).find((line) => line.trim().length);
       const delimiter = sampleLine && sampleLine.includes("	") && !sampleLine.includes(",") ? "	" : ",";
       const rows = [];
       let row = [];
@@ -3089,10 +3088,8 @@
           field = "";
           continue;
         }
-        if (!inQuotes && (char === "
-" || char === "")) {
-          if (char === "" && next === "
-") {
+        if (!inQuotes && (char === "\n" || char === "\r")) {
+          if (char === "\r" && next === "\n") {
             i += 1;
           }
           row.push(field);

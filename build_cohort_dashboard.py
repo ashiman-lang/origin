@@ -2084,7 +2084,7 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
     }};
 
     function parseDelimited(text) {{
-      const sampleLine = text.split(/\r?\n/).find((line) => line.trim().length);
+      const sampleLine = text.split(/\\\\r?\\\\n/).find((line) => line.trim().length);
       const delimiter = sampleLine && sampleLine.includes("\t") && !sampleLine.includes(",") ? "\t" : ",";
       const rows = [];
       let row = [];
@@ -2107,8 +2107,8 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
           field = "";
           continue;
         }}
-        if (!inQuotes && (char === "\n" || char === "\r")) {{
-          if (char === "\r" && next === "\n") {{
+        if (!inQuotes && (char === "\\n" || char === "\\r")) {{
+          if (char === "\\r" && next === "\\n") {{
             i += 1;
           }}
           row.push(field);
