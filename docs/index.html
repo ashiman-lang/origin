@@ -441,6 +441,100 @@
       margin-top: 8px;
     }
 
+    .explanation-card {
+      margin-top: 18px;
+      padding: 22px 24px;
+    }
+
+    .explanation-card h2 {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+    }
+
+    .explanation-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.65;
+    }
+
+    .forecast-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .forecast-block {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(12, 20, 38, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .forecast-block h3 {
+      margin: 0 0 10px;
+      font-size: 0.96rem;
+    }
+
+    .forecast-block ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.65;
+    }
+
+    .forecast-block li + li {
+      margin-top: 7px;
+    }
+
+    .forecast-details {
+      margin-top: 18px;
+      border-radius: 18px;
+      background: rgba(12, 20, 38, 0.32);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+    }
+
+    .forecast-details summary {
+      cursor: pointer;
+      padding: 16px 18px;
+      font-weight: 700;
+      color: var(--text);
+      list-style: none;
+    }
+
+    .forecast-details summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .forecast-details[open] summary {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .forecast-copy {
+      padding: 16px 18px 18px;
+    }
+
+    .forecast-copy p {
+      margin: 0 0 8px;
+      color: var(--text);
+      font-size: 0.94rem;
+    }
+
+    .forecast-copy ul {
+      margin: 0 0 14px;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 0.91rem;
+      line-height: 1.65;
+    }
+
+    .forecast-copy li + li {
+      margin-top: 7px;
+    }
+
     @media (max-width: 1024px) {
       .hero {
         grid-template-columns: 1fr;
@@ -448,6 +542,10 @@
 
       .upload-panel {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .forecast-grid {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -601,12 +699,12 @@
           <td class="metric-red">€273</td>
           <td class="metric-amber">40.3%</td>
           <td class="metric-blue">65.2%</td>
-          <td class="actual">51.7%</td>
-          <td class="actual">59.0%</td>
-          <td class="projected">79.4%</td>
-          <td class="projected">94.8%</td>
-          <td class="projected">104.7%</td>
-          <td class="projected">114.0%</td>
+          <td class="actual">49.2%</td>
+          <td class="actual">55.5%</td>
+          <td class="projected">78.1%</td>
+          <td class="projected">92.2%</td>
+          <td class="projected">101.4%</td>
+          <td class="projected">110.3%</td>
         </tr>
         
         <tr>
@@ -623,12 +721,12 @@
           <td class="metric-red">€34</td>
           <td class="metric-amber">41.3%</td>
           <td class="metric-blue">55.0%</td>
-          <td class="actual">53.4%</td>
-          <td class="projected">54.6%</td>
-          <td class="projected">77.7%</td>
-          <td class="projected">92.0%</td>
-          <td class="projected">101.5%</td>
-          <td class="projected">110.9%</td>
+          <td class="actual">51.2%</td>
+          <td class="projected">58.2%</td>
+          <td class="projected">82.9%</td>
+          <td class="projected">99.4%</td>
+          <td class="projected">110.1%</td>
+          <td class="projected">120.3%</td>
         </tr>
         
         <tr>
@@ -645,12 +743,12 @@
           <td class="metric-red">€25</td>
           <td class="metric-amber">33.3%</td>
           <td class="metric-blue">36.2%</td>
-          <td class="projected">41.5%</td>
-          <td class="projected">47.2%</td>
-          <td class="projected">64.8%</td>
-          <td class="projected">77.2%</td>
-          <td class="projected">85.2%</td>
-          <td class="projected">93.3%</td>
+          <td class="projected">41.8%</td>
+          <td class="projected">47.6%</td>
+          <td class="projected">65.4%</td>
+          <td class="projected">78.0%</td>
+          <td class="projected">86.1%</td>
+          <td class="projected">94.4%</td>
         </tr>
         
         <tr>
@@ -679,19 +777,82 @@
       </div>
     </section>
 
-    <section class="card footer-note">
-      <ul>
-        <li>Revenue is shown in EUR and uses Stripe converted transaction amounts.</li>
-        <li>Cohort membership and new-customer counts come from the customer export.</li>
-        <li>Closed M1/M2/M3 values use transaction revenue through the milestone cutoff.</li>
-        <li>Projected milestones use each customer's real subscription intro and full renewal price with benchmark retention percentages by plan family.</li>
-        <li>Monthly benchmark retention used: M1 55%, M2 38%, M3 20%, M4 18%, M5 14%, M6 12%, M7 10%, M8 7%, M9 7%, M10 6%, M11 6%, M12 5%.</li>
-        <li>Quarterly benchmark retention used: M3 50%, M6 20%, M9 15%, M12 10%. Annual benchmark retention used: M12 30%.</li>
-        <li>Upsell comes from first-day paid invoice transactions in the payments export and is included in cumulative predicted ROAS.</li>
-        <li>Projected milestone revenue is additionally reduced by 15% to account for refunds and fees.</li>
-        <li>Spend comes from the daily spend export in EUR, with January overridden from your screenshot values where the spend export was incomplete.</li>
-      </ul>
+    <section class="card explanation-card">
+      <h2>How Milestones And Forecasts Work</h2>
+      <p>
+        Milestones are cumulative revenue points. <strong>M1</strong> means revenue through cohort end + 1 month,
+        <strong>M2</strong> through cohort end + 2 months, <strong>M3</strong> through cohort end + 3 months, and so on.
+        If a milestone cutoff has already passed, the dashboard shows the actual net value. If the cutoff has not passed yet,
+        the dashboard forecasts only the missing future tail.
+      </p>
+
+      <div class="forecast-grid">
+        <div class="forecast-block">
+          <h3>What Counts As Actual</h3>
+          <ul>
+            <li>Closed M1/M2/M3 values use actual renewal progress per customer: M1 means first renewal, M2 means second renewal, M3 means third renewal.</li>
+            <li><strong>Net</strong> means paid transaction revenue minus refunds, with dispute losses subtracted as a cohort-level proxy.</li>
+            <li>This avoids dropping real renewals just because Stripe retried the billing a few days later than the calendar milestone date.</li>
+            <li>Cohort membership and <strong>New</strong> counts still come from the customer export.</li>
+          </ul>
+        </div>
+
+        <div class="forecast-block">
+          <h3>Benchmark Rates Used</h3>
+          <ul>
+            <li>Monthly: M1 55%, M2 38%, M3 20%, M4 18%, M5 14%, M6 12%, M7 10%, M8 7%, M9 7%, M10 6%, M11 6%, M12 5%.</li>
+            <li>Quarterly: M3 50%, M6 20%, M9 15%, M12 10%.</li>
+            <li>Annual: M12 30%.</li>
+          </ul>
+        </div>
+
+        <div class="forecast-block">
+          <h3>How Prediction Starts</h3>
+          <ul>
+            <li>Each customer is assigned to a starter family from their first paid <strong>Subscription creation</strong> transaction: monthly, quarterly, or annual.</li>
+            <li>Guest customers (`gcus_*`) and one-time guest purchases are excluded from subscription-family prediction.</li>
+            <li>If the current <strong>Plan</strong> later goes blank, that customer still stays in the original starter-family denominator, so canceled starters remain included.</li>
+            <li>The last closed actual milestone for that family becomes the anchor retention point.</li>
+          </ul>
+        </div>
+
+        <div class="forecast-block">
+          <h3>How Future Revenue Is Added</h3>
+          <ul>
+            <li>Later milestone retention is projected by applying the benchmark month-over-month ratio to the last actual retention (for example: if actual M1 retention = 46% and the monthly benchmark goes from M1 55% to M2 38%, then predicted M2 retention = 46% × 38% / 55% = 31.8%).</li>
+            <li>The projected future tail uses each priced customer’s real full renewal price, not a generic bucket price.</li>
+            <li>First-day upsell revenue stays inside cumulative predicted ROAS, and projected future revenue gets a 15% haircut for refunds and fees.</li>
+          </ul>
+        </div>
+      </div>
+
+
+      <details class="forecast-details">
+        <summary>Worked Example: Jan 1-Jan 7</summary>
+        <div class="forecast-copy">
+          <p><strong>Actual closed milestones</strong></p>
+          <ul>
+            <li>Spend: €10,676. D0 actual: €4,161, M1 actual: €4,841, M2 actual: €5,352, M3 actual: €8,490.</li>
+            <li>Because this weekly cohort is already closed for M3, the displayed M3 is actual, not projected: €8,490 / €10,676 = 79.5%.</li>
+          </ul>
+          <p><strong>Starter-family denominators</strong></p>
+          <ul>
+            <li>Monthly starters: 63 with actual retentions M1 52.4%, M2 25.4%, M3 11.1%.</li>
+            <li>Quarterly starters: 77 with actual M3 retention 57.1%.</li>
+            <li>Annual starters: 9.</li>
+          </ul>
+          <p><strong>How M6 is projected from the last actual month</strong></p>
+          <ul>
+            <li>Monthly anchor is actual M3 retention 11.1%. Then M4 = M3 × 18%/20% = 10.0%, M5 = M4 × 14%/18% = 7.8%, M6 = M5 × 12%/14% = 6.7%.</li>
+            <li>Quarterly anchor is actual M3 retention 57.1%. Then M6 = M3 × 20%/50% = 22.9%.</li>
+            <li>The projected M6 tail uses the real renewal-price pools and then applies the 15% haircut: monthly tail €437, quarterly tail €998, annual tail €0.</li>
+            <li>So projected M6 = actual M3 base €8,490 + future tail €1,434 = €9,924, which is 93.0% ROAS.</li>
+          </ul>
+        </div>
+      </details>
+    
     </section>
+
   </div>
 
   <script>
@@ -743,12 +904,12 @@
         "disputeLosses": "\u20ac273",
         "d0Roas": "40.3%",
         "roasToDate": "65.2%",
-        "m1": "51.7%",
-        "m2": "59.0%",
-        "m3": "79.4%",
-        "m6": "94.8%",
-        "m9": "104.7%",
-        "m12": "114.0%",
+        "m1": "49.2%",
+        "m2": "55.5%",
+        "m3": "78.1%",
+        "m6": "92.2%",
+        "m9": "101.4%",
+        "m12": "110.3%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": true,
@@ -771,12 +932,12 @@
         "disputeLosses": "\u20ac34",
         "d0Roas": "41.3%",
         "roasToDate": "55.0%",
-        "m1": "53.4%",
-        "m2": "54.6%",
-        "m3": "77.7%",
-        "m6": "92.0%",
-        "m9": "101.5%",
-        "m12": "110.9%",
+        "m1": "51.2%",
+        "m2": "58.2%",
+        "m3": "82.9%",
+        "m6": "99.4%",
+        "m9": "110.1%",
+        "m12": "120.3%",
         "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
@@ -799,12 +960,12 @@
         "disputeLosses": "\u20ac25",
         "d0Roas": "33.3%",
         "roasToDate": "36.2%",
-        "m1": "41.5%",
-        "m2": "47.2%",
-        "m3": "64.8%",
-        "m6": "77.2%",
-        "m9": "85.2%",
-        "m12": "93.3%",
+        "m1": "41.8%",
+        "m2": "47.6%",
+        "m3": "65.4%",
+        "m6": "78.0%",
+        "m9": "86.1%",
+        "m12": "94.4%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
@@ -959,12 +1120,12 @@
         "disputeLosses": "\u20ac96",
         "d0Roas": "39.0%",
         "roasToDate": "82.4%",
-        "m1": "46.2%",
-        "m2": "52.6%",
-        "m3": "82.4%",
-        "m6": "91.8%",
-        "m9": "101.5%",
-        "m12": "110.4%",
+        "m1": "45.3%",
+        "m2": "50.1%",
+        "m3": "79.5%",
+        "m6": "93.0%",
+        "m9": "102.2%",
+        "m12": "110.6%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": false,
@@ -987,12 +1148,12 @@
         "disputeLosses": "\u20ac34",
         "d0Roas": "43.5%",
         "roasToDate": "67.9%",
-        "m1": "55.8%",
-        "m2": "64.7%",
-        "m3": "85.3%",
-        "m6": "101.8%",
-        "m9": "112.2%",
-        "m12": "124.2%",
+        "m1": "54.7%",
+        "m2": "63.0%",
+        "m3": "84.4%",
+        "m6": "99.4%",
+        "m9": "109.1%",
+        "m12": "120.6%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": true,
@@ -1015,12 +1176,12 @@
         "disputeLosses": "\u20ac0",
         "d0Roas": "43.2%",
         "roasToDate": "65.7%",
-        "m1": "56.6%",
-        "m2": "65.3%",
-        "m3": "87.8%",
-        "m6": "105.4%",
-        "m9": "116.4%",
-        "m12": "126.5%",
+        "m1": "55.0%",
+        "m2": "63.2%",
+        "m3": "84.3%",
+        "m6": "99.2%",
+        "m9": "108.8%",
+        "m12": "117.9%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": true,
@@ -1043,12 +1204,12 @@
         "disputeLosses": "\u20ac143",
         "d0Roas": "37.0%",
         "roasToDate": "53.7%",
-        "m1": "47.2%",
-        "m2": "53.7%",
-        "m3": "72.3%",
-        "m6": "86.2%",
-        "m9": "95.4%",
-        "m12": "103.4%",
+        "m1": "44.5%",
+        "m2": "49.2%",
+        "m3": "71.7%",
+        "m6": "84.3%",
+        "m9": "92.9%",
+        "m12": "100.4%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": true,
@@ -1071,12 +1232,12 @@
         "disputeLosses": "\u20ac0",
         "d0Roas": "42.2%",
         "roasToDate": "62.3%",
-        "m1": "55.7%",
-        "m2": "62.3%",
-        "m3": "79.3%",
-        "m6": "94.0%",
-        "m9": "103.9%",
-        "m12": "112.2%",
+        "m1": "52.4%",
+        "m2": "58.2%",
+        "m3": "84.5%",
+        "m6": "99.6%",
+        "m9": "109.8%",
+        "m12": "118.3%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": true,
@@ -1099,12 +1260,12 @@
         "disputeLosses": "\u20ac21",
         "d0Roas": "41.7%",
         "roasToDate": "56.5%",
-        "m1": "54.2%",
-        "m2": "54.6%",
-        "m3": "77.9%",
-        "m6": "92.1%",
-        "m9": "101.6%",
-        "m12": "110.7%",
+        "m1": "50.5%",
+        "m2": "56.8%",
+        "m3": "81.6%",
+        "m6": "97.5%",
+        "m9": "108.0%",
+        "m12": "117.8%",
         "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
@@ -1127,12 +1288,12 @@
         "disputeLosses": "\u20ac0",
         "d0Roas": "41.9%",
         "roasToDate": "55.0%",
-        "m1": "53.7%",
-        "m2": "54.1%",
-        "m3": "77.2%",
-        "m6": "91.1%",
-        "m9": "100.4%",
-        "m12": "109.8%",
+        "m1": "52.7%",
+        "m2": "60.0%",
+        "m3": "85.3%",
+        "m6": "102.3%",
+        "m9": "113.3%",
+        "m12": "124.1%",
         "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
@@ -1155,12 +1316,12 @@
         "disputeLosses": "\u20ac13",
         "d0Roas": "37.9%",
         "roasToDate": "49.4%",
-        "m1": "47.8%",
-        "m2": "53.3%",
-        "m3": "73.7%",
-        "m6": "87.8%",
-        "m9": "96.9%",
-        "m12": "106.2%",
+        "m1": "48.0%",
+        "m2": "54.6%",
+        "m3": "75.8%",
+        "m6": "90.5%",
+        "m9": "100.0%",
+        "m12": "109.6%",
         "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
@@ -1183,12 +1344,12 @@
         "disputeLosses": "\u20ac25",
         "d0Roas": "43.9%",
         "roasToDate": "56.8%",
-        "m1": "56.8%",
-        "m2": "59.3%",
-        "m3": "85.7%",
-        "m6": "102.3%",
-        "m9": "113.2%",
-        "m12": "123.4%",
+        "m1": "54.2%",
+        "m2": "61.6%",
+        "m3": "89.2%",
+        "m6": "107.3%",
+        "m9": "119.1%",
+        "m12": "130.0%",
         "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
@@ -1211,12 +1372,12 @@
         "disputeLosses": "\u20ac0",
         "d0Roas": "33.9%",
         "roasToDate": "37.7%",
-        "m1": "41.4%",
-        "m2": "46.5%",
-        "m3": "64.5%",
-        "m6": "76.6%",
-        "m9": "84.5%",
-        "m12": "92.7%",
+        "m1": "41.7%",
+        "m2": "47.1%",
+        "m3": "65.3%",
+        "m6": "77.7%",
+        "m9": "85.7%",
+        "m12": "94.0%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
@@ -1239,12 +1400,12 @@
         "disputeLosses": "\u20ac0",
         "d0Roas": "30.8%",
         "roasToDate": "30.8%",
-        "m1": "38.9%",
-        "m2": "44.4%",
-        "m3": "60.8%",
-        "m6": "72.6%",
-        "m9": "80.2%",
-        "m12": "87.6%",
+        "m1": "39.0%",
+        "m2": "44.6%",
+        "m3": "61.0%",
+        "m6": "72.9%",
+        "m9": "80.5%",
+        "m12": "88.0%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
@@ -1297,10 +1458,10 @@
         "roasToDate": "27.6%",
         "m1": "34.2%",
         "m2": "38.8%",
-        "m3": "52.0%",
-        "m6": "61.7%",
-        "m9": "67.8%",
-        "m12": "74.7%",
+        "m3": "52.3%",
+        "m6": "62.0%",
+        "m9": "68.3%",
+        "m12": "75.3%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
@@ -1377,6 +1538,38 @@
     },
     "annual": {
       "12": 0.3
+    }
+  },
+  "planRevenueSchedules": {
+    "monthly_19_60": {
+      "family": "monthly",
+      "intro": 19.6,
+      "full_price": 39.99
+    },
+    "monthly_15_60": {
+      "family": "monthly",
+      "intro": 15.6,
+      "full_price": 39.99
+    },
+    "quarterly_32_00": {
+      "family": "quarterly",
+      "intro": 32.0,
+      "full_price": 79.99
+    },
+    "quarterly_23_99": {
+      "family": "quarterly",
+      "intro": 23.99,
+      "full_price": 79.99
+    },
+    "annual_58_80": {
+      "family": "annual",
+      "intro": 58.8,
+      "full_price": 119.99
+    },
+    "annual_46_80": {
+      "family": "annual",
+      "intro": 46.8,
+      "full_price": 119.99
     }
   },
   "priceCatalog": {
@@ -3371,6 +3564,72 @@
       return null;
     }
 
+    function starterFamilyForRow(row, monthKey, firstSubscriptionInfo, catalog) {
+      const customerId = String(row.id || "").trim();
+      if (customerId.startsWith("gcus_")) return null;
+      const planId = String(row.Plan || "").trim();
+      if (planId) {
+        return classifyPlanFamily(planId, 0, String(row.Currency || "").trim(), catalog);
+      }
+      if (firstSubscriptionInfo && Number(firstSubscriptionInfo.amountEur || 0) > 0) {
+        return classifyPlanFamily("", Number(firstSubscriptionInfo.amountEur || 0), "eur", catalog);
+      }
+      const currency = String(row.Currency || "").trim().toLowerCase();
+      const totalSpend = parseAmount(row["Total Spend"]);
+      if (currency === "usd") {
+        const inferred = inferBlankUsdProjection(totalSpend);
+        if (inferred) return inferred[0];
+      }
+      return null;
+    }
+
+    function inferFullPriceFromIntroEur(family, introAmountEur, monthKey) {
+      const candidates = [];
+      Object.values(clientConfig.planRevenueSchedules || {}).forEach((spec) => {
+        if (spec.family !== family) return;
+        const introEur = convertToEur(spec.intro, "usd", monthKey);
+        const fullEur = convertToEur(spec.full_price, "usd", monthKey);
+        candidates.push([introEur, fullEur]);
+      });
+      if (family === "quarterly") {
+        candidates.push([32.0, 79.99], [23.99, 79.99]);
+      } else if (family === "annual") {
+        candidates.push([58.8, 119.99], [46.8, 119.99]);
+      }
+      let best = null;
+      candidates.forEach(([introEur, fullEur]) => {
+        const gap = Math.abs(introAmountEur - introEur);
+        if (!best || gap < best.gap) {
+          best = { gap, fullEur };
+        }
+      });
+      return best && best.gap <= 4.5 ? best.fullEur : null;
+    }
+
+    function projectionPriceForRow(row, monthKey, family, firstSubscriptionInfo, firstUpdateAmountEur, catalog) {
+      const customerId = String(row.id || "").trim();
+      if (customerId.startsWith("gcus_")) return null;
+      if (!family) return null;
+      const planId = String(row.Plan || "").trim();
+      if (planId) {
+        return planFullPriceEur(planId, monthKey, catalog);
+      }
+      if (firstUpdateAmountEur && firstUpdateAmountEur > 0) {
+        return firstUpdateAmountEur;
+      }
+      if (firstSubscriptionInfo && Number(firstSubscriptionInfo.amountEur || 0) > 0) {
+        const inferred = inferFullPriceFromIntroEur(family, Number(firstSubscriptionInfo.amountEur || 0), monthKey);
+        if (inferred) return inferred;
+      }
+      const currency = String(row.Currency || "").trim().toLowerCase();
+      const totalSpend = parseAmount(row["Total Spend"]);
+      if (currency === "usd") {
+        const inferred = inferBlankUsdProjection(totalSpend);
+        if (inferred && inferred[0] === family) return inferred[1];
+      }
+      return null;
+    }
+
     function projectedBenchmarkRevenue(family, fullPriceEur, milestoneMonths) {
       const rates = clientConfig.retentionRates[family] || {};
       let total = 0;
@@ -3382,13 +3641,90 @@
       return total * clientConfig.projectedNetRevenueFactor;
     }
 
-    function loadSubscriptionCreationAmounts(paymentsRows) {
+    function benchmarkMilestonesForFamily(family, milestoneMonths = null) {
+      const months = Object.keys(clientConfig.retentionRates[family] || {})
+        .map((value) => Number(value))
+        .sort((a, b) => a - b);
+      if (milestoneMonths == null) {
+        return months;
+      }
+      return months.filter((month) => month <= milestoneMonths);
+    }
+
+    function benchmarkRateForFamilyMonth(family, monthNumber) {
+      const rates = clientConfig.retentionRates[family] || {};
+      return Number(rates[monthNumber] || 0);
+    }
+
+    function lastClosedBenchmarkMonth(cohortEndDate, family, targetMonths) {
+      const closed = benchmarkMilestonesForFamily(family, targetMonths)
+        .filter((month) => milestoneClosedFromEnd(cohortEndDate, month));
+      return closed.length ? Math.max(...closed) : 0;
+    }
+
+    function projectedPopTailRevenue(family, fullPriceEur, cohortEndDate, targetMonths, actualRetentionRates) {
+      const milestoneMonths = benchmarkMilestonesForFamily(family, targetMonths);
+      if (!milestoneMonths.length) return 0;
+
+      const lastActualMonth = lastClosedBenchmarkMonth(cohortEndDate, family, targetMonths);
+      if (!lastActualMonth) {
+        return projectedBenchmarkRevenue(family, fullPriceEur, targetMonths);
+      }
+
+      const familyRetention = actualRetentionRates[family] || {};
+      let previousRate = Number(familyRetention[lastActualMonth] || 0);
+      if (!previousRate) {
+        return projectedBenchmarkRevenue(family, fullPriceEur, targetMonths);
+      }
+
+      let previousMonth = lastActualMonth;
+      let total = 0;
+      milestoneMonths.forEach((monthNumber) => {
+        if (monthNumber <= lastActualMonth) return;
+        const previousBenchmark = benchmarkRateForFamilyMonth(family, previousMonth);
+        const currentBenchmark = benchmarkRateForFamilyMonth(family, monthNumber);
+        if (!previousBenchmark || !currentBenchmark) {
+          previousMonth = monthNumber;
+          return;
+        }
+        previousRate *= currentBenchmark / previousBenchmark;
+        total += fullPriceEur * previousRate;
+        previousMonth = monthNumber;
+      });
+      return total * clientConfig.projectedNetRevenueFactor;
+    }
+
+    function loadSubscriptionCreationInfo(paymentsRows) {
       const first = new Map();
       paymentsRows.forEach((payment) => {
         if (payment.Status !== "Paid") return;
         const customerId = String(payment["Customer ID"] || "").trim();
         if (!customerId) return;
         if (String(payment.Description || "").trim() !== "Subscription creation") return;
+        const created = String(payment["Created date (UTC)"] || "").slice(0, 10);
+        if (!created) return;
+        const amount = parseAmount(payment["Converted Amount"]) - parseAmount(payment["Converted Amount Refunded"]);
+        if (amount <= 0) return;
+        const existing = first.get(customerId);
+        if (!existing || created < existing.date) {
+          first.set(customerId, {
+            date: created,
+            amountEur: amount,
+            amountRaw: parseAmount(payment.Amount) - parseAmount(payment["Amount Refunded"]),
+            currency: String(payment.Currency || "").trim(),
+          });
+        }
+      });
+      return first;
+    }
+
+    function loadFirstSubscriptionUpdateAmounts(paymentsRows) {
+      const first = new Map();
+      paymentsRows.forEach((payment) => {
+        if (payment.Status !== "Paid") return;
+        const customerId = String(payment["Customer ID"] || "").trim();
+        if (!customerId) return;
+        if (String(payment.Description || "").trim() !== "Subscription update") return;
         const created = String(payment["Created date (UTC)"] || "").slice(0, 10);
         if (!created) return;
         const amount = parseAmount(payment["Converted Amount"]) - parseAmount(payment["Converted Amount Refunded"]);
@@ -3606,44 +3942,75 @@
       };
     }
 
-    function buildMetrics(rows, cohortKey, cohortLabel, chartLabel, cohortEndDate, spend, paymentsRows, catalog, lookups, subscriptionCreationAmounts) {
+    function buildMetrics(rows, cohortKey, cohortLabel, chartLabel, cohortEndDate, spend, paymentsRows, catalog, lookups, subscriptionCreationInfo, firstSubscriptionUpdateAmounts) {
       const paymentCounts = rows.map((row) => parseIntValue(row["Payment Count"]));
       const customers = rows.length;
       const paidCustomers = rows.filter((row) => parseAmount(row["Total Spend"]) > 0).length;
       const customersWithPayment = rows.filter((row) => parseIntValue(row["Payment Count"]) >= 1).length;
-      const m1SubscriptionCounts = subscriptionBillingCountsThrough(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 1)));
-      const m2SubscriptionCounts = subscriptionBillingCountsThrough(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 2)));
-      const m3SubscriptionCounts = subscriptionBillingCountsThrough(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 3)));
       const projected = { m1: 0, m2: 0, m3: 0, m6: 0, m9: 0, m12: 0 };
+      const preparedRows = [];
 
       rows.forEach((row) => {
         if (parseIntValue(row["Payment Count"]) < 1) return;
         const customerId = String(row.id || "").trim();
         const monthKey = String(row["Created (UTC)"] || "").slice(0, 7);
-        const projectionSpec = projectionSpecForRow(row, monthKey, subscriptionCreationAmounts.get(customerId), catalog);
-        if (!projectionSpec) return;
-        const [family, fullPriceEur] = projectionSpec;
-        projected.m1 += projectedBenchmarkRevenue(family, fullPriceEur, 1);
-        projected.m2 += projectedBenchmarkRevenue(family, fullPriceEur, 2);
-        projected.m3 += projectedBenchmarkRevenue(family, fullPriceEur, 3);
-        projected.m6 += projectedBenchmarkRevenue(family, fullPriceEur, 6);
-        projected.m9 += projectedBenchmarkRevenue(family, fullPriceEur, 9);
-        projected.m12 += projectedBenchmarkRevenue(family, fullPriceEur, 12);
+        const firstSubscription = subscriptionCreationInfo.get(customerId);
+        const family = starterFamilyForRow(row, monthKey, firstSubscription, catalog);
+        const fullPriceEur = projectionPriceForRow(row, monthKey, family, firstSubscription, firstSubscriptionUpdateAmounts.get(customerId), catalog);
+        if (!family) return;
+        preparedRows.push({ row, customerId, family, fullPriceEur });
+      });
+
+      const familyCustomers = {};
+      preparedRows.forEach((item) => {
+        if (!familyCustomers[item.family]) familyCustomers[item.family] = [];
+        familyCustomers[item.family].push(item.customerId);
+      });
+
+      const milestoneCounts = {};
+      [1, 2, 3, 6, 9, 12].forEach((monthNumber) => {
+        milestoneCounts[monthNumber] = subscriptionBillingCountsThrough(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, monthNumber)));
+      });
+
+      const actualRetentionRates = {};
+      Object.entries(familyCustomers).forEach(([family, customerIds]) => {
+        if (!customerIds.length) return;
+        actualRetentionRates[family] = {};
+        benchmarkMilestonesForFamily(family).forEach((monthNumber) => {
+          if (!milestoneClosedFromEnd(cohortEndDate, monthNumber)) return;
+          const requiredCount = requiredPaymentCount(family, monthNumber);
+          const numerator = customerIds.filter((customerId) => (milestoneCounts[monthNumber].get(customerId) || 0) >= requiredCount).length;
+          actualRetentionRates[family][monthNumber] = numerator / customerIds.length;
+        });
+      });
+
+      preparedRows.forEach((item) => {
+        if (!item.fullPriceEur) return;
+        projected.m1 += projectedPopTailRevenue(item.family, item.fullPriceEur, cohortEndDate, 1, actualRetentionRates);
+        projected.m2 += projectedPopTailRevenue(item.family, item.fullPriceEur, cohortEndDate, 2, actualRetentionRates);
+        projected.m3 += projectedPopTailRevenue(item.family, item.fullPriceEur, cohortEndDate, 3, actualRetentionRates);
+        projected.m6 += projectedPopTailRevenue(item.family, item.fullPriceEur, cohortEndDate, 6, actualRetentionRates);
+        projected.m9 += projectedPopTailRevenue(item.family, item.fullPriceEur, cohortEndDate, 9, actualRetentionRates);
+        projected.m12 += projectedPopTailRevenue(item.family, item.fullPriceEur, cohortEndDate, 12, actualRetentionRates);
       });
 
       const d0Revenue = actualRevenueThroughRows(rows, paymentsRows, toIsoDate(cohortEndDate), lookups.firstCharge, lookups.cumulative, catalog);
-      const m1Revenue = milestoneClosedFromEnd(cohortEndDate, 1)
-        ? netActualRevenueThroughRows(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 1)), lookups.firstCharge, lookups.cumulative, catalog)
-        : d0Revenue + projected.m1;
-      const m2Revenue = milestoneClosedFromEnd(cohortEndDate, 2)
-        ? netActualRevenueThroughRows(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 2)), lookups.firstCharge, lookups.cumulative, catalog)
-        : d0Revenue + projected.m2;
-      const m3Revenue = milestoneClosedFromEnd(cohortEndDate, 3)
-        ? netActualRevenueThroughRows(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 3)), lookups.firstCharge, lookups.cumulative, catalog)
-        : d0Revenue + projected.m3;
-      const m6Revenue = d0Revenue + projected.m6;
-      const m9Revenue = d0Revenue + projected.m9;
-      const m12Revenue = d0Revenue + projected.m12;
+      const blendedRevenue = (targetMonth) => {
+        if (milestoneClosedFromEnd(cohortEndDate, targetMonth)) {
+          return netActualRevenueThroughRows(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, targetMonth)), lookups.firstCharge, lookups.cumulative, catalog);
+        }
+        const closedPoints = [1, 2, 3, 6, 9, 12].filter((month) => month < targetMonth && milestoneClosedFromEnd(cohortEndDate, month));
+        const baseRevenue = closedPoints.length
+          ? netActualRevenueThroughRows(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, Math.max(...closedPoints))), lookups.firstCharge, lookups.cumulative, catalog)
+          : d0Revenue;
+        return baseRevenue + projected[`m${targetMonth}`];
+      };
+      const m1Revenue = blendedRevenue(1);
+      const m2Revenue = blendedRevenue(2);
+      const m3Revenue = blendedRevenue(3);
+      const m6Revenue = blendedRevenue(6);
+      const m9Revenue = blendedRevenue(9);
+      const m12Revenue = blendedRevenue(12);
       const refundedVolume = cohortRefundedVolume(rows);
       const disputeLosses = cohortDisputeLosses(rows);
       const netRevenue = actualRevenueThroughRows(rows, paymentsRows, clientConfig.currentDate, lookups.firstCharge, lookups.cumulative, catalog) - disputeLosses;
@@ -3699,7 +4066,8 @@
       const spendMaps = buildSpendMaps(spendRows);
       const firstChargeLookup = loadFirstChargeLookup(customersRows);
       const cumulativeChargeLookup = loadCumulativeChargeLookup(customersRows);
-      const subscriptionCreationAmounts = loadSubscriptionCreationAmounts(paymentsRows);
+      const subscriptionCreationInfo = loadSubscriptionCreationInfo(paymentsRows);
+      const firstSubscriptionUpdateAmounts = loadFirstSubscriptionUpdateAmounts(paymentsRows);
       const lookups = { firstCharge: firstChargeLookup, cumulative: cumulativeChargeLookup };
 
       const monthlyMetrics = clientConfig.targetMonths.map((monthKey) => buildMetrics(
@@ -3712,7 +4080,8 @@
         paymentsRows,
         catalog,
         lookups,
-        subscriptionCreationAmounts,
+        subscriptionCreationInfo,
+        firstSubscriptionUpdateAmounts,
       ));
 
       const weeklyMetrics = Array.from(groupedWeekly.keys())
@@ -3729,7 +4098,8 @@
             paymentsRows,
             catalog,
             lookups,
-            subscriptionCreationAmounts,
+            subscriptionCreationInfo,
+            firstSubscriptionUpdateAmounts,
           );
         });
 

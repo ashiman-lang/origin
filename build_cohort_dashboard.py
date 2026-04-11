@@ -447,14 +447,14 @@ def classify_plan_family(plan_id: str, first_charge: float, currency: str) -> st
 
     code = (currency or "").strip().lower()
     if code in {"usd", "blank", ""}:
-        if first_charge <= 19:
+        if first_charge <= 21:
             return "monthly"
         if first_charge <= 35:
             return "quarterly"
         if first_charge <= 65:
             return "annual"
     if code == "eur":
-        if first_charge <= 24:
+        if first_charge <= 18.5:
             return "monthly"
         if first_charge <= 40:
             return "quarterly"
@@ -507,12 +507,12 @@ def plan_full_price_eur(plan_id: str, month_key: str) -> float | None:
     )
 
 
-def load_subscription_creation_amounts() -> dict[str, float]:
-    cached = getattr(load_subscription_creation_amounts, "_cache", None)
+def load_subscription_creation_info() -> dict[str, dict[str, object]]:
+    cached = getattr(load_subscription_creation_info, "_cache", None)
     if cached is not None:
         return cached
 
-    first_amounts: dict[str, tuple[date, float]] = {}
+    first_amounts: dict[str, tuple[date, dict[str, object]]] = {}
     for payment in load_payments_rows():
         if payment.get("Status") != "Paid":
             continue
@@ -530,12 +530,82 @@ def load_subscription_creation_amounts() -> dict[str, float]:
         if amount_eur <= 0:
             continue
         existing = first_amounts.get(customer_id)
+        info = {
+            "date": payment_date,
+            "amount_eur": amount_eur,
+            "amount_raw": parse_amount(payment.get("Amount", "0")) - parse_amount(payment.get("Amount Refunded", "0")),
+            "currency": (payment.get("Currency") or "").strip(),
+        }
         if existing is None or payment_date < existing[0]:
-            first_amounts[customer_id] = (payment_date, amount_eur)
+            first_amounts[customer_id] = (payment_date, info)
 
-    result = {customer_id: amount for customer_id, (_, amount) in first_amounts.items()}
-    load_subscription_creation_amounts._cache = result
+    result = {customer_id: info for customer_id, (_, info) in first_amounts.items()}
+    load_subscription_creation_info._cache = result
     return result
+
+
+def load_subscription_creation_amounts() -> dict[str, float]:
+    return {
+        customer_id: float(info["amount_eur"])
+        for customer_id, info in load_subscription_creation_info().items()
+    }
+
+
+def load_first_subscription_update_amounts() -> dict[str, float]:
+    cached = getattr(load_first_subscription_update_amounts, "_cache", None)
+    if cached is not None:
+        return cached
+
+    first_updates: dict[str, tuple[date, float]] = {}
+    for payment in load_payments_rows():
+        if payment.get("Status") != "Paid":
+            continue
+        customer_id = (payment.get("Customer ID") or "").strip()
+        if not customer_id:
+            continue
+        description = (payment.get("Description") or "").strip()
+        if description != "Subscription update":
+            continue
+        created_raw = (payment.get("Created date (UTC)") or "")[:10]
+        if not created_raw:
+            continue
+        payment_date = datetime.strptime(created_raw, "%Y-%m-%d").date()
+        amount_eur = parse_amount(payment.get("Converted Amount", "0")) - parse_amount(payment.get("Converted Amount Refunded", "0"))
+        if amount_eur <= 0:
+            continue
+        existing = first_updates.get(customer_id)
+        if existing is None or payment_date < existing[0]:
+            first_updates[customer_id] = (payment_date, amount_eur)
+
+    result = {customer_id: amount for customer_id, (_, amount) in first_updates.items()}
+    load_first_subscription_update_amounts._cache = result
+    return result
+
+
+def infer_full_price_from_intro_eur(family: str, intro_amount_eur: float, month_key: str) -> float | None:
+    candidates: list[tuple[float, float]] = []
+    for spec in PLAN_REVENUE_SCHEDULES.values():
+        if spec["family"] != family:
+            continue
+        intro_eur = convert_to_eur(spec["intro"], "usd", month_key)
+        full_eur = convert_to_eur(spec["full_price"], "usd", month_key)
+        candidates.append((intro_eur, full_eur))
+
+    if family == "quarterly":
+        candidates.append((32.00, 79.99))
+        candidates.append((23.99, 79.99))
+    elif family == "annual":
+        candidates.append((58.80, 119.99))
+        candidates.append((46.80, 119.99))
+
+    best: tuple[float, float] | None = None
+    for intro_eur, full_eur in candidates:
+        gap = abs(intro_amount_eur - intro_eur)
+        if best is None or gap < best[0]:
+            best = (gap, full_eur)
+    if best and best[0] <= 4.5:
+        return best[1]
+    return None
 
 
 def infer_blank_usd_projection(total_spend: float) -> tuple[str, float] | None:
@@ -615,12 +685,108 @@ def projection_spec_for_row(row: dict[str, str], month_key: str, first_subscript
     return None
 
 
+def starter_family_for_row(
+    row: dict[str, str],
+    month_key: str,
+    first_subscription_info: dict[str, object] | None = None,
+) -> str | None:
+    customer_id = (row.get("id") or "").strip()
+    if customer_id.startswith("gcus_"):
+        return None
+
+    plan_id = (row.get("Plan") or "").strip()
+    if plan_id:
+        return classify_plan_family(plan_id, 0.0, (row.get("Currency") or "").strip())
+
+    if first_subscription_info:
+        amount_raw = float(first_subscription_info.get("amount_raw", 0.0) or 0.0)
+        raw_currency = str(first_subscription_info.get("currency", "") or "")
+        if amount_raw > 0 and raw_currency:
+            return classify_plan_family("", amount_raw, raw_currency)
+        amount_eur = float(first_subscription_info.get("amount_eur", 0.0) or 0.0)
+        if amount_eur > 0:
+            return classify_plan_family("", amount_eur, "eur")
+
+    currency = ((row.get("Currency") or "").strip() or "").lower()
+    total_spend = parse_amount(row.get("Total Spend", "0"))
+    if currency == "usd":
+        inferred = infer_blank_usd_projection(total_spend)
+        if inferred:
+            return inferred[0]
+    blank_pattern = infer_blank_spend_pattern(total_spend, currency)
+    if blank_pattern:
+        return str(blank_pattern["family"])
+    return None
+
+
+def projection_price_for_row(
+    row: dict[str, str],
+    month_key: str,
+    family: str | None,
+    first_subscription_info: dict[str, object] | None = None,
+    first_update_amount_eur: float | None = None,
+) -> float | None:
+    customer_id = (row.get("id") or "").strip()
+    if customer_id.startswith("gcus_"):
+        return None
+
+    if not family:
+        return None
+
+    plan_id = (row.get("Plan") or "").strip()
+    if plan_id:
+        return plan_full_price_eur(plan_id, month_key)
+
+    if first_update_amount_eur and first_update_amount_eur > 0:
+        return first_update_amount_eur
+
+    if first_subscription_info:
+        amount_eur = float(first_subscription_info.get("amount_eur", 0.0) or 0.0)
+        if amount_eur > 0:
+            inferred = infer_full_price_from_intro_eur(family, amount_eur, month_key)
+            if inferred:
+                return inferred
+
+    currency = ((row.get("Currency") or "").strip() or "").lower()
+    total_spend = parse_amount(row.get("Total Spend", "0"))
+    if currency == "usd":
+        inferred = infer_blank_usd_projection(total_spend)
+        if inferred and inferred[0] == family:
+            return inferred[1]
+
+    blank_pattern = infer_blank_spend_pattern(total_spend, currency)
+    if blank_pattern and blank_pattern["family"] == family:
+        return float(blank_pattern["renewal"]) if blank_pattern["renewal"] else None
+
+    return None
+
+
 def projected_family_revenue(family: str, full_price_eur: float, milestone_months: int) -> float:
     return sum(
         full_price_eur * retention
         for month_number, retention in RETENTION_RATE_BENCHMARKS[family].items()
         if month_number <= milestone_months
     )
+
+
+def benchmark_milestones_for_family(family: str, milestone_months: int | None = None) -> list[int]:
+    months = sorted(RETENTION_RATE_BENCHMARKS.get(family, {}).keys())
+    if milestone_months is None:
+        return months
+    return [month for month in months if month <= milestone_months]
+
+
+def benchmark_rate_for_family_month(family: str, month_number: int) -> float:
+    return RETENTION_RATE_BENCHMARKS.get(family, {}).get(month_number, 0.0)
+
+
+def last_closed_benchmark_month(cohort_end_date: date, family: str, target_months: int) -> int:
+    closed = [
+        month
+        for month in benchmark_milestones_for_family(family, target_months)
+        if milestone_is_closed_from_end(cohort_end_date, month)
+    ]
+    return max(closed) if closed else 0
 
 
 def required_payment_count(family: str, month_number: int) -> int:
@@ -644,6 +810,43 @@ def projected_benchmark_revenue(
         if month_number <= milestone_months
     )
     return gross_revenue * PROJECTED_NET_REVENUE_FACTOR
+
+
+def projected_pop_tail_revenue(
+    family: str,
+    full_price_eur: float,
+    cohort_end_date: date,
+    target_months: int,
+    actual_retention_rates: dict[str, dict[int, float]],
+) -> float:
+    milestone_months = benchmark_milestones_for_family(family, target_months)
+    if not milestone_months:
+        return 0.0
+
+    last_actual_month = last_closed_benchmark_month(cohort_end_date, family, target_months)
+    if last_actual_month <= 0:
+        return projected_benchmark_revenue(family, full_price_eur, target_months)
+
+    last_actual_rate = actual_retention_rates.get(family, {}).get(last_actual_month)
+    if not last_actual_rate or last_actual_rate <= 0:
+        return projected_benchmark_revenue(family, full_price_eur, target_months)
+
+    projected_total = 0.0
+    previous_month = last_actual_month
+    previous_rate = last_actual_rate
+    for month_number in milestone_months:
+        if month_number <= last_actual_month:
+            continue
+        previous_benchmark = benchmark_rate_for_family_month(family, previous_month)
+        current_benchmark = benchmark_rate_for_family_month(family, month_number)
+        if previous_benchmark <= 0 or current_benchmark <= 0:
+            previous_month = month_number
+            continue
+        previous_rate *= current_benchmark / previous_benchmark
+        projected_total += full_price_eur * previous_rate
+        previous_month = month_number
+
+    return projected_total * PROJECTED_NET_REVENUE_FACTOR
 
 
 def format_month(month_key: str) -> str:
@@ -868,144 +1071,51 @@ def build_metrics(
 
     paid_customers = sum(spend > 0 for spend in spends)
     customers_with_payment = sum(count >= 1 for count in payment_counts)
-    first_charge_lookup = load_first_charge_lookup()
-    cumulative_charge_lookup = load_cumulative_charge_lookup()
-    subscription_creation_amounts = load_subscription_creation_amounts()
-    m1_subscription_counts = subscription_billing_counts_through(rows, add_months(cohort_end_date, 1))
-    m2_subscription_counts = subscription_billing_counts_through(rows, add_months(cohort_end_date, 2))
-    m3_subscription_counts = subscription_billing_counts_through(rows, add_months(cohort_end_date, 3))
-    d0_revenue_base = 0.0
-    m1_revenue_actual = 0.0
-    m2_revenue_actual = 0.0
-    m3_revenue_actual = 0.0
-    m6_revenue_actual = 0.0
-    m12_revenue_actual = 0.0
+    subscription_creation_info = load_subscription_creation_info()
+    first_subscription_updates = load_first_subscription_update_amounts()
     projected = {"m1": 0.0, "m2": 0.0, "m3": 0.0, "m6": 0.0, "m9": 0.0, "m12": 0.0}
     prepared_rows = []
     for row in rows:
-        payment_count = parse_int(row.get("Payment Count", ""))
-        if payment_count < 1:
+        if parse_int(row.get("Payment Count", "")) < 1:
             continue
-        key = (
-            (row.get("Plan") or "(blank)").strip() or "(blank)",
-            (row.get("Currency") or "").strip() or "blank",
-        )
         plan_id = (row.get("Plan") or "").strip()
         customer_id = (row.get("id") or "").strip()
-        first_charge = first_charge_lookup.get(key)
-        if first_charge is None:
-            first_charge = parse_amount(row.get("Total Spend", "0")) if parse_amount(row.get("Total Spend", "0")) > 0 else 0.0
-        created_date = datetime.strptime((row.get("Created (UTC)") or "")[:10], "%Y-%m-%d").date()
-        age_days = (CURRENT_DATE - created_date).days
         fx_month = (row.get("Created (UTC)") or "")[:7]
-        first_subscription_amount_eur = subscription_creation_amounts.get(customer_id)
-        projection_spec = projection_spec_for_row(row, fx_month, first_subscription_amount_eur)
-        blank_pattern = None
-        if not plan_id:
-            blank_pattern = infer_blank_spend_pattern(parse_amount(row.get("Total Spend", "0")), key[1])
-        first_charge_eur = first_subscription_amount_eur if first_subscription_amount_eur is not None else first_charge
-        prepared_rows.append((row, payment_count, key, plan_id, first_charge, first_charge_eur, age_days, projection_spec, fx_month, blank_pattern))
+        first_subscription = subscription_creation_info.get(customer_id)
+        family = starter_family_for_row(row, fx_month, first_subscription)
+        full_price_eur = projection_price_for_row(row, fx_month, family, first_subscription, first_subscription_updates.get(customer_id))
+        if family:
+            prepared_rows.append((row, customer_id, family, full_price_eur))
 
-    for row, payment_count, key, plan_id, first_charge, first_charge_eur, age_days, projection_spec, fx_month, blank_pattern in prepared_rows:
-        d0_revenue_base += first_charge_eur
-        if projection_spec:
-            family, full_price_eur = projection_spec
-            projected["m1"] += projected_benchmark_revenue(family, full_price_eur, 1)
-            projected["m2"] += projected_benchmark_revenue(family, full_price_eur, 2)
-            projected["m3"] += projected_benchmark_revenue(family, full_price_eur, 3)
-            projected["m6"] += projected_benchmark_revenue(family, full_price_eur, 6)
-            projected["m9"] += projected_benchmark_revenue(family, full_price_eur, 9)
-            projected["m12"] += projected_benchmark_revenue(family, full_price_eur, 12)
+    family_customers: defaultdict[str, list[str]] = defaultdict(list)
+    for _row, customer_id, family, _full_price_eur in prepared_rows:
+        family_customers[family].append(customer_id)
 
-        customer_id = (row.get("id") or "").strip()
+    milestone_counts = {
+        month: subscription_billing_counts_through(rows, CURRENT_DATE)
+        for month in {1, 2, 3, 6, 9, 12}
+    }
+    actual_retention_rates: dict[str, dict[int, float]] = defaultdict(dict)
+    for family, customer_ids in family_customers.items():
+        denominator = len(customer_ids)
+        if denominator == 0:
+            continue
+        for month in benchmark_milestones_for_family(family):
+            if not milestone_is_closed_from_end(cohort_end_date, month):
+                continue
+            required_count = required_payment_count(family, month)
+            numerator = sum(1 for customer_id in customer_ids if milestone_counts[month].get(customer_id, 0) >= required_count)
+            actual_retention_rates[family][month] = numerator / denominator
 
-        target_payment_count = m1_subscription_counts.get(customer_id, 0) or 1
-        if target_payment_count == 1 and age_days >= 30 and payment_count >= 2 and plan_is_monthly((row.get("Plan") or "").strip()):
-            target_payment_count = 2
-
-        if blank_pattern:
-            m1_cumulative = cumulative_from_blank_pattern(blank_pattern, target_payment_count)
-        else:
-            m1_cumulative = cumulative_charge_lookup.get((key[0], key[1], target_payment_count), first_charge)
-        m1_revenue_actual += m1_cumulative
-
-        m2_target_payment_count = m2_subscription_counts.get(customer_id, 0) or 1
-        if m2_target_payment_count == 1 and plan_is_monthly(plan_id):
-            if age_days >= 60 and payment_count >= 3:
-                m2_target_payment_count = 3
-            elif age_days >= 30 and payment_count >= 2:
-                m2_target_payment_count = 2
-
-        if blank_pattern:
-            m2_cumulative = cumulative_from_blank_pattern(blank_pattern, m2_target_payment_count)
-        else:
-            m2_cumulative = cumulative_charge_lookup.get((key[0], key[1], m2_target_payment_count), first_charge)
-        m2_revenue_actual += m2_cumulative
-
-        m3_target_payment_count = m3_subscription_counts.get(customer_id, 0) or 1
-        if m3_target_payment_count == 1:
-            if plan_is_monthly(plan_id):
-                if age_days >= 90 and payment_count >= 4:
-                    m3_target_payment_count = 4
-                elif age_days >= 60 and payment_count >= 3:
-                    m3_target_payment_count = 3
-                elif age_days >= 30 and payment_count >= 2:
-                    m3_target_payment_count = 2
-            elif plan_is_quarterly(plan_id):
-                if age_days >= 90 and payment_count >= 2:
-                    m3_target_payment_count = 2
-
-        if blank_pattern:
-            m3_cumulative = cumulative_from_blank_pattern(blank_pattern, m3_target_payment_count)
-        else:
-            m3_cumulative = cumulative_charge_lookup.get((key[0], key[1], m3_target_payment_count), first_charge)
-        m3_revenue_actual += m3_cumulative
-
-        m6_target_payment_count = 1
-        if plan_is_monthly(plan_id):
-            if age_days >= 180 and payment_count >= 7:
-                m6_target_payment_count = 7
-            elif age_days >= 150 and payment_count >= 6:
-                m6_target_payment_count = 6
-            elif age_days >= 120 and payment_count >= 5:
-                m6_target_payment_count = 5
-            elif age_days >= 90 and payment_count >= 4:
-                m6_target_payment_count = 4
-            elif age_days >= 60 and payment_count >= 3:
-                m6_target_payment_count = 3
-            elif age_days >= 30 and payment_count >= 2:
-                m6_target_payment_count = 2
-        elif plan_is_quarterly(plan_id):
-            if age_days >= 180 and payment_count >= 3:
-                m6_target_payment_count = 3
-            elif age_days >= 90 and payment_count >= 2:
-                m6_target_payment_count = 2
-
-        m6_cumulative = cumulative_charge_lookup.get((key[0], key[1], m6_target_payment_count), first_charge)
-        m6_revenue_actual += m6_cumulative
-
-        m12_target_payment_count = 1
-        if plan_is_monthly(plan_id):
-            for threshold_months in range(12, 0, -1):
-                required_count = threshold_months + 1
-                if age_days >= threshold_months * 30 and payment_count >= required_count:
-                    m12_target_payment_count = required_count
-                    break
-        elif plan_is_quarterly(plan_id):
-            if age_days >= 360 and payment_count >= 5:
-                m12_target_payment_count = 5
-            elif age_days >= 270 and payment_count >= 4:
-                m12_target_payment_count = 4
-            elif age_days >= 180 and payment_count >= 3:
-                m12_target_payment_count = 3
-            elif age_days >= 90 and payment_count >= 2:
-                m12_target_payment_count = 2
-        elif plan_is_annual(plan_id):
-            if age_days >= 360 and payment_count >= 2:
-                m12_target_payment_count = 2
-
-        m12_cumulative = cumulative_charge_lookup.get((key[0], key[1], m12_target_payment_count), first_charge)
-        m12_revenue_actual += m12_cumulative
+    for _row, _customer_id, family, full_price_eur in prepared_rows:
+        if not full_price_eur:
+            continue
+        projected["m1"] += projected_pop_tail_revenue(family, full_price_eur, cohort_end_date, 1, actual_retention_rates)
+        projected["m2"] += projected_pop_tail_revenue(family, full_price_eur, cohort_end_date, 2, actual_retention_rates)
+        projected["m3"] += projected_pop_tail_revenue(family, full_price_eur, cohort_end_date, 3, actual_retention_rates)
+        projected["m6"] += projected_pop_tail_revenue(family, full_price_eur, cohort_end_date, 6, actual_retention_rates)
+        projected["m9"] += projected_pop_tail_revenue(family, full_price_eur, cohort_end_date, 9, actual_retention_rates)
+        projected["m12"] += projected_pop_tail_revenue(family, full_price_eur, cohort_end_date, 12, actual_retention_rates)
 
     transaction_upsell = compute_transaction_upsells_for_rows(rows)
     upsell_count = int(transaction_upsell["count"])
@@ -1020,17 +1130,28 @@ def build_metrics(
     four_plus_customers = sum(count >= 4 for count in payment_counts)
 
     d0_revenue = actual_revenue_through_rows(rows, cohort_end_date)
+    refunded_volume = cohort_refunded_volume(rows)
+    dispute_losses = cohort_dispute_losses(rows)
     m1_cutoff = add_months(cohort_end_date, 1)
     m2_cutoff = add_months(cohort_end_date, 2)
     m3_cutoff = add_months(cohort_end_date, 3)
-    m1_revenue = net_actual_revenue_through_rows(rows, m1_cutoff) if milestone_is_closed_from_end(cohort_end_date, 1) else (d0_revenue + projected["m1"])
-    m2_revenue = net_actual_revenue_through_rows(rows, m2_cutoff) if milestone_is_closed_from_end(cohort_end_date, 2) else (d0_revenue + projected["m2"])
-    m3_revenue = net_actual_revenue_through_rows(rows, m3_cutoff) if milestone_is_closed_from_end(cohort_end_date, 3) else (d0_revenue + projected["m3"])
-    m6_revenue = d0_revenue + projected["m6"]
-    m9_revenue = d0_revenue + projected["m9"]
-    m12_revenue = d0_revenue + projected["m12"]
-    refunded_volume = cohort_refunded_volume(rows)
-    dispute_losses = cohort_dispute_losses(rows)
+    def blended_revenue(target_month: int) -> float:
+        if milestone_is_closed_from_end(cohort_end_date, target_month):
+            return actual_revenue_by_billing_milestone(rows, target_month) - dispute_losses
+        closed_points = [month for month in (1, 2, 3, 6, 9, 12) if month < target_month and milestone_is_closed_from_end(cohort_end_date, month)]
+        if closed_points:
+            last_actual_month = max(closed_points)
+            base_revenue = actual_revenue_by_billing_milestone(rows, last_actual_month) - dispute_losses
+        else:
+            base_revenue = d0_revenue
+        return base_revenue + projected[f"m{target_month}"]
+
+    m1_revenue = blended_revenue(1)
+    m2_revenue = blended_revenue(2)
+    m3_revenue = blended_revenue(3)
+    m6_revenue = blended_revenue(6)
+    m9_revenue = blended_revenue(9)
+    m12_revenue = blended_revenue(12)
     rev_to_date_revenue = actual_revenue_through_rows(rows, CURRENT_DATE) - dispute_losses
 
     return CohortMetrics(
@@ -1202,6 +1323,90 @@ def subscription_billing_counts_through(rows: list[dict[str, str]], cutoff_date:
     return counts
 
 
+def subscription_billing_amounts_through(rows: list[dict[str, str]], cutoff_date: date) -> dict[str, list[float]]:
+    cohort_starts = {
+        (row.get("id") or "").strip(): datetime.strptime((row.get("Created (UTC)") or "")[:10], "%Y-%m-%d").date()
+        for row in rows
+        if (row.get("id") or "").strip() and (row.get("Created (UTC)") or "")[:10]
+    }
+    amounts = {customer_id: [] for customer_id in cohort_starts}
+    if not cohort_starts:
+        return amounts
+
+    grouped: defaultdict[str, list[tuple[date, float]]] = defaultdict(list)
+    for payment in load_payments_rows():
+        customer_id = (payment.get("Customer ID") or "").strip()
+        if customer_id not in cohort_starts or payment.get("Status") != "Paid":
+            continue
+        created_raw = (payment.get("Created date (UTC)") or "")[:10]
+        if not created_raw:
+            continue
+        payment_date = datetime.strptime(created_raw, "%Y-%m-%d").date()
+        if not (cohort_starts[customer_id] <= payment_date <= cutoff_date):
+            continue
+        description = (payment.get("Description") or "").strip()
+        if description not in {"Subscription creation", "Subscription update"}:
+            continue
+        amount = parse_amount(payment.get("Converted Amount", "0")) - parse_amount(payment.get("Converted Amount Refunded", "0"))
+        grouped[customer_id].append((payment_date, amount))
+
+    for customer_id, items in grouped.items():
+        items.sort(key=lambda item: item[0])
+        amounts[customer_id] = [amount for _payment_date, amount in items]
+
+    return amounts
+
+
+def first_day_invoice_revenue(rows: list[dict[str, str]], cutoff_date: date) -> dict[str, float]:
+    cohort_meta = {
+        (row.get("id") or "").strip(): ((row.get("Created (UTC)") or "")[:10], datetime.strptime((row.get("Created (UTC)") or "")[:10], "%Y-%m-%d").date())
+        for row in rows
+        if (row.get("id") or "").strip() and (row.get("Created (UTC)") or "")[:10]
+    }
+    revenue = {customer_id: 0.0 for customer_id in cohort_meta}
+    if not cohort_meta:
+        return revenue
+
+    for payment in load_payments_rows():
+        customer_id = (payment.get("Customer ID") or "").strip()
+        if customer_id not in cohort_meta or payment.get("Status") != "Paid":
+            continue
+        created_raw = (payment.get("Created date (UTC)") or "")[:10]
+        if not created_raw:
+            continue
+        payment_date = datetime.strptime(created_raw, "%Y-%m-%d").date()
+        cohort_day_raw, cohort_day = cohort_meta[customer_id]
+        if not (cohort_day <= payment_date <= cutoff_date):
+            continue
+        if created_raw != cohort_day_raw:
+            continue
+        if (payment.get("Description") or "").strip() != "Payment for Invoice":
+            continue
+        amount = parse_amount(payment.get("Converted Amount", "0")) - parse_amount(payment.get("Converted Amount Refunded", "0"))
+        revenue[customer_id] += amount
+
+    return revenue
+
+
+def actual_revenue_by_billing_milestone(rows: list[dict[str, str]], milestone_month: int) -> float:
+    subscription_creation_info = load_subscription_creation_info()
+    billing_amounts = subscription_billing_amounts_through(rows, CURRENT_DATE)
+    invoice_amounts = first_day_invoice_revenue(rows, CURRENT_DATE)
+    total = 0.0
+    for row in rows:
+        if parse_int(row.get("Payment Count", "")) < 1:
+            continue
+        customer_id = (row.get("id") or "").strip()
+        month_key = (row.get("Created (UTC)") or "")[:7]
+        family = starter_family_for_row(row, month_key, subscription_creation_info.get(customer_id))
+        if not family:
+            continue
+        required_count = required_payment_count(family, milestone_month)
+        total += invoice_amounts.get(customer_id, 0.0)
+        total += sum(billing_amounts.get(customer_id, [])[:required_count])
+    return total
+
+
 def actual_revenue_through_rows(rows: list[dict[str, str]], cutoff_date: date) -> float:
     cohort_starts = {
         (row.get("id") or "").strip(): datetime.strptime((row.get("Created (UTC)") or "")[:10], "%Y-%m-%d").date()
@@ -1317,6 +1522,105 @@ def build_view_payload(metrics: list[CohortMetrics]) -> dict[str, object]:
     ]
 
     return {"chart": chart_data, "rows": table_rows}
+
+
+def build_week_prediction_example() -> dict[str, object]:
+    week_start = date(2026, 1, 1)
+    week_end = date(2026, 1, 7)
+    rows = [
+        row for row in load_rows()
+        if week_start.isoformat() <= (row.get("Created (UTC)") or "")[:10] <= week_end.isoformat()
+    ]
+    metrics = build_metrics(
+        rows,
+        week_start.isoformat(),
+        "Jan 1-Jan 7",
+        "W01",
+        week_end,
+        spend_maps_usd()[1]["2026-W01"],
+    )
+
+    subscription_creation_info = load_subscription_creation_info()
+    first_subscription_updates = load_first_subscription_update_amounts()
+    prepared: list[tuple[str, str, float | None]] = []
+    for row in rows:
+        if parse_int(row.get("Payment Count", "")) < 1:
+            continue
+        customer_id = (row.get("id") or "").strip()
+        month_key = (row.get("Created (UTC)") or "")[:7]
+        family = starter_family_for_row(row, month_key, subscription_creation_info.get(customer_id))
+        full_price_eur = projection_price_for_row(
+            row,
+            month_key,
+            family,
+            subscription_creation_info.get(customer_id),
+            first_subscription_updates.get(customer_id),
+        )
+        if family:
+            prepared.append((customer_id, family, full_price_eur))
+
+    family_customers: defaultdict[str, list[str]] = defaultdict(list)
+    family_full_price: defaultdict[str, float] = defaultdict(float)
+    for customer_id, family, full_price_eur in prepared:
+        family_customers[family].append(customer_id)
+        if full_price_eur:
+            family_full_price[family] += full_price_eur
+
+    milestone_counts = {
+        month: subscription_billing_counts_through(rows, CURRENT_DATE)
+        for month in (1, 2, 3, 6, 9, 12)
+    }
+    actual_retention_rates: dict[str, dict[int, float]] = defaultdict(dict)
+    for family, customer_ids in family_customers.items():
+        for month in benchmark_milestones_for_family(family):
+            if not milestone_is_closed_from_end(week_end, month):
+                continue
+            required_count = required_payment_count(family, month)
+            numerator = sum(1 for customer_id in customer_ids if milestone_counts[month].get(customer_id, 0) >= required_count)
+            actual_retention_rates[family][month] = numerator / len(customer_ids) if customer_ids else 0.0
+
+    monthly_anchor_m3 = actual_retention_rates.get("monthly", {}).get(3, 0.0)
+    quarterly_anchor_m3 = actual_retention_rates.get("quarterly", {}).get(3, 0.0)
+    monthly_m4 = monthly_anchor_m3 * benchmark_rate_for_family_month("monthly", 4) / benchmark_rate_for_family_month("monthly", 3) if monthly_anchor_m3 else 0.0
+    monthly_m5 = monthly_m4 * benchmark_rate_for_family_month("monthly", 5) / benchmark_rate_for_family_month("monthly", 4) if monthly_m4 else 0.0
+    monthly_m6 = monthly_m5 * benchmark_rate_for_family_month("monthly", 6) / benchmark_rate_for_family_month("monthly", 5) if monthly_m5 else 0.0
+    quarterly_m6 = quarterly_anchor_m3 * benchmark_rate_for_family_month("quarterly", 6) / benchmark_rate_for_family_month("quarterly", 3) if quarterly_anchor_m3 else 0.0
+
+    monthly_m6_tail = sum(
+        projected_pop_tail_revenue("monthly", full_price_eur, week_end, 6, actual_retention_rates)
+        for _customer_id, family, full_price_eur in prepared
+        if family == "monthly" and full_price_eur
+    )
+    quarterly_m6_tail = sum(
+        projected_pop_tail_revenue("quarterly", full_price_eur, week_end, 6, actual_retention_rates)
+        for _customer_id, family, full_price_eur in prepared
+        if family == "quarterly" and full_price_eur
+    )
+    annual_m6_tail = sum(
+        projected_pop_tail_revenue("annual", full_price_eur, week_end, 6, actual_retention_rates)
+        for _customer_id, family, full_price_eur in prepared
+        if family == "annual" and full_price_eur
+    )
+
+    return {
+        "cohort": "Jan 1-Jan 7",
+        "spend": metrics.spend_usd,
+        "d0": metrics.d0_revenue,
+        "m1": metrics.m1_revenue,
+        "m2": metrics.m2_revenue,
+        "m3": metrics.m3_revenue,
+        "m6": metrics.m6_revenue,
+        "family_counts": {family: len(customer_ids) for family, customer_ids in family_customers.items()},
+        "family_full_price": dict(family_full_price),
+        "actual_retention": actual_retention_rates,
+        "monthly_m4": monthly_m4,
+        "monthly_m5": monthly_m5,
+        "monthly_m6": monthly_m6,
+        "quarterly_m6": quarterly_m6,
+        "monthly_m6_tail": monthly_m6_tail,
+        "quarterly_m6_tail": quarterly_m6_tail,
+        "annual_m6_tail": annual_m6_tail,
+    }
 
 
 def render_table_rows(rows: list[dict[str, object]], weekly: bool) -> str:
@@ -1444,12 +1748,39 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
     initial_view = build_view_payload(monthly_metrics)
     initial_table_rows = render_table_rows(initial_view["rows"], weekly=False)
     initial_chart_markup = render_chart_markup(initial_view["chart"])
+    week_example = build_week_prediction_example()
+    week_example_markup = f"""
+      <details class="forecast-details">
+        <summary>Worked Example: {week_example["cohort"]}</summary>
+        <div class="forecast-copy">
+          <p><strong>Actual closed milestones</strong></p>
+          <ul>
+            <li>Spend: {format_usd(week_example["spend"])}. D0 actual: {format_usd(week_example["d0"])}, M1 actual: {format_usd(week_example["m1"])}, M2 actual: {format_usd(week_example["m2"])}, M3 actual: {format_usd(week_example["m3"])}.</li>
+            <li>Because this weekly cohort is already closed for M3, the displayed M3 is actual, not projected: {format_usd(week_example["m3"])} / {format_usd(week_example["spend"])} = {(week_example["m3"] / week_example["spend"] * 100):.1f}%.</li>
+          </ul>
+          <p><strong>Starter-family denominators</strong></p>
+          <ul>
+            <li>Monthly starters: {week_example["family_counts"].get("monthly", 0)} with actual retentions M1 {(week_example["actual_retention"].get("monthly", {}).get(1, 0.0) * 100):.1f}%, M2 {(week_example["actual_retention"].get("monthly", {}).get(2, 0.0) * 100):.1f}%, M3 {(week_example["actual_retention"].get("monthly", {}).get(3, 0.0) * 100):.1f}%.</li>
+            <li>Quarterly starters: {week_example["family_counts"].get("quarterly", 0)} with actual M3 retention {(week_example["actual_retention"].get("quarterly", {}).get(3, 0.0) * 100):.1f}%.</li>
+            <li>Annual starters: {week_example["family_counts"].get("annual", 0)}.</li>
+          </ul>
+          <p><strong>How M6 is projected from the last actual month</strong></p>
+          <ul>
+            <li>Monthly anchor is actual M3 retention {(week_example["actual_retention"].get("monthly", {}).get(3, 0.0) * 100):.1f}%. Then M4 = M3 × 18%/20% = {(week_example["monthly_m4"] * 100):.1f}%, M5 = M4 × 14%/18% = {(week_example["monthly_m5"] * 100):.1f}%, M6 = M5 × 12%/14% = {(week_example["monthly_m6"] * 100):.1f}%.</li>
+            <li>Quarterly anchor is actual M3 retention {(week_example["actual_retention"].get("quarterly", {}).get(3, 0.0) * 100):.1f}%. Then M6 = M3 × 20%/50% = {(week_example["quarterly_m6"] * 100):.1f}%.</li>
+            <li>The projected M6 tail uses the real renewal-price pools and then applies the 15% haircut: monthly tail {format_usd(week_example["monthly_m6_tail"])}, quarterly tail {format_usd(week_example["quarterly_m6_tail"])}, annual tail {format_usd(week_example["annual_m6_tail"])}.</li>
+            <li>So projected M6 = actual M3 base {format_usd(week_example["m3"])} + future tail {format_usd(week_example["monthly_m6_tail"] + week_example["quarterly_m6_tail"] + week_example["annual_m6_tail"])} = {format_usd(week_example["m6"])}, which is {(week_example["m6"] / week_example["spend"] * 100):.1f}% ROAS.</li>
+          </ul>
+        </div>
+      </details>
+    """
     client_config = json.dumps(
         {
             "targetMonths": TARGET_MONTHS,
             "currentDate": CURRENT_DATE.isoformat(),
             "projectedNetRevenueFactor": PROJECTED_NET_REVENUE_FACTOR,
             "retentionRates": RETENTION_RATE_BENCHMARKS,
+            "planRevenueSchedules": PLAN_REVENUE_SCHEDULES,
             "priceCatalog": catalog_payload,
             "ecbCurPerEur": ECB_CUR_PER_EUR,
             "defaultSpendMaps": {
@@ -1903,6 +2234,100 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       margin-top: 8px;
     }}
 
+    .explanation-card {{
+      margin-top: 18px;
+      padding: 22px 24px;
+    }}
+
+    .explanation-card h2 {{
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+    }}
+
+    .explanation-card p {{
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.65;
+    }}
+
+    .forecast-grid {{
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+    }}
+
+    .forecast-block {{
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(12, 20, 38, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }}
+
+    .forecast-block h3 {{
+      margin: 0 0 10px;
+      font-size: 0.96rem;
+    }}
+
+    .forecast-block ul {{
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.65;
+    }}
+
+    .forecast-block li + li {{
+      margin-top: 7px;
+    }}
+
+    .forecast-details {{
+      margin-top: 18px;
+      border-radius: 18px;
+      background: rgba(12, 20, 38, 0.32);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+    }}
+
+    .forecast-details summary {{
+      cursor: pointer;
+      padding: 16px 18px;
+      font-weight: 700;
+      color: var(--text);
+      list-style: none;
+    }}
+
+    .forecast-details summary::-webkit-details-marker {{
+      display: none;
+    }}
+
+    .forecast-details[open] summary {{
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }}
+
+    .forecast-copy {{
+      padding: 16px 18px 18px;
+    }}
+
+    .forecast-copy p {{
+      margin: 0 0 8px;
+      color: var(--text);
+      font-size: 0.94rem;
+    }}
+
+    .forecast-copy ul {{
+      margin: 0 0 14px;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 0.91rem;
+      line-height: 1.65;
+    }}
+
+    .forecast-copy li + li {{
+      margin-top: 7px;
+    }}
+
     @media (max-width: 1024px) {{
       .hero {{
         grid-template-columns: 1fr;
@@ -1910,6 +2335,10 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
 
       .upload-panel {{
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }}
+
+      .forecast-grid {{
+        grid-template-columns: 1fr;
       }}
     }}
 
@@ -2053,19 +2482,58 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       </div>
     </section>
 
-    <section class="card footer-note">
-      <ul>
-        <li>Revenue is shown in EUR and uses Stripe converted transaction amounts.</li>
-        <li>Cohort membership and new-customer counts come from the customer export.</li>
-        <li>Closed M1/M2/M3 values use transaction revenue through the milestone cutoff.</li>
-        <li>Projected milestones use each customer's real subscription intro and full renewal price with benchmark retention percentages by plan family.</li>
-        <li>Monthly benchmark retention used: M1 55%, M2 38%, M3 20%, M4 18%, M5 14%, M6 12%, M7 10%, M8 7%, M9 7%, M10 6%, M11 6%, M12 5%.</li>
-        <li>Quarterly benchmark retention used: M3 50%, M6 20%, M9 15%, M12 10%. Annual benchmark retention used: M12 30%.</li>
-        <li>Upsell comes from first-day paid invoice transactions in the payments export and is included in cumulative predicted ROAS.</li>
-        <li>Projected milestone revenue is additionally reduced by 15% to account for refunds and fees.</li>
-        <li>Spend comes from the daily spend export in EUR, with January overridden from your screenshot values where the spend export was incomplete.</li>
-      </ul>
+    <section class="card explanation-card">
+      <h2>How Milestones And Forecasts Work</h2>
+      <p>
+        Milestones are cumulative revenue points. <strong>M1</strong> means revenue through cohort end + 1 month,
+        <strong>M2</strong> through cohort end + 2 months, <strong>M3</strong> through cohort end + 3 months, and so on.
+        If a milestone cutoff has already passed, the dashboard shows the actual net value. If the cutoff has not passed yet,
+        the dashboard forecasts only the missing future tail.
+      </p>
+
+      <div class="forecast-grid">
+        <div class="forecast-block">
+          <h3>What Counts As Actual</h3>
+          <ul>
+            <li>Closed M1/M2/M3 values use actual renewal progress per customer: M1 means first renewal, M2 means second renewal, M3 means third renewal.</li>
+            <li><strong>Net</strong> means paid transaction revenue minus refunds, with dispute losses subtracted as a cohort-level proxy.</li>
+            <li>This avoids dropping real renewals just because Stripe retried the billing a few days later than the calendar milestone date.</li>
+            <li>Cohort membership and <strong>New</strong> counts still come from the customer export.</li>
+          </ul>
+        </div>
+
+        <div class="forecast-block">
+          <h3>Benchmark Rates Used</h3>
+          <ul>
+            <li>Monthly: M1 55%, M2 38%, M3 20%, M4 18%, M5 14%, M6 12%, M7 10%, M8 7%, M9 7%, M10 6%, M11 6%, M12 5%.</li>
+            <li>Quarterly: M3 50%, M6 20%, M9 15%, M12 10%.</li>
+            <li>Annual: M12 30%.</li>
+          </ul>
+        </div>
+
+        <div class="forecast-block">
+          <h3>How Prediction Starts</h3>
+          <ul>
+            <li>Each customer is assigned to a starter family from their first paid <strong>Subscription creation</strong> transaction: monthly, quarterly, or annual.</li>
+            <li>Guest customers (`gcus_*`) and one-time guest purchases are excluded from subscription-family prediction.</li>
+            <li>If the current <strong>Plan</strong> later goes blank, that customer still stays in the original starter-family denominator, so canceled starters remain included.</li>
+            <li>The last closed actual milestone for that family becomes the anchor retention point.</li>
+          </ul>
+        </div>
+
+        <div class="forecast-block">
+          <h3>How Future Revenue Is Added</h3>
+          <ul>
+            <li>Later milestone retention is projected by applying the benchmark month-over-month ratio to the last actual retention (for example: if actual M1 retention = 46% and the monthly benchmark goes from M1 55% to M2 38%, then predicted M2 retention = 46% × 38% / 55% = 31.8%).</li>
+            <li>The projected future tail uses each priced customer’s real full renewal price, not a generic bucket price.</li>
+            <li>First-day upsell revenue stays inside cumulative predicted ROAS, and projected future revenue gets a 15% haircut for refunds and fees.</li>
+          </ul>
+        </div>
+      </div>
+
+{week_example_markup}
     </section>
+
   </div>
 
   <script>
@@ -2390,6 +2858,72 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       return null;
     }}
 
+    function starterFamilyForRow(row, monthKey, firstSubscriptionInfo, catalog) {{
+      const customerId = String(row.id || "").trim();
+      if (customerId.startsWith("gcus_")) return null;
+      const planId = String(row.Plan || "").trim();
+      if (planId) {{
+        return classifyPlanFamily(planId, 0, String(row.Currency || "").trim(), catalog);
+      }}
+      if (firstSubscriptionInfo && Number(firstSubscriptionInfo.amountEur || 0) > 0) {{
+        return classifyPlanFamily("", Number(firstSubscriptionInfo.amountEur || 0), "eur", catalog);
+      }}
+      const currency = String(row.Currency || "").trim().toLowerCase();
+      const totalSpend = parseAmount(row["Total Spend"]);
+      if (currency === "usd") {{
+        const inferred = inferBlankUsdProjection(totalSpend);
+        if (inferred) return inferred[0];
+      }}
+      return null;
+    }}
+
+    function inferFullPriceFromIntroEur(family, introAmountEur, monthKey) {{
+      const candidates = [];
+      Object.values(clientConfig.planRevenueSchedules || {{}}).forEach((spec) => {{
+        if (spec.family !== family) return;
+        const introEur = convertToEur(spec.intro, "usd", monthKey);
+        const fullEur = convertToEur(spec.full_price, "usd", monthKey);
+        candidates.push([introEur, fullEur]);
+      }});
+      if (family === "quarterly") {{
+        candidates.push([32.0, 79.99], [23.99, 79.99]);
+      }} else if (family === "annual") {{
+        candidates.push([58.8, 119.99], [46.8, 119.99]);
+      }}
+      let best = null;
+      candidates.forEach(([introEur, fullEur]) => {{
+        const gap = Math.abs(introAmountEur - introEur);
+        if (!best || gap < best.gap) {{
+          best = {{ gap, fullEur }};
+        }}
+      }});
+      return best && best.gap <= 4.5 ? best.fullEur : null;
+    }}
+
+    function projectionPriceForRow(row, monthKey, family, firstSubscriptionInfo, firstUpdateAmountEur, catalog) {{
+      const customerId = String(row.id || "").trim();
+      if (customerId.startsWith("gcus_")) return null;
+      if (!family) return null;
+      const planId = String(row.Plan || "").trim();
+      if (planId) {{
+        return planFullPriceEur(planId, monthKey, catalog);
+      }}
+      if (firstUpdateAmountEur && firstUpdateAmountEur > 0) {{
+        return firstUpdateAmountEur;
+      }}
+      if (firstSubscriptionInfo && Number(firstSubscriptionInfo.amountEur || 0) > 0) {{
+        const inferred = inferFullPriceFromIntroEur(family, Number(firstSubscriptionInfo.amountEur || 0), monthKey);
+        if (inferred) return inferred;
+      }}
+      const currency = String(row.Currency || "").trim().toLowerCase();
+      const totalSpend = parseAmount(row["Total Spend"]);
+      if (currency === "usd") {{
+        const inferred = inferBlankUsdProjection(totalSpend);
+        if (inferred && inferred[0] === family) return inferred[1];
+      }}
+      return null;
+    }}
+
     function projectedBenchmarkRevenue(family, fullPriceEur, milestoneMonths) {{
       const rates = clientConfig.retentionRates[family] || {{}};
       let total = 0;
@@ -2401,13 +2935,90 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       return total * clientConfig.projectedNetRevenueFactor;
     }}
 
-    function loadSubscriptionCreationAmounts(paymentsRows) {{
+    function benchmarkMilestonesForFamily(family, milestoneMonths = null) {{
+      const months = Object.keys(clientConfig.retentionRates[family] || {{}})
+        .map((value) => Number(value))
+        .sort((a, b) => a - b);
+      if (milestoneMonths == null) {{
+        return months;
+      }}
+      return months.filter((month) => month <= milestoneMonths);
+    }}
+
+    function benchmarkRateForFamilyMonth(family, monthNumber) {{
+      const rates = clientConfig.retentionRates[family] || {{}};
+      return Number(rates[monthNumber] || 0);
+    }}
+
+    function lastClosedBenchmarkMonth(cohortEndDate, family, targetMonths) {{
+      const closed = benchmarkMilestonesForFamily(family, targetMonths)
+        .filter((month) => milestoneClosedFromEnd(cohortEndDate, month));
+      return closed.length ? Math.max(...closed) : 0;
+    }}
+
+    function projectedPopTailRevenue(family, fullPriceEur, cohortEndDate, targetMonths, actualRetentionRates) {{
+      const milestoneMonths = benchmarkMilestonesForFamily(family, targetMonths);
+      if (!milestoneMonths.length) return 0;
+
+      const lastActualMonth = lastClosedBenchmarkMonth(cohortEndDate, family, targetMonths);
+      if (!lastActualMonth) {{
+        return projectedBenchmarkRevenue(family, fullPriceEur, targetMonths);
+      }}
+
+      const familyRetention = actualRetentionRates[family] || {{}};
+      let previousRate = Number(familyRetention[lastActualMonth] || 0);
+      if (!previousRate) {{
+        return projectedBenchmarkRevenue(family, fullPriceEur, targetMonths);
+      }}
+
+      let previousMonth = lastActualMonth;
+      let total = 0;
+      milestoneMonths.forEach((monthNumber) => {{
+        if (monthNumber <= lastActualMonth) return;
+        const previousBenchmark = benchmarkRateForFamilyMonth(family, previousMonth);
+        const currentBenchmark = benchmarkRateForFamilyMonth(family, monthNumber);
+        if (!previousBenchmark || !currentBenchmark) {{
+          previousMonth = monthNumber;
+          return;
+        }}
+        previousRate *= currentBenchmark / previousBenchmark;
+        total += fullPriceEur * previousRate;
+        previousMonth = monthNumber;
+      }});
+      return total * clientConfig.projectedNetRevenueFactor;
+    }}
+
+    function loadSubscriptionCreationInfo(paymentsRows) {{
       const first = new Map();
       paymentsRows.forEach((payment) => {{
         if (payment.Status !== "Paid") return;
         const customerId = String(payment["Customer ID"] || "").trim();
         if (!customerId) return;
         if (String(payment.Description || "").trim() !== "Subscription creation") return;
+        const created = String(payment["Created date (UTC)"] || "").slice(0, 10);
+        if (!created) return;
+        const amount = parseAmount(payment["Converted Amount"]) - parseAmount(payment["Converted Amount Refunded"]);
+        if (amount <= 0) return;
+        const existing = first.get(customerId);
+        if (!existing || created < existing.date) {{
+          first.set(customerId, {{
+            date: created,
+            amountEur: amount,
+            amountRaw: parseAmount(payment.Amount) - parseAmount(payment["Amount Refunded"]),
+            currency: String(payment.Currency || "").trim(),
+          }});
+        }}
+      }});
+      return first;
+    }}
+
+    function loadFirstSubscriptionUpdateAmounts(paymentsRows) {{
+      const first = new Map();
+      paymentsRows.forEach((payment) => {{
+        if (payment.Status !== "Paid") return;
+        const customerId = String(payment["Customer ID"] || "").trim();
+        if (!customerId) return;
+        if (String(payment.Description || "").trim() !== "Subscription update") return;
         const created = String(payment["Created date (UTC)"] || "").slice(0, 10);
         if (!created) return;
         const amount = parseAmount(payment["Converted Amount"]) - parseAmount(payment["Converted Amount Refunded"]);
@@ -2625,44 +3236,75 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       }};
     }}
 
-    function buildMetrics(rows, cohortKey, cohortLabel, chartLabel, cohortEndDate, spend, paymentsRows, catalog, lookups, subscriptionCreationAmounts) {{
+    function buildMetrics(rows, cohortKey, cohortLabel, chartLabel, cohortEndDate, spend, paymentsRows, catalog, lookups, subscriptionCreationInfo, firstSubscriptionUpdateAmounts) {{
       const paymentCounts = rows.map((row) => parseIntValue(row["Payment Count"]));
       const customers = rows.length;
       const paidCustomers = rows.filter((row) => parseAmount(row["Total Spend"]) > 0).length;
       const customersWithPayment = rows.filter((row) => parseIntValue(row["Payment Count"]) >= 1).length;
-      const m1SubscriptionCounts = subscriptionBillingCountsThrough(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 1)));
-      const m2SubscriptionCounts = subscriptionBillingCountsThrough(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 2)));
-      const m3SubscriptionCounts = subscriptionBillingCountsThrough(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 3)));
       const projected = {{ m1: 0, m2: 0, m3: 0, m6: 0, m9: 0, m12: 0 }};
+      const preparedRows = [];
 
       rows.forEach((row) => {{
         if (parseIntValue(row["Payment Count"]) < 1) return;
         const customerId = String(row.id || "").trim();
         const monthKey = String(row["Created (UTC)"] || "").slice(0, 7);
-        const projectionSpec = projectionSpecForRow(row, monthKey, subscriptionCreationAmounts.get(customerId), catalog);
-        if (!projectionSpec) return;
-        const [family, fullPriceEur] = projectionSpec;
-        projected.m1 += projectedBenchmarkRevenue(family, fullPriceEur, 1);
-        projected.m2 += projectedBenchmarkRevenue(family, fullPriceEur, 2);
-        projected.m3 += projectedBenchmarkRevenue(family, fullPriceEur, 3);
-        projected.m6 += projectedBenchmarkRevenue(family, fullPriceEur, 6);
-        projected.m9 += projectedBenchmarkRevenue(family, fullPriceEur, 9);
-        projected.m12 += projectedBenchmarkRevenue(family, fullPriceEur, 12);
+        const firstSubscription = subscriptionCreationInfo.get(customerId);
+        const family = starterFamilyForRow(row, monthKey, firstSubscription, catalog);
+        const fullPriceEur = projectionPriceForRow(row, monthKey, family, firstSubscription, firstSubscriptionUpdateAmounts.get(customerId), catalog);
+        if (!family) return;
+        preparedRows.push({{ row, customerId, family, fullPriceEur }});
+      }});
+
+      const familyCustomers = {{}};
+      preparedRows.forEach((item) => {{
+        if (!familyCustomers[item.family]) familyCustomers[item.family] = [];
+        familyCustomers[item.family].push(item.customerId);
+      }});
+
+      const milestoneCounts = {{}};
+      [1, 2, 3, 6, 9, 12].forEach((monthNumber) => {{
+        milestoneCounts[monthNumber] = subscriptionBillingCountsThrough(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, monthNumber)));
+      }});
+
+      const actualRetentionRates = {{}};
+      Object.entries(familyCustomers).forEach(([family, customerIds]) => {{
+        if (!customerIds.length) return;
+        actualRetentionRates[family] = {{}};
+        benchmarkMilestonesForFamily(family).forEach((monthNumber) => {{
+          if (!milestoneClosedFromEnd(cohortEndDate, monthNumber)) return;
+          const requiredCount = requiredPaymentCount(family, monthNumber);
+          const numerator = customerIds.filter((customerId) => (milestoneCounts[monthNumber].get(customerId) || 0) >= requiredCount).length;
+          actualRetentionRates[family][monthNumber] = numerator / customerIds.length;
+        }});
+      }});
+
+      preparedRows.forEach((item) => {{
+        if (!item.fullPriceEur) return;
+        projected.m1 += projectedPopTailRevenue(item.family, item.fullPriceEur, cohortEndDate, 1, actualRetentionRates);
+        projected.m2 += projectedPopTailRevenue(item.family, item.fullPriceEur, cohortEndDate, 2, actualRetentionRates);
+        projected.m3 += projectedPopTailRevenue(item.family, item.fullPriceEur, cohortEndDate, 3, actualRetentionRates);
+        projected.m6 += projectedPopTailRevenue(item.family, item.fullPriceEur, cohortEndDate, 6, actualRetentionRates);
+        projected.m9 += projectedPopTailRevenue(item.family, item.fullPriceEur, cohortEndDate, 9, actualRetentionRates);
+        projected.m12 += projectedPopTailRevenue(item.family, item.fullPriceEur, cohortEndDate, 12, actualRetentionRates);
       }});
 
       const d0Revenue = actualRevenueThroughRows(rows, paymentsRows, toIsoDate(cohortEndDate), lookups.firstCharge, lookups.cumulative, catalog);
-      const m1Revenue = milestoneClosedFromEnd(cohortEndDate, 1)
-        ? netActualRevenueThroughRows(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 1)), lookups.firstCharge, lookups.cumulative, catalog)
-        : d0Revenue + projected.m1;
-      const m2Revenue = milestoneClosedFromEnd(cohortEndDate, 2)
-        ? netActualRevenueThroughRows(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 2)), lookups.firstCharge, lookups.cumulative, catalog)
-        : d0Revenue + projected.m2;
-      const m3Revenue = milestoneClosedFromEnd(cohortEndDate, 3)
-        ? netActualRevenueThroughRows(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, 3)), lookups.firstCharge, lookups.cumulative, catalog)
-        : d0Revenue + projected.m3;
-      const m6Revenue = d0Revenue + projected.m6;
-      const m9Revenue = d0Revenue + projected.m9;
-      const m12Revenue = d0Revenue + projected.m12;
+      const blendedRevenue = (targetMonth) => {{
+        if (milestoneClosedFromEnd(cohortEndDate, targetMonth)) {{
+          return netActualRevenueThroughRows(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, targetMonth)), lookups.firstCharge, lookups.cumulative, catalog);
+        }}
+        const closedPoints = [1, 2, 3, 6, 9, 12].filter((month) => month < targetMonth && milestoneClosedFromEnd(cohortEndDate, month));
+        const baseRevenue = closedPoints.length
+          ? netActualRevenueThroughRows(rows, paymentsRows, toIsoDate(addMonths(cohortEndDate, Math.max(...closedPoints))), lookups.firstCharge, lookups.cumulative, catalog)
+          : d0Revenue;
+        return baseRevenue + projected[`m${{targetMonth}}`];
+      }};
+      const m1Revenue = blendedRevenue(1);
+      const m2Revenue = blendedRevenue(2);
+      const m3Revenue = blendedRevenue(3);
+      const m6Revenue = blendedRevenue(6);
+      const m9Revenue = blendedRevenue(9);
+      const m12Revenue = blendedRevenue(12);
       const refundedVolume = cohortRefundedVolume(rows);
       const disputeLosses = cohortDisputeLosses(rows);
       const netRevenue = actualRevenueThroughRows(rows, paymentsRows, clientConfig.currentDate, lookups.firstCharge, lookups.cumulative, catalog) - disputeLosses;
@@ -2718,7 +3360,8 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       const spendMaps = buildSpendMaps(spendRows);
       const firstChargeLookup = loadFirstChargeLookup(customersRows);
       const cumulativeChargeLookup = loadCumulativeChargeLookup(customersRows);
-      const subscriptionCreationAmounts = loadSubscriptionCreationAmounts(paymentsRows);
+      const subscriptionCreationInfo = loadSubscriptionCreationInfo(paymentsRows);
+      const firstSubscriptionUpdateAmounts = loadFirstSubscriptionUpdateAmounts(paymentsRows);
       const lookups = {{ firstCharge: firstChargeLookup, cumulative: cumulativeChargeLookup }};
 
       const monthlyMetrics = clientConfig.targetMonths.map((monthKey) => buildMetrics(
@@ -2731,7 +3374,8 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
         paymentsRows,
         catalog,
         lookups,
-        subscriptionCreationAmounts,
+        subscriptionCreationInfo,
+        firstSubscriptionUpdateAmounts,
       ));
 
       const weeklyMetrics = Array.from(groupedWeekly.keys())
@@ -2748,7 +3392,8 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
             paymentsRows,
             catalog,
             lookups,
-            subscriptionCreationAmounts,
+            subscriptionCreationInfo,
+            firstSubscriptionUpdateAmounts,
           );
         }});
 
