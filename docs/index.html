@@ -434,6 +434,67 @@
       color: #8fa0bf;
     }
 
+    .retention-metric {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      line-height: 1.1;
+    }
+
+    .retention-metric .rate {
+      font-weight: 700;
+      color: #dfe8fb;
+      font-size: 1rem;
+    }
+
+    .retention-metric .count {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .retention-metric.closed .rate,
+    .retention-metric.closed .count {
+      color: #dfe8fb;
+      font-weight: 700;
+    }
+
+    .retention-metric.open .rate,
+    .retention-metric.open .count {
+      color: #8fa0bf;
+      font-weight: 400;
+    }
+
+    #retention-card table {
+      min-width: 980px;
+    }
+
+    #retention-card th,
+    #retention-card td {
+      padding: 14px 12px;
+    }
+
+    #retention-card th {
+      min-width: 72px;
+    }
+
+    #retention-card th:first-child,
+    #retention-card td:first-child {
+      min-width: 150px;
+      width: 150px;
+    }
+
+    #retention-card th:nth-child(2),
+    #retention-card td:nth-child(2) {
+      min-width: 92px;
+      width: 92px;
+    }
+
+    #retention-card th:nth-child(n+3),
+    #retention-card td:nth-child(n+3) {
+      min-width: 96px;
+      width: 96px;
+    }
+
     .footer-note {
       margin-top: 18px;
       padding: 18px 22px;
@@ -800,12 +861,9 @@
             <tr>
               <th>Cohort</th>
               <th><span class="th-two-line">Monthly<br>Starters</span></th>
-              <th><span class="th-two-line">M1<br>Renewals</span></th>
-              <th><span class="th-two-line">M1<br>Retention</span></th>
-              <th><span class="th-two-line">M2<br>Renewals</span></th>
-              <th><span class="th-two-line">M2<br>Retention</span></th>
-              <th><span class="th-two-line">M3<br>Renewals</span></th>
-              <th><span class="th-two-line">M3<br>Retention</span></th>
+              <th><span class="th-two-line">M1<br>% / #</span></th>
+              <th><span class="th-two-line">M2<br>% / #</span></th>
+              <th><span class="th-two-line">M3<br>% / #</span></th>
             </tr>
           </thead>
           <tbody id="retention-tbody"></tbody>
@@ -815,14 +873,10 @@
             <tr>
               <th>Cohort</th>
               <th><span class="th-two-line">Quarterly<br>Starters</span></th>
-              <th><span class="th-two-line">M3<br>Renewals</span></th>
-              <th><span class="th-two-line">M3<br>Retention</span></th>
-              <th><span class="th-two-line">M6<br>Renewals</span></th>
-              <th><span class="th-two-line">M6<br>Retention</span></th>
-              <th><span class="th-two-line">M9<br>Renewals</span></th>
-              <th><span class="th-two-line">M9<br>Retention</span></th>
-              <th><span class="th-two-line">M12<br>Renewals</span></th>
-              <th><span class="th-two-line">M12<br>Retention</span></th>
+              <th><span class="th-two-line">M3<br>% / #</span></th>
+              <th><span class="th-two-line">M6<br>% / #</span></th>
+              <th><span class="th-two-line">M9<br>% / #</span></th>
+              <th><span class="th-two-line">M12<br>% / #</span></th>
             </tr>
           </thead>
           <tbody id="quarterly-retention-tbody"></tbody>
@@ -1593,150 +1647,195 @@
       "monthly_starters": 63,
       "m1_count": 33,
       "m1_rate": 52.38095238095239,
+      "m1_closed": true,
       "m2_count": 16,
       "m2_rate": 25.396825396825395,
+      "m2_closed": true,
       "m3_count": 7,
-      "m3_rate": 11.11111111111111
+      "m3_rate": 11.11111111111111,
+      "m3_closed": true
     },
     {
       "cohort": "Jan 8-Jan 14",
       "monthly_starters": 72,
       "m1_count": 39,
       "m1_rate": 54.166666666666664,
+      "m1_closed": true,
       "m2_count": 23,
       "m2_rate": 31.944444444444443,
+      "m2_closed": true,
       "m3_count": 9,
-      "m3_rate": 12.5
+      "m3_rate": 12.5,
+      "m3_closed": true
     },
     {
       "cohort": "Jan 15-Jan 21",
       "monthly_starters": 90,
       "m1_count": 47,
       "m1_rate": 52.22222222222223,
+      "m1_closed": true,
       "m2_count": 26,
       "m2_rate": 28.888888888888886,
+      "m2_closed": true,
       "m3_count": 1,
-      "m3_rate": 1.1111111111111112
+      "m3_rate": 1.1111111111111112,
+      "m3_closed": false
     },
     {
       "cohort": "Jan 22-Jan 28",
       "monthly_starters": 100,
       "m1_count": 57,
       "m1_rate": 56.99999999999999,
+      "m1_closed": true,
       "m2_count": 25,
       "m2_rate": 25.0,
+      "m2_closed": true,
       "m3_count": 2,
-      "m3_rate": 2.0
+      "m3_rate": 2.0,
+      "m3_closed": false
     },
     {
       "cohort": "Jan 29-Feb 4",
       "monthly_starters": 74,
       "m1_count": 51,
       "m1_rate": 68.91891891891892,
+      "m1_closed": true,
       "m2_count": 23,
       "m2_rate": 31.08108108108108,
+      "m2_closed": true,
       "m3_count": 0,
-      "m3_rate": 0.0
+      "m3_rate": 0.0,
+      "m3_closed": false
     },
     {
       "cohort": "Feb 5-Feb 11",
       "monthly_starters": 63,
       "m1_count": 34,
       "m1_rate": 53.96825396825397,
+      "m1_closed": true,
       "m2_count": 15,
       "m2_rate": 23.809523809523807,
+      "m2_closed": true,
       "m3_count": 0,
-      "m3_rate": 0.0
+      "m3_rate": 0.0,
+      "m3_closed": false
     },
     {
       "cohort": "Feb 12-Feb 18",
       "monthly_starters": 70,
       "m1_count": 45,
       "m1_rate": 64.28571428571429,
+      "m1_closed": true,
       "m2_count": 3,
       "m2_rate": 4.285714285714286,
+      "m2_closed": false,
       "m3_count": 0,
-      "m3_rate": 0.0
+      "m3_rate": 0.0,
+      "m3_closed": false
     },
     {
       "cohort": "Feb 19-Feb 25",
       "monthly_starters": 96,
       "m1_count": 52,
       "m1_rate": 54.166666666666664,
+      "m1_closed": true,
       "m2_count": 0,
       "m2_rate": 0.0,
+      "m2_closed": false,
       "m3_count": 0,
-      "m3_rate": 0.0
+      "m3_rate": 0.0,
+      "m3_closed": false
     },
     {
       "cohort": "Feb 26-Mar 4",
       "monthly_starters": 89,
       "m1_count": 53,
       "m1_rate": 59.55056179775281,
+      "m1_closed": true,
       "m2_count": 2,
       "m2_rate": 2.247191011235955,
+      "m2_closed": false,
       "m3_count": 2,
-      "m3_rate": 2.247191011235955
+      "m3_rate": 2.247191011235955,
+      "m3_closed": false
     },
     {
       "cohort": "Mar 5-Mar 11",
       "monthly_starters": 73,
       "m1_count": 32,
       "m1_rate": 43.83561643835616,
+      "m1_closed": true,
       "m2_count": 2,
       "m2_rate": 2.73972602739726,
+      "m2_closed": false,
       "m3_count": 2,
-      "m3_rate": 2.73972602739726
+      "m3_rate": 2.73972602739726,
+      "m3_closed": false
     },
     {
       "cohort": "Mar 12-Mar 18",
       "monthly_starters": 73,
       "m1_count": 8,
       "m1_rate": 10.95890410958904,
+      "m1_closed": false,
       "m2_count": 0,
       "m2_rate": 0.0,
+      "m2_closed": false,
       "m3_count": 0,
-      "m3_rate": 0.0
+      "m3_rate": 0.0,
+      "m3_closed": false
     },
     {
       "cohort": "Mar 19-Mar 25",
       "monthly_starters": 68,
       "m1_count": 0,
       "m1_rate": 0.0,
+      "m1_closed": false,
       "m2_count": 0,
       "m2_rate": 0.0,
+      "m2_closed": false,
       "m3_count": 0,
-      "m3_rate": 0.0
+      "m3_rate": 0.0,
+      "m3_closed": false
     },
     {
       "cohort": "Mar 26-Apr 1",
       "monthly_starters": 43,
       "m1_count": 0,
       "m1_rate": 0.0,
+      "m1_closed": false,
       "m2_count": 0,
       "m2_rate": 0.0,
+      "m2_closed": false,
       "m3_count": 0,
-      "m3_rate": 0.0
+      "m3_rate": 0.0,
+      "m3_closed": false
     },
     {
       "cohort": "Apr 2-Apr 8",
       "monthly_starters": 69,
       "m1_count": 0,
       "m1_rate": 0.0,
+      "m1_closed": false,
       "m2_count": 0,
       "m2_rate": 0.0,
+      "m2_closed": false,
       "m3_count": 0,
-      "m3_rate": 0.0
+      "m3_rate": 0.0,
+      "m3_closed": false
     },
     {
       "cohort": "Apr 9-Apr 15",
       "monthly_starters": 32,
       "m1_count": 0,
       "m1_rate": 0.0,
+      "m1_closed": false,
       "m2_count": 0,
       "m2_rate": 0.0,
+      "m2_closed": false,
       "m3_count": 0,
-      "m3_rate": 0.0
+      "m3_rate": 0.0,
+      "m3_closed": false
     }
   ],
   "quarterlyRetention": [
@@ -1745,180 +1844,240 @@
       "quarterly_starters": 77,
       "m3_count": 44,
       "m3_rate": 57.14285714285714,
+      "m3_closed": true,
       "m6_count": 0,
       "m6_rate": 0.0,
+      "m6_closed": false,
       "m9_count": 0,
       "m9_rate": 0.0,
+      "m9_closed": false,
       "m12_count": 0,
-      "m12_rate": 0.0
+      "m12_rate": 0.0,
+      "m12_closed": false
     },
     {
       "cohort": "Jan 8-Jan 14",
       "quarterly_starters": 60,
       "m3_count": 34,
       "m3_rate": 56.666666666666664,
+      "m3_closed": true,
       "m6_count": 0,
       "m6_rate": 0.0,
+      "m6_closed": false,
       "m9_count": 0,
       "m9_rate": 0.0,
+      "m9_closed": false,
       "m12_count": 0,
-      "m12_rate": 0.0
+      "m12_rate": 0.0,
+      "m12_closed": false
     },
     {
       "cohort": "Jan 15-Jan 21",
       "quarterly_starters": 70,
       "m3_count": 2,
       "m3_rate": 2.857142857142857,
+      "m3_closed": false,
       "m6_count": 0,
       "m6_rate": 0.0,
+      "m6_closed": false,
       "m9_count": 0,
       "m9_rate": 0.0,
+      "m9_closed": false,
       "m12_count": 0,
-      "m12_rate": 0.0
+      "m12_rate": 0.0,
+      "m12_closed": false
     },
     {
       "cohort": "Jan 22-Jan 28",
       "quarterly_starters": 133,
       "m3_count": 8,
       "m3_rate": 6.015037593984962,
+      "m3_closed": false,
       "m6_count": 1,
       "m6_rate": 0.7518796992481203,
+      "m6_closed": false,
       "m9_count": 0,
       "m9_rate": 0.0,
+      "m9_closed": false,
       "m12_count": 0,
-      "m12_rate": 0.0
+      "m12_rate": 0.0,
+      "m12_closed": false
     },
     {
       "cohort": "Jan 29-Feb 4",
       "quarterly_starters": 112,
       "m3_count": 2,
       "m3_rate": 1.7857142857142856,
+      "m3_closed": false,
       "m6_count": 0,
       "m6_rate": 0.0,
+      "m6_closed": false,
       "m9_count": 0,
       "m9_rate": 0.0,
+      "m9_closed": false,
       "m12_count": 0,
-      "m12_rate": 0.0
+      "m12_rate": 0.0,
+      "m12_closed": false
     },
     {
       "cohort": "Feb 5-Feb 11",
       "quarterly_starters": 96,
       "m3_count": 9,
       "m3_rate": 9.375,
+      "m3_closed": false,
       "m6_count": 0,
       "m6_rate": 0.0,
+      "m6_closed": false,
       "m9_count": 0,
       "m9_rate": 0.0,
+      "m9_closed": false,
       "m12_count": 0,
-      "m12_rate": 0.0
+      "m12_rate": 0.0,
+      "m12_closed": false
     },
     {
       "cohort": "Feb 12-Feb 18",
       "quarterly_starters": 102,
       "m3_count": 4,
       "m3_rate": 3.9215686274509802,
+      "m3_closed": false,
       "m6_count": 0,
       "m6_rate": 0.0,
+      "m6_closed": false,
       "m9_count": 0,
       "m9_rate": 0.0,
+      "m9_closed": false,
       "m12_count": 0,
-      "m12_rate": 0.0
+      "m12_rate": 0.0,
+      "m12_closed": false
     },
     {
       "cohort": "Feb 19-Feb 25",
       "quarterly_starters": 100,
       "m3_count": 0,
       "m3_rate": 0.0,
+      "m3_closed": false,
       "m6_count": 0,
       "m6_rate": 0.0,
+      "m6_closed": false,
       "m9_count": 0,
       "m9_rate": 0.0,
+      "m9_closed": false,
       "m12_count": 0,
-      "m12_rate": 0.0
+      "m12_rate": 0.0,
+      "m12_closed": false
     },
     {
       "cohort": "Feb 26-Mar 4",
       "quarterly_starters": 117,
       "m3_count": 3,
       "m3_rate": 2.564102564102564,
+      "m3_closed": false,
       "m6_count": 0,
       "m6_rate": 0.0,
+      "m6_closed": false,
       "m9_count": 0,
       "m9_rate": 0.0,
+      "m9_closed": false,
       "m12_count": 0,
-      "m12_rate": 0.0
+      "m12_rate": 0.0,
+      "m12_closed": false
     },
     {
       "cohort": "Mar 5-Mar 11",
       "quarterly_starters": 83,
       "m3_count": 2,
       "m3_rate": 2.4096385542168677,
+      "m3_closed": false,
       "m6_count": 0,
       "m6_rate": 0.0,
+      "m6_closed": false,
       "m9_count": 0,
       "m9_rate": 0.0,
+      "m9_closed": false,
       "m12_count": 0,
-      "m12_rate": 0.0
+      "m12_rate": 0.0,
+      "m12_closed": false
     },
     {
       "cohort": "Mar 12-Mar 18",
       "quarterly_starters": 73,
       "m3_count": 0,
       "m3_rate": 0.0,
+      "m3_closed": false,
       "m6_count": 0,
       "m6_rate": 0.0,
+      "m6_closed": false,
       "m9_count": 0,
       "m9_rate": 0.0,
+      "m9_closed": false,
       "m12_count": 0,
-      "m12_rate": 0.0
+      "m12_rate": 0.0,
+      "m12_closed": false
     },
     {
       "cohort": "Mar 19-Mar 25",
       "quarterly_starters": 58,
       "m3_count": 0,
       "m3_rate": 0.0,
+      "m3_closed": false,
       "m6_count": 0,
       "m6_rate": 0.0,
+      "m6_closed": false,
       "m9_count": 0,
       "m9_rate": 0.0,
+      "m9_closed": false,
       "m12_count": 0,
-      "m12_rate": 0.0
+      "m12_rate": 0.0,
+      "m12_closed": false
     },
     {
       "cohort": "Mar 26-Apr 1",
       "quarterly_starters": 40,
       "m3_count": 0,
       "m3_rate": 0.0,
+      "m3_closed": false,
       "m6_count": 0,
       "m6_rate": 0.0,
+      "m6_closed": false,
       "m9_count": 0,
       "m9_rate": 0.0,
+      "m9_closed": false,
       "m12_count": 0,
-      "m12_rate": 0.0
+      "m12_rate": 0.0,
+      "m12_closed": false
     },
     {
       "cohort": "Apr 2-Apr 8",
       "quarterly_starters": 76,
       "m3_count": 0,
       "m3_rate": 0.0,
+      "m3_closed": false,
       "m6_count": 0,
       "m6_rate": 0.0,
+      "m6_closed": false,
       "m9_count": 0,
       "m9_rate": 0.0,
+      "m9_closed": false,
       "m12_count": 0,
-      "m12_rate": 0.0
+      "m12_rate": 0.0,
+      "m12_closed": false
     },
     {
       "cohort": "Apr 9-Apr 15",
       "quarterly_starters": 53,
       "m3_count": 0,
       "m3_rate": 0.0,
+      "m3_closed": false,
       "m6_count": 0,
       "m6_rate": 0.0,
+      "m6_closed": false,
       "m9_count": 0,
       "m9_rate": 0.0,
+      "m9_closed": false,
       "m12_count": 0,
-      "m12_rate": 0.0
+      "m12_rate": 0.0,
+      "m12_closed": false
     }
   ],
   "totals": {
@@ -4588,10 +4747,55 @@
             monthlyStarters: denominator,
             m1Count: m1,
             m1Rate: denominator ? (m1 / denominator) * 100 : 0,
+            m1Closed: milestoneClosedFromEnd(weekEnd, 1),
             m2Count: m2,
             m2Rate: denominator ? (m2 / denominator) * 100 : 0,
+            m2Closed: milestoneClosedFromEnd(weekEnd, 2),
             m3Count: m3,
             m3Rate: denominator ? (m3 / denominator) * 100 : 0,
+            m3Closed: milestoneClosedFromEnd(weekEnd, 3),
+          };
+        });
+
+      const quarterlyRetention = Array.from(groupedWeekly.keys())
+        .sort((a, b) => a.localeCompare(b))
+        .map((weekKey) => {
+          const cohortRows = groupedWeekly.get(weekKey) || [];
+          const starterIds = [];
+          cohortRows.forEach((row) => {
+            const customerId = String(row.id || "").trim();
+            if (!customerId || customerId.startsWith("gcus_")) return;
+            if (parseIntValue(row["Payment Count"]) < 1) return;
+            const monthKey = String(row["Created (UTC)"] || "").slice(0, 7);
+            const firstSubscription = subscriptionCreationInfo.get(customerId);
+            const family = starterFamilyForRow(row, monthKey, firstSubscription, catalog);
+            if (family === "quarterly") {
+              starterIds.push(customerId);
+            }
+          });
+          const uniqueStarterIds = Array.from(new Set(starterIds)).sort();
+          const denominator = uniqueStarterIds.length;
+          const milestoneCounts = subscriptionBillingCountsThrough(cohortRows, paymentsRows, clientConfig.currentDate);
+          const m3 = uniqueStarterIds.filter((customerId) => (milestoneCounts.get(customerId) || 0) >= 2).length;
+          const m6 = uniqueStarterIds.filter((customerId) => (milestoneCounts.get(customerId) || 0) >= 3).length;
+          const m9 = uniqueStarterIds.filter((customerId) => (milestoneCounts.get(customerId) || 0) >= 4).length;
+          const m12 = uniqueStarterIds.filter((customerId) => (milestoneCounts.get(customerId) || 0) >= 5).length;
+          const [weekStart, weekEnd] = weeklyRanges.get(weekKey);
+          return {
+            cohort: `${formatShortDate(weekStart)}-${formatShortDate(weekEnd)}`,
+            quarterlyStarters: denominator,
+            m3Count: m3,
+            m3Rate: denominator ? (m3 / denominator) * 100 : 0,
+            m3Closed: milestoneClosedFromEnd(weekEnd, 3),
+            m6Count: m6,
+            m6Rate: denominator ? (m6 / denominator) * 100 : 0,
+            m6Closed: milestoneClosedFromEnd(weekEnd, 6),
+            m9Count: m9,
+            m9Rate: denominator ? (m9 / denominator) * 100 : 0,
+            m9Closed: milestoneClosedFromEnd(weekEnd, 9),
+            m12Count: m12,
+            m12Rate: denominator ? (m12 / denominator) * 100 : 0,
+            m12Closed: milestoneClosedFromEnd(weekEnd, 12),
           };
         });
 
@@ -4607,6 +4811,7 @@
         monthly: buildViewPayload(monthlyMetrics),
         weekly: buildViewPayload(weeklyMetrics),
         weeklyRetention,
+        quarterlyRetention,
         totals,
       };
     }
@@ -4661,12 +4866,24 @@
         <tr>
           <td class="cohort"><span class="cohort-range">${row.cohort}</span></td>
           <td>${Number(row.monthlyStarters ?? row.monthly_starters ?? 0).toLocaleString()}</td>
-          <td>${Number(row.m1Count ?? row.m1_count ?? 0).toLocaleString()}</td>
-          <td class="actual">${Number(row.m1Rate ?? row.m1_rate ?? 0).toFixed(1)}%</td>
-          <td>${Number(row.m2Count ?? row.m2_count ?? 0).toLocaleString()}</td>
-          <td class="actual">${Number(row.m2Rate ?? row.m2_rate ?? 0).toFixed(1)}%</td>
-          <td>${Number(row.m3Count ?? row.m3_count ?? 0).toLocaleString()}</td>
-          <td class="actual">${Number(row.m3Rate ?? row.m3_rate ?? 0).toFixed(1)}%</td>
+          <td>
+            <div class="retention-metric ${(row.m1Closed ?? row.m1_closed) ? 'closed' : 'open'}">
+              <span class="rate">${Number(row.m1Rate ?? row.m1_rate ?? 0).toFixed(1)}%</span>
+              <span class="count">${Number(row.m1Count ?? row.m1_count ?? 0).toLocaleString()}</span>
+            </div>
+          </td>
+          <td>
+            <div class="retention-metric ${(row.m2Closed ?? row.m2_closed) ? 'closed' : 'open'}">
+              <span class="rate">${Number(row.m2Rate ?? row.m2_rate ?? 0).toFixed(1)}%</span>
+              <span class="count">${Number(row.m2Count ?? row.m2_count ?? 0).toLocaleString()}</span>
+            </div>
+          </td>
+          <td>
+            <div class="retention-metric ${(row.m3Closed ?? row.m3_closed) ? 'closed' : 'open'}">
+              <span class="rate">${Number(row.m3Rate ?? row.m3_rate ?? 0).toFixed(1)}%</span>
+              <span class="count">${Number(row.m3Count ?? row.m3_count ?? 0).toLocaleString()}</span>
+            </div>
+          </td>
         </tr>
       `).join("");
     }
@@ -4678,14 +4895,30 @@
         <tr>
           <td class="cohort"><span class="cohort-range">${row.cohort}</span></td>
           <td>${Number(row.quarterlyStarters ?? row.quarterly_starters ?? 0).toLocaleString()}</td>
-          <td>${Number(row.m3Count ?? row.m3_count ?? 0).toLocaleString()}</td>
-          <td class="actual">${Number(row.m3Rate ?? row.m3_rate ?? 0).toFixed(1)}%</td>
-          <td>${Number(row.m6Count ?? row.m6_count ?? 0).toLocaleString()}</td>
-          <td class="actual">${Number(row.m6Rate ?? row.m6_rate ?? 0).toFixed(1)}%</td>
-          <td>${Number(row.m9Count ?? row.m9_count ?? 0).toLocaleString()}</td>
-          <td class="actual">${Number(row.m9Rate ?? row.m9_rate ?? 0).toFixed(1)}%</td>
-          <td>${Number(row.m12Count ?? row.m12_count ?? 0).toLocaleString()}</td>
-          <td class="actual">${Number(row.m12Rate ?? row.m12_rate ?? 0).toFixed(1)}%</td>
+          <td>
+            <div class="retention-metric ${(row.m3Closed ?? row.m3_closed) ? 'closed' : 'open'}">
+              <span class="rate">${Number(row.m3Rate ?? row.m3_rate ?? 0).toFixed(1)}%</span>
+              <span class="count">${Number(row.m3Count ?? row.m3_count ?? 0).toLocaleString()}</span>
+            </div>
+          </td>
+          <td>
+            <div class="retention-metric ${(row.m6Closed ?? row.m6_closed) ? 'closed' : 'open'}">
+              <span class="rate">${Number(row.m6Rate ?? row.m6_rate ?? 0).toFixed(1)}%</span>
+              <span class="count">${Number(row.m6Count ?? row.m6_count ?? 0).toLocaleString()}</span>
+            </div>
+          </td>
+          <td>
+            <div class="retention-metric ${(row.m9Closed ?? row.m9_closed) ? 'closed' : 'open'}">
+              <span class="rate">${Number(row.m9Rate ?? row.m9_rate ?? 0).toFixed(1)}%</span>
+              <span class="count">${Number(row.m9Count ?? row.m9_count ?? 0).toLocaleString()}</span>
+            </div>
+          </td>
+          <td>
+            <div class="retention-metric ${(row.m12Closed ?? row.m12_closed) ? 'closed' : 'open'}">
+              <span class="rate">${Number(row.m12Rate ?? row.m12_rate ?? 0).toFixed(1)}%</span>
+              <span class="count">${Number(row.m12Count ?? row.m12_count ?? 0).toLocaleString()}</span>
+            </div>
+          </td>
         </tr>
       `).join("");
     }
@@ -4774,11 +5007,14 @@
       document.getElementById("publish-uploads").disabled = !state.uploaded;
     }
 
-    function publishImportedData() {
+    async function publishImportedData() {
       if (!state.uploaded) {
         return;
       }
       const status = document.getElementById("upload-status");
+      if (uploadFiles.customers?.text && uploadFiles.payments?.text) {
+        await recalculateFromUploads();
+      }
       savePublishedPayload(state.payload);
       status.innerHTML = "<strong>Published imported data.</strong> This imported dashboard is now saved in your browser and will be restored after reload.";
     }
@@ -4813,8 +5049,7 @@
       status.innerHTML = `<strong>Loaded uploaded exports.</strong> Customers: ${customersRows.length.toLocaleString()} rows. Payments: ${paymentsRows.length.toLocaleString()} rows${spendRows.length ? `. Spend: ${spendRows.length.toLocaleString()} rows.` : "."}`;
       updateUploadControls();
       renderSummary();
-      renderTable();
-      renderChart();
+      setView(activeView);
     }
 
     document.querySelectorAll(".tab-button").forEach((button) => {
@@ -4868,7 +5103,9 @@
     });
 
     document.getElementById("publish-uploads").addEventListener("click", () => {
-      publishImportedData();
+      publishImportedData().catch((error) => {
+        document.getElementById("upload-status").innerHTML = `<strong>Publish failed.</strong> ${error.message}`;
+      });
     });
 
     const persistedPayload = loadPublishedPayload();

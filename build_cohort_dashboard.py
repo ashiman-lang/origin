@@ -1098,10 +1098,13 @@ def build_weekly_plan_retention_rows(
                 "monthly_starters": denominator,
                 "m1_count": m1,
                 "m1_rate": (m1 / denominator * 100) if denominator else 0.0,
+                "m1_closed": milestone_is_closed_from_end(week_end, 1),
                 "m2_count": m2,
                 "m2_rate": (m2 / denominator * 100) if denominator else 0.0,
+                "m2_closed": milestone_is_closed_from_end(week_end, 2),
                 "m3_count": m3,
                 "m3_rate": (m3 / denominator * 100) if denominator else 0.0,
+                "m3_closed": milestone_is_closed_from_end(week_end, 3),
             }
         )
     return rows_out
@@ -1142,12 +1145,16 @@ def build_weekly_quarterly_retention_rows(
                 "quarterly_starters": denominator,
                 "m3_count": m3,
                 "m3_rate": (m3 / denominator * 100) if denominator else 0.0,
+                "m3_closed": milestone_is_closed_from_end(week_end, 3),
                 "m6_count": m6,
                 "m6_rate": (m6 / denominator * 100) if denominator else 0.0,
+                "m6_closed": milestone_is_closed_from_end(week_end, 6),
                 "m9_count": m9,
                 "m9_rate": (m9 / denominator * 100) if denominator else 0.0,
+                "m9_closed": milestone_is_closed_from_end(week_end, 9),
                 "m12_count": m12,
                 "m12_rate": (m12 / denominator * 100) if denominator else 0.0,
+                "m12_closed": milestone_is_closed_from_end(week_end, 12),
             }
         )
     return rows_out
@@ -2330,6 +2337,67 @@ def render_html(
       color: #8fa0bf;
     }}
 
+    .retention-metric {{
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      line-height: 1.1;
+    }}
+
+    .retention-metric .rate {{
+      font-weight: 700;
+      color: #dfe8fb;
+      font-size: 1rem;
+    }}
+
+    .retention-metric .count {{
+      color: var(--muted);
+      font-size: 0.92rem;
+    }}
+
+    .retention-metric.closed .rate,
+    .retention-metric.closed .count {{
+      color: #dfe8fb;
+      font-weight: 700;
+    }}
+
+    .retention-metric.open .rate,
+    .retention-metric.open .count {{
+      color: #8fa0bf;
+      font-weight: 400;
+    }}
+
+    #retention-card table {{
+      min-width: 980px;
+    }}
+
+    #retention-card th,
+    #retention-card td {{
+      padding: 14px 12px;
+    }}
+
+    #retention-card th {{
+      min-width: 72px;
+    }}
+
+    #retention-card th:first-child,
+    #retention-card td:first-child {{
+      min-width: 150px;
+      width: 150px;
+    }}
+
+    #retention-card th:nth-child(2),
+    #retention-card td:nth-child(2) {{
+      min-width: 92px;
+      width: 92px;
+    }}
+
+    #retention-card th:nth-child(n+3),
+    #retention-card td:nth-child(n+3) {{
+      min-width: 96px;
+      width: 96px;
+    }}
+
     .footer-note {{
       margin-top: 18px;
       padding: 18px 22px;
@@ -2608,12 +2676,9 @@ def render_html(
             <tr>
               <th>Cohort</th>
               <th><span class="th-two-line">Monthly<br>Starters</span></th>
-              <th><span class="th-two-line">M1<br>Renewals</span></th>
-              <th><span class="th-two-line">M1<br>Retention</span></th>
-              <th><span class="th-two-line">M2<br>Renewals</span></th>
-              <th><span class="th-two-line">M2<br>Retention</span></th>
-              <th><span class="th-two-line">M3<br>Renewals</span></th>
-              <th><span class="th-two-line">M3<br>Retention</span></th>
+              <th><span class="th-two-line">M1<br>% / #</span></th>
+              <th><span class="th-two-line">M2<br>% / #</span></th>
+              <th><span class="th-two-line">M3<br>% / #</span></th>
             </tr>
           </thead>
           <tbody id="retention-tbody"></tbody>
@@ -2623,14 +2688,10 @@ def render_html(
             <tr>
               <th>Cohort</th>
               <th><span class="th-two-line">Quarterly<br>Starters</span></th>
-              <th><span class="th-two-line">M3<br>Renewals</span></th>
-              <th><span class="th-two-line">M3<br>Retention</span></th>
-              <th><span class="th-two-line">M6<br>Renewals</span></th>
-              <th><span class="th-two-line">M6<br>Retention</span></th>
-              <th><span class="th-two-line">M9<br>Renewals</span></th>
-              <th><span class="th-two-line">M9<br>Retention</span></th>
-              <th><span class="th-two-line">M12<br>Renewals</span></th>
-              <th><span class="th-two-line">M12<br>Retention</span></th>
+              <th><span class="th-two-line">M3<br>% / #</span></th>
+              <th><span class="th-two-line">M6<br>% / #</span></th>
+              <th><span class="th-two-line">M9<br>% / #</span></th>
+              <th><span class="th-two-line">M12<br>% / #</span></th>
             </tr>
           </thead>
           <tbody id="quarterly-retention-tbody"></tbody>
@@ -3615,10 +3676,55 @@ def render_html(
             monthlyStarters: denominator,
             m1Count: m1,
             m1Rate: denominator ? (m1 / denominator) * 100 : 0,
+            m1Closed: milestoneClosedFromEnd(weekEnd, 1),
             m2Count: m2,
             m2Rate: denominator ? (m2 / denominator) * 100 : 0,
+            m2Closed: milestoneClosedFromEnd(weekEnd, 2),
             m3Count: m3,
             m3Rate: denominator ? (m3 / denominator) * 100 : 0,
+            m3Closed: milestoneClosedFromEnd(weekEnd, 3),
+          }};
+        }});
+
+      const quarterlyRetention = Array.from(groupedWeekly.keys())
+        .sort((a, b) => a.localeCompare(b))
+        .map((weekKey) => {{
+          const cohortRows = groupedWeekly.get(weekKey) || [];
+          const starterIds = [];
+          cohortRows.forEach((row) => {{
+            const customerId = String(row.id || "").trim();
+            if (!customerId || customerId.startsWith("gcus_")) return;
+            if (parseIntValue(row["Payment Count"]) < 1) return;
+            const monthKey = String(row["Created (UTC)"] || "").slice(0, 7);
+            const firstSubscription = subscriptionCreationInfo.get(customerId);
+            const family = starterFamilyForRow(row, monthKey, firstSubscription, catalog);
+            if (family === "quarterly") {{
+              starterIds.push(customerId);
+            }}
+          }});
+          const uniqueStarterIds = Array.from(new Set(starterIds)).sort();
+          const denominator = uniqueStarterIds.length;
+          const milestoneCounts = subscriptionBillingCountsThrough(cohortRows, paymentsRows, clientConfig.currentDate);
+          const m3 = uniqueStarterIds.filter((customerId) => (milestoneCounts.get(customerId) || 0) >= 2).length;
+          const m6 = uniqueStarterIds.filter((customerId) => (milestoneCounts.get(customerId) || 0) >= 3).length;
+          const m9 = uniqueStarterIds.filter((customerId) => (milestoneCounts.get(customerId) || 0) >= 4).length;
+          const m12 = uniqueStarterIds.filter((customerId) => (milestoneCounts.get(customerId) || 0) >= 5).length;
+          const [weekStart, weekEnd] = weeklyRanges.get(weekKey);
+          return {{
+            cohort: `${{formatShortDate(weekStart)}}-${{formatShortDate(weekEnd)}}`,
+            quarterlyStarters: denominator,
+            m3Count: m3,
+            m3Rate: denominator ? (m3 / denominator) * 100 : 0,
+            m3Closed: milestoneClosedFromEnd(weekEnd, 3),
+            m6Count: m6,
+            m6Rate: denominator ? (m6 / denominator) * 100 : 0,
+            m6Closed: milestoneClosedFromEnd(weekEnd, 6),
+            m9Count: m9,
+            m9Rate: denominator ? (m9 / denominator) * 100 : 0,
+            m9Closed: milestoneClosedFromEnd(weekEnd, 9),
+            m12Count: m12,
+            m12Rate: denominator ? (m12 / denominator) * 100 : 0,
+            m12Closed: milestoneClosedFromEnd(weekEnd, 12),
           }};
         }});
 
@@ -3634,6 +3740,7 @@ def render_html(
         monthly: buildViewPayload(monthlyMetrics),
         weekly: buildViewPayload(weeklyMetrics),
         weeklyRetention,
+        quarterlyRetention,
         totals,
       }};
     }}
@@ -3688,12 +3795,24 @@ def render_html(
         <tr>
           <td class="cohort"><span class="cohort-range">${{row.cohort}}</span></td>
           <td>${{Number(row.monthlyStarters ?? row.monthly_starters ?? 0).toLocaleString()}}</td>
-          <td>${{Number(row.m1Count ?? row.m1_count ?? 0).toLocaleString()}}</td>
-          <td class="actual">${{Number(row.m1Rate ?? row.m1_rate ?? 0).toFixed(1)}}%</td>
-          <td>${{Number(row.m2Count ?? row.m2_count ?? 0).toLocaleString()}}</td>
-          <td class="actual">${{Number(row.m2Rate ?? row.m2_rate ?? 0).toFixed(1)}}%</td>
-          <td>${{Number(row.m3Count ?? row.m3_count ?? 0).toLocaleString()}}</td>
-          <td class="actual">${{Number(row.m3Rate ?? row.m3_rate ?? 0).toFixed(1)}}%</td>
+          <td>
+            <div class="retention-metric ${{(row.m1Closed ?? row.m1_closed) ? 'closed' : 'open'}}">
+              <span class="rate">${{Number(row.m1Rate ?? row.m1_rate ?? 0).toFixed(1)}}%</span>
+              <span class="count">${{Number(row.m1Count ?? row.m1_count ?? 0).toLocaleString()}}</span>
+            </div>
+          </td>
+          <td>
+            <div class="retention-metric ${{(row.m2Closed ?? row.m2_closed) ? 'closed' : 'open'}}">
+              <span class="rate">${{Number(row.m2Rate ?? row.m2_rate ?? 0).toFixed(1)}}%</span>
+              <span class="count">${{Number(row.m2Count ?? row.m2_count ?? 0).toLocaleString()}}</span>
+            </div>
+          </td>
+          <td>
+            <div class="retention-metric ${{(row.m3Closed ?? row.m3_closed) ? 'closed' : 'open'}}">
+              <span class="rate">${{Number(row.m3Rate ?? row.m3_rate ?? 0).toFixed(1)}}%</span>
+              <span class="count">${{Number(row.m3Count ?? row.m3_count ?? 0).toLocaleString()}}</span>
+            </div>
+          </td>
         </tr>
       `).join("");
     }}
@@ -3705,14 +3824,30 @@ def render_html(
         <tr>
           <td class="cohort"><span class="cohort-range">${{row.cohort}}</span></td>
           <td>${{Number(row.quarterlyStarters ?? row.quarterly_starters ?? 0).toLocaleString()}}</td>
-          <td>${{Number(row.m3Count ?? row.m3_count ?? 0).toLocaleString()}}</td>
-          <td class="actual">${{Number(row.m3Rate ?? row.m3_rate ?? 0).toFixed(1)}}%</td>
-          <td>${{Number(row.m6Count ?? row.m6_count ?? 0).toLocaleString()}}</td>
-          <td class="actual">${{Number(row.m6Rate ?? row.m6_rate ?? 0).toFixed(1)}}%</td>
-          <td>${{Number(row.m9Count ?? row.m9_count ?? 0).toLocaleString()}}</td>
-          <td class="actual">${{Number(row.m9Rate ?? row.m9_rate ?? 0).toFixed(1)}}%</td>
-          <td>${{Number(row.m12Count ?? row.m12_count ?? 0).toLocaleString()}}</td>
-          <td class="actual">${{Number(row.m12Rate ?? row.m12_rate ?? 0).toFixed(1)}}%</td>
+          <td>
+            <div class="retention-metric ${{(row.m3Closed ?? row.m3_closed) ? 'closed' : 'open'}}">
+              <span class="rate">${{Number(row.m3Rate ?? row.m3_rate ?? 0).toFixed(1)}}%</span>
+              <span class="count">${{Number(row.m3Count ?? row.m3_count ?? 0).toLocaleString()}}</span>
+            </div>
+          </td>
+          <td>
+            <div class="retention-metric ${{(row.m6Closed ?? row.m6_closed) ? 'closed' : 'open'}}">
+              <span class="rate">${{Number(row.m6Rate ?? row.m6_rate ?? 0).toFixed(1)}}%</span>
+              <span class="count">${{Number(row.m6Count ?? row.m6_count ?? 0).toLocaleString()}}</span>
+            </div>
+          </td>
+          <td>
+            <div class="retention-metric ${{(row.m9Closed ?? row.m9_closed) ? 'closed' : 'open'}}">
+              <span class="rate">${{Number(row.m9Rate ?? row.m9_rate ?? 0).toFixed(1)}}%</span>
+              <span class="count">${{Number(row.m9Count ?? row.m9_count ?? 0).toLocaleString()}}</span>
+            </div>
+          </td>
+          <td>
+            <div class="retention-metric ${{(row.m12Closed ?? row.m12_closed) ? 'closed' : 'open'}}">
+              <span class="rate">${{Number(row.m12Rate ?? row.m12_rate ?? 0).toFixed(1)}}%</span>
+              <span class="count">${{Number(row.m12Count ?? row.m12_count ?? 0).toLocaleString()}}</span>
+            </div>
+          </td>
         </tr>
       `).join("");
     }}
@@ -3801,11 +3936,14 @@ def render_html(
       document.getElementById("publish-uploads").disabled = !state.uploaded;
     }}
 
-    function publishImportedData() {{
+    async function publishImportedData() {{
       if (!state.uploaded) {{
         return;
       }}
       const status = document.getElementById("upload-status");
+      if (uploadFiles.customers?.text && uploadFiles.payments?.text) {{
+        await recalculateFromUploads();
+      }}
       savePublishedPayload(state.payload);
       status.innerHTML = "<strong>Published imported data.</strong> This imported dashboard is now saved in your browser and will be restored after reload.";
     }}
@@ -3840,8 +3978,7 @@ def render_html(
       status.innerHTML = `<strong>Loaded uploaded exports.</strong> Customers: ${{customersRows.length.toLocaleString()}} rows. Payments: ${{paymentsRows.length.toLocaleString()}} rows${{spendRows.length ? `. Spend: ${{spendRows.length.toLocaleString()}} rows.` : "."}}`;
       updateUploadControls();
       renderSummary();
-      renderTable();
-      renderChart();
+      setView(activeView);
     }}
 
     document.querySelectorAll(".tab-button").forEach((button) => {{
@@ -3895,7 +4032,9 @@ def render_html(
     }});
 
     document.getElementById("publish-uploads").addEventListener("click", () => {{
-      publishImportedData();
+      publishImportedData().catch((error) => {{
+        document.getElementById("upload-status").innerHTML = `<strong>Publish failed.</strong> ${{error.message}}`;
+      }});
     }});
 
     const persistedPayload = loadPublishedPayload();
