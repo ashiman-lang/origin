@@ -13,7 +13,7 @@ from statistics import median
 INPUT_CSV = Path("/Users/annashiman/Downloads/unified_customers (51).csv")
 PRICES_CSV = Path("/Users/annashiman/Downloads/prices (3).csv")
 PAYMENTS_CSV = Path("/Users/annashiman/Downloads/unified_payments (34).csv")
-SPEND_CSV = Path("/Users/annashiman/Downloads/Spend.csv")
+SPEND_CSV = Path("/Users/annashiman/Downloads/Spend (1).csv")
 OUTPUT_HTML = Path("/Users/annashiman/Documents/Playground/cohort_dashboard_jan_apr.html")
 PAGES_HTML = Path("/Users/annashiman/Documents/Playground/docs/index.html")
 NOJEKYLL_FILE = Path("/Users/annashiman/Documents/Playground/docs/.nojekyll")
@@ -22,13 +22,20 @@ MONTHLY_SPEND_OVERRIDE_USD = {
     "2026-01": 54845.58,
 }
 SPEND_OVERRIDE_TSV = """
-2026-04-07	€1.487
-2026-04-06	€2.308
-2026-04-05	€2.506
-2026-04-04	€1.768
-2026-04-03	€1.739
-2026-04-02	€1.759
-2026-04-01	€1.130
+2026-04-14	€839.2
+2026-04-13	€1863.5
+2026-04-12	€1873.67
+2026-04-11	€1666.92
+2026-04-10	€1457.08
+2026-04-09	€1555.62
+2026-04-08	€1403.18
+2026-04-07	€1489.57
+2026-04-06	€2308.4
+2026-04-05	€2505.58
+2026-04-04	€1768.46
+2026-04-03	€1738.51
+2026-04-02	€1759.24
+2026-04-01	€1129.9
 2026-03-31	€1.191
 2026-03-30	€2.348
 2026-03-29	€1.565
@@ -2422,6 +2429,7 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
         <div class="upload-status" id="upload-status"><strong>Using embedded exports.</strong> Upload customers and payments CSVs to recalculate monthly and weekly cohorts.</div>
         <div class="toolbar-actions">
           <button class="action-button secondary" type="button" id="reset-uploads" hidden>Use Embedded Data</button>
+          <button class="action-button secondary" type="button" id="publish-uploads" disabled>Publish Imported Data</button>
           <button class="action-button" type="button" id="apply-uploads" disabled>Recalculate Dashboard</button>
         </div>
       </div>
@@ -2539,6 +2547,7 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
   <script>
     const defaultPayload = {payload};
     const clientConfig = {client_config};
+    const STORAGE_KEY = "cohort_dashboard_published_payload_v1";
     const state = {{
       payload: defaultPayload,
       uploaded: false,
@@ -2550,6 +2559,28 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       spend: null,
       prices: null,
     }};
+
+    function serializeForInlineScript(value) {{
+      return JSON.stringify(value).replace(/<\\//g, "<\\\\/");
+    }}
+
+    function loadPublishedPayload() {{
+      try {{
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      }} catch (_error) {{
+        return null;
+      }}
+    }}
+
+    function savePublishedPayload(payload) {{
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    }}
+
+    function clearPublishedPayload() {{
+      window.localStorage.removeItem(STORAGE_KEY);
+    }}
 
     function parseDelimited(text) {{
       const sampleLine = text.split(/\\\\r?\\\\n/).find((line) => line.trim().length);
@@ -2954,6 +2985,13 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       const closed = benchmarkMilestonesForFamily(family, targetMonths)
         .filter((month) => milestoneClosedFromEnd(cohortEndDate, month));
       return closed.length ? Math.max(...closed) : 0;
+    }}
+
+    function requiredPaymentCount(family, monthNumber) {{
+      if (family === "monthly") return monthNumber + 1;
+      if (family === "quarterly") return Math.floor(monthNumber / 3) + 1;
+      if (family === "annual") return 2;
+      return 1;
     }}
 
     function projectedPopTailRevenue(family, fullPriceEur, cohortEndDate, targetMonths, actualRetentionRates) {{
@@ -3513,22 +3551,32 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
     }}
 
     function updateUploadControls() {{
-      const ready = Boolean(uploadFiles.customers && uploadFiles.payments);
+      const ready = Boolean(uploadFiles.customers?.text && uploadFiles.payments?.text);
       document.getElementById("apply-uploads").disabled = !ready;
       document.getElementById("reset-uploads").hidden = !state.uploaded;
+      document.getElementById("publish-uploads").disabled = !state.uploaded;
+    }}
+
+    function publishImportedData() {{
+      if (!state.uploaded) {{
+        return;
+      }}
+      const status = document.getElementById("upload-status");
+      savePublishedPayload(state.payload);
+      status.innerHTML = "<strong>Published imported data.</strong> This imported dashboard is now saved in your browser and will be restored after reload.";
     }}
 
     async function recalculateFromUploads() {{
-      if (!uploadFiles.customers || !uploadFiles.payments) {{
+      if (!uploadFiles.customers?.text || !uploadFiles.payments?.text) {{
         return;
       }}
       const status = document.getElementById("upload-status");
       status.innerHTML = "<strong>Recalculating…</strong> Parsing uploaded exports and rebuilding cohort views in your browser.";
       const [customersText, paymentsText, spendText, pricesText] = await Promise.all([
-        uploadFiles.customers.text(),
-        uploadFiles.payments.text(),
-        uploadFiles.spend ? uploadFiles.spend.text() : Promise.resolve(""),
-        uploadFiles.prices ? uploadFiles.prices.text() : Promise.resolve(""),
+        Promise.resolve(uploadFiles.customers.text),
+        Promise.resolve(uploadFiles.payments.text),
+        Promise.resolve(uploadFiles.spend?.text || ""),
+        Promise.resolve(uploadFiles.prices?.text || ""),
       ]);
       const customersRows = parseDelimited(customersText);
       const paymentsRows = parseDelimited(paymentsText);
@@ -3559,6 +3607,7 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
     document.getElementById("reset-uploads").addEventListener("click", () => {{
       state.payload = defaultPayload;
       state.uploaded = false;
+      clearPublishedPayload();
       Object.keys(uploadFiles).forEach((key) => {{
         uploadFiles[key] = null;
       }});
@@ -3573,8 +3622,24 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
     }});
 
     [["customers-upload", "customers"], ["payments-upload", "payments"], ["spend-upload", "spend"], ["prices-upload", "prices"]].forEach(([id, key]) => {{
-      document.getElementById(id).addEventListener("change", (event) => {{
-        uploadFiles[key] = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+      document.getElementById(id).addEventListener("change", async (event) => {{
+        const file = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+        if (!file) {{
+          uploadFiles[key] = null;
+          updateUploadControls();
+          return;
+        }}
+        try {{
+          const text = await file.text();
+          uploadFiles[key] = {{
+            name: file.name,
+            text,
+          }};
+          document.getElementById("upload-status").innerHTML = `<strong>Loaded ${{file.name}}.</strong> Ready to recalculate with uploaded exports.`;
+        }} catch (error) {{
+          uploadFiles[key] = null;
+          document.getElementById("upload-status").innerHTML = `<strong>Upload failed.</strong> ${{error.message}}`;
+        }}
         updateUploadControls();
       }});
     }});
@@ -3585,6 +3650,18 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       }});
     }});
 
+    document.getElementById("publish-uploads").addEventListener("click", () => {{
+      publishImportedData();
+    }});
+
+    const persistedPayload = loadPublishedPayload();
+    if (persistedPayload) {{
+      state.payload = persistedPayload;
+      state.uploaded = true;
+      document.getElementById("upload-status").innerHTML = "<strong>Using published imported data.</strong> The last published imported dashboard was restored from this browser.";
+    }}
+
+    updateUploadControls();
     renderSummary();
     setView("monthly");
   </script>

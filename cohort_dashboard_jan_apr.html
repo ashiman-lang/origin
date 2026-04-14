@@ -629,6 +629,7 @@
         <div class="upload-status" id="upload-status"><strong>Using embedded exports.</strong> Upload customers and payments CSVs to recalculate monthly and weekly cohorts.</div>
         <div class="toolbar-actions">
           <button class="action-button secondary" type="button" id="reset-uploads" hidden>Use Embedded Data</button>
+          <button class="action-button secondary" type="button" id="publish-uploads" disabled>Publish Imported Data</button>
           <button class="action-button" type="button" id="apply-uploads" disabled>Recalculate Dashboard</button>
         </div>
       </div>
@@ -753,9 +754,9 @@
         
         <tr>
           <td class="cohort">April 2026</td>
-          <td class="money">€14,853</td>
+          <td class="money">€23,359</td>
           <td>171</td>
-          <td class="muted">€87</td>
+          <td class="muted">€137</td>
           <td class="metric-amber">€1,234.08</td>
           <td class="muted">102</td>
           <td class="muted">€12.10</td>
@@ -763,14 +764,14 @@
           <td>€5,179</td>
           <td class="metric-red">€61</td>
           <td class="metric-red">€0</td>
-          <td class="metric-amber">34.9%</td>
-          <td class="metric-blue">34.9%</td>
-          <td class="projected">43.3%</td>
-          <td class="projected">49.2%</td>
-          <td class="projected">68.2%</td>
-          <td class="projected">81.4%</td>
-          <td class="projected">89.9%</td>
-          <td class="projected">97.5%</td>
+          <td class="metric-amber">22.2%</td>
+          <td class="metric-blue">22.2%</td>
+          <td class="projected">27.5%</td>
+          <td class="projected">31.3%</td>
+          <td class="projected">43.4%</td>
+          <td class="projected">51.8%</td>
+          <td class="projected">57.2%</td>
+          <td class="projected">62.0%</td>
         </tr>
         </tbody>
         </table>
@@ -974,11 +975,11 @@
         "m12Projected": true
       },
       {
-        "spendUsd": 14852.7,
+        "spendUsd": 23358.83,
         "cohort": "April 2026",
-        "spend": "\u20ac14,853",
+        "spend": "\u20ac23,359",
         "newCustomers": 171,
-        "cpa": "\u20ac87",
+        "cpa": "\u20ac137",
         "upsell": "\u20ac1,234.08",
         "upsellCount": 102,
         "avg": "\u20ac12.10",
@@ -986,14 +987,14 @@
         "revToDate": "\u20ac5,179",
         "refunds": "\u20ac61",
         "disputeLosses": "\u20ac0",
-        "d0Roas": "34.9%",
-        "roasToDate": "34.9%",
-        "m1": "43.3%",
-        "m2": "49.2%",
-        "m3": "68.2%",
-        "m6": "81.4%",
-        "m9": "89.9%",
-        "m12": "97.5%",
+        "d0Roas": "22.2%",
+        "roasToDate": "22.2%",
+        "m1": "27.5%",
+        "m2": "31.3%",
+        "m3": "43.4%",
+        "m6": "51.8%",
+        "m9": "57.2%",
+        "m12": "62.0%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
@@ -1442,7 +1443,7 @@
         "m12Projected": true
       },
       {
-        "spendUsd": 10679.0,
+        "spendUsd": 10678.9,
         "cohort": "Mar 26-Apr 1",
         "spend": "\u20ac10,679",
         "newCustomers": 95,
@@ -1470,9 +1471,9 @@
         "m12Projected": true
       },
       {
-        "spendUsd": 12968.19,
+        "spendUsd": 12972.939999999999,
         "cohort": "Apr 2-Apr 8",
-        "spend": "\u20ac12,968",
+        "spend": "\u20ac12,973",
         "newCustomers": 151,
         "cpa": "\u20ac86",
         "upsell": "\u20ac1,096.86",
@@ -1486,10 +1487,10 @@
         "roasToDate": "35.7%",
         "m1": "44.1%",
         "m2": "49.9%",
-        "m3": "69.3%",
+        "m3": "69.2%",
         "m6": "82.5%",
-        "m9": "91.1%",
-        "m12": "99.0%",
+        "m9": "91.0%",
+        "m12": "98.9%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
@@ -3222,10 +3223,10 @@
   },
   "defaultSpendMaps": {
     "monthly": {
-      "2026-04": 14852.7,
+      "2026-04": 23358.83,
+      "2026-01": 54845.58,
       "2026-03": 58689.0,
-      "2026-02": 54861.0,
-      "2026-01": 54845.58
+      "2026-02": 54861.0
     },
     "weekly": {
       "2026-01-01": 10676.0,
@@ -3240,11 +3241,12 @@
       "2026-03-05": 14942.0,
       "2026-03-12": 14952.0,
       "2026-03-19": 11061.0,
-      "2026-03-26": 10679.0,
-      "2026-04-02": 12968.19
+      "2026-03-26": 10678.9,
+      "2026-04-02": 12972.939999999999
     }
   }
 };
+    const STORAGE_KEY = "cohort_dashboard_published_payload_v1";
     const state = {
       payload: defaultPayload,
       uploaded: false,
@@ -3256,6 +3258,28 @@
       spend: null,
       prices: null,
     };
+
+    function serializeForInlineScript(value) {
+      return JSON.stringify(value).replace(/<\//g, "<\\/");
+    }
+
+    function loadPublishedPayload() {
+      try {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (_error) {
+        return null;
+      }
+    }
+
+    function savePublishedPayload(payload) {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    }
+
+    function clearPublishedPayload() {
+      window.localStorage.removeItem(STORAGE_KEY);
+    }
 
     function parseDelimited(text) {
       const sampleLine = text.split(/\\r?\\n/).find((line) => line.trim().length);
@@ -3660,6 +3684,13 @@
       const closed = benchmarkMilestonesForFamily(family, targetMonths)
         .filter((month) => milestoneClosedFromEnd(cohortEndDate, month));
       return closed.length ? Math.max(...closed) : 0;
+    }
+
+    function requiredPaymentCount(family, monthNumber) {
+      if (family === "monthly") return monthNumber + 1;
+      if (family === "quarterly") return Math.floor(monthNumber / 3) + 1;
+      if (family === "annual") return 2;
+      return 1;
     }
 
     function projectedPopTailRevenue(family, fullPriceEur, cohortEndDate, targetMonths, actualRetentionRates) {
@@ -4219,22 +4250,32 @@
     }
 
     function updateUploadControls() {
-      const ready = Boolean(uploadFiles.customers && uploadFiles.payments);
+      const ready = Boolean(uploadFiles.customers?.text && uploadFiles.payments?.text);
       document.getElementById("apply-uploads").disabled = !ready;
       document.getElementById("reset-uploads").hidden = !state.uploaded;
+      document.getElementById("publish-uploads").disabled = !state.uploaded;
+    }
+
+    function publishImportedData() {
+      if (!state.uploaded) {
+        return;
+      }
+      const status = document.getElementById("upload-status");
+      savePublishedPayload(state.payload);
+      status.innerHTML = "<strong>Published imported data.</strong> This imported dashboard is now saved in your browser and will be restored after reload.";
     }
 
     async function recalculateFromUploads() {
-      if (!uploadFiles.customers || !uploadFiles.payments) {
+      if (!uploadFiles.customers?.text || !uploadFiles.payments?.text) {
         return;
       }
       const status = document.getElementById("upload-status");
       status.innerHTML = "<strong>Recalculating…</strong> Parsing uploaded exports and rebuilding cohort views in your browser.";
       const [customersText, paymentsText, spendText, pricesText] = await Promise.all([
-        uploadFiles.customers.text(),
-        uploadFiles.payments.text(),
-        uploadFiles.spend ? uploadFiles.spend.text() : Promise.resolve(""),
-        uploadFiles.prices ? uploadFiles.prices.text() : Promise.resolve(""),
+        Promise.resolve(uploadFiles.customers.text),
+        Promise.resolve(uploadFiles.payments.text),
+        Promise.resolve(uploadFiles.spend?.text || ""),
+        Promise.resolve(uploadFiles.prices?.text || ""),
       ]);
       const customersRows = parseDelimited(customersText);
       const paymentsRows = parseDelimited(paymentsText);
@@ -4265,6 +4306,7 @@
     document.getElementById("reset-uploads").addEventListener("click", () => {
       state.payload = defaultPayload;
       state.uploaded = false;
+      clearPublishedPayload();
       Object.keys(uploadFiles).forEach((key) => {
         uploadFiles[key] = null;
       });
@@ -4279,8 +4321,24 @@
     });
 
     [["customers-upload", "customers"], ["payments-upload", "payments"], ["spend-upload", "spend"], ["prices-upload", "prices"]].forEach(([id, key]) => {
-      document.getElementById(id).addEventListener("change", (event) => {
-        uploadFiles[key] = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+      document.getElementById(id).addEventListener("change", async (event) => {
+        const file = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+        if (!file) {
+          uploadFiles[key] = null;
+          updateUploadControls();
+          return;
+        }
+        try {
+          const text = await file.text();
+          uploadFiles[key] = {
+            name: file.name,
+            text,
+          };
+          document.getElementById("upload-status").innerHTML = `<strong>Loaded ${file.name}.</strong> Ready to recalculate with uploaded exports.`;
+        } catch (error) {
+          uploadFiles[key] = null;
+          document.getElementById("upload-status").innerHTML = `<strong>Upload failed.</strong> ${error.message}`;
+        }
         updateUploadControls();
       });
     });
@@ -4291,6 +4349,18 @@
       });
     });
 
+    document.getElementById("publish-uploads").addEventListener("click", () => {
+      publishImportedData();
+    });
+
+    const persistedPayload = loadPublishedPayload();
+    if (persistedPayload) {
+      state.payload = persistedPayload;
+      state.uploaded = true;
+      document.getElementById("upload-status").innerHTML = "<strong>Using published imported data.</strong> The last published imported dashboard was restored from this browser.";
+    }
+
+    updateUploadControls();
     renderSummary();
     setView("monthly");
   </script>
