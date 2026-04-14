@@ -10,9 +10,9 @@ from pathlib import Path
 from statistics import median
 
 
-INPUT_CSV = Path("/Users/annashiman/Downloads/unified_customers (51).csv")
+INPUT_CSV = Path("/Users/annashiman/Downloads/unified_customers (55).csv")
 PRICES_CSV = Path("/Users/annashiman/Downloads/prices (3).csv")
-PAYMENTS_CSV = Path("/Users/annashiman/Downloads/unified_payments (34).csv")
+PAYMENTS_CSV = Path("/Users/annashiman/Downloads/unified_payments (38).csv")
 SPEND_CSV = Path("/Users/annashiman/Downloads/Spend (1).csv")
 OUTPUT_HTML = Path("/Users/annashiman/Documents/Playground/cohort_dashboard_jan_apr.html")
 PAGES_HTML = Path("/Users/annashiman/Documents/Playground/docs/index.html")
@@ -160,7 +160,7 @@ DAILY_SPEND_OVERRIDE_EUR = {
     "2026-01-30": 1663.32,
     "2026-01-31": 1611.93,
 }
-CURRENT_DATE = date(2026, 4, 8)
+CURRENT_DATE = date(2026, 4, 14)
 PROJECTED_NET_REVENUE_FACTOR = 0.85
 RETENTION_RATE_BENCHMARKS = {
     "monthly": {1: 0.55, 2: 0.38, 3: 0.20, 4: 0.18, 5: 0.14, 6: 0.12, 7: 0.10, 8: 0.07, 9: 0.07, 10: 0.06, 11: 0.06, 12: 0.05},
@@ -1064,6 +1064,95 @@ def describe_top_plan(rows: list[dict[str, str]]) -> str:
     return f"{top_plan} ({top_count})"
 
 
+def build_weekly_plan_retention_rows(
+    weekly_grouped: dict[str, list[dict[str, str]]],
+    weekly_ranges: dict[str, tuple[date, date]],
+) -> list[dict[str, object]]:
+    subscription_creation_info = load_subscription_creation_info()
+    rows_out: list[dict[str, object]] = []
+
+    for week_key in sorted(weekly_grouped.keys()):
+        cohort_rows = weekly_grouped[week_key]
+        starter_ids: list[str] = []
+        for row in cohort_rows:
+            customer_id = (row.get("id") or "").strip()
+            if not customer_id or customer_id.startswith("gcus_"):
+                continue
+            if parse_int(row.get("Payment Count", "")) < 1:
+                continue
+            month_key = (row.get("Created (UTC)") or "")[:7]
+            family = starter_family_for_row(row, month_key, subscription_creation_info.get(customer_id))
+            if family == "monthly":
+                starter_ids.append(customer_id)
+
+        starter_ids = sorted(set(starter_ids))
+        denominator = len(starter_ids)
+        milestone_counts = subscription_billing_counts_through(cohort_rows, CURRENT_DATE)
+        m1 = sum(1 for customer_id in starter_ids if milestone_counts.get(customer_id, 0) >= 2)
+        m2 = sum(1 for customer_id in starter_ids if milestone_counts.get(customer_id, 0) >= 3)
+        m3 = sum(1 for customer_id in starter_ids if milestone_counts.get(customer_id, 0) >= 4)
+        week_start, week_end = weekly_ranges[week_key]
+        rows_out.append(
+            {
+                "cohort": f"{format_short_date(week_start)}-{format_short_date(week_end)}",
+                "monthly_starters": denominator,
+                "m1_count": m1,
+                "m1_rate": (m1 / denominator * 100) if denominator else 0.0,
+                "m2_count": m2,
+                "m2_rate": (m2 / denominator * 100) if denominator else 0.0,
+                "m3_count": m3,
+                "m3_rate": (m3 / denominator * 100) if denominator else 0.0,
+            }
+        )
+    return rows_out
+
+
+def build_weekly_quarterly_retention_rows(
+    weekly_grouped: dict[str, list[dict[str, str]]],
+    weekly_ranges: dict[str, tuple[date, date]],
+) -> list[dict[str, object]]:
+    subscription_creation_info = load_subscription_creation_info()
+    rows_out: list[dict[str, object]] = []
+
+    for week_key in sorted(weekly_grouped.keys()):
+        cohort_rows = weekly_grouped[week_key]
+        starter_ids: list[str] = []
+        for row in cohort_rows:
+            customer_id = (row.get("id") or "").strip()
+            if not customer_id or customer_id.startswith("gcus_"):
+                continue
+            if parse_int(row.get("Payment Count", "")) < 1:
+                continue
+            month_key = (row.get("Created (UTC)") or "")[:7]
+            family = starter_family_for_row(row, month_key, subscription_creation_info.get(customer_id))
+            if family == "quarterly":
+                starter_ids.append(customer_id)
+
+        starter_ids = sorted(set(starter_ids))
+        denominator = len(starter_ids)
+        milestone_counts = subscription_billing_counts_through(cohort_rows, CURRENT_DATE)
+        m3 = sum(1 for customer_id in starter_ids if milestone_counts.get(customer_id, 0) >= 2)
+        m6 = sum(1 for customer_id in starter_ids if milestone_counts.get(customer_id, 0) >= 3)
+        m9 = sum(1 for customer_id in starter_ids if milestone_counts.get(customer_id, 0) >= 4)
+        m12 = sum(1 for customer_id in starter_ids if milestone_counts.get(customer_id, 0) >= 5)
+        week_start, week_end = weekly_ranges[week_key]
+        rows_out.append(
+            {
+                "cohort": f"{format_short_date(week_start)}-{format_short_date(week_end)}",
+                "quarterly_starters": denominator,
+                "m3_count": m3,
+                "m3_rate": (m3 / denominator * 100) if denominator else 0.0,
+                "m6_count": m6,
+                "m6_rate": (m6 / denominator * 100) if denominator else 0.0,
+                "m9_count": m9,
+                "m9_rate": (m9 / denominator * 100) if denominator else 0.0,
+                "m12_count": m12,
+                "m12_rate": (m12 / denominator * 100) if denominator else 0.0,
+            }
+        )
+    return rows_out
+
+
 def build_metrics(
     rows: list[dict[str, str]],
     cohort_key: str,
@@ -1721,7 +1810,12 @@ def render_chart_markup(chart_rows: list[dict[str, object]]) -> str:
     return "".join(parts)
 
 
-def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[CohortMetrics]) -> str:
+def render_html(
+    monthly_metrics: list[CohortMetrics],
+    weekly_metrics: list[CohortMetrics],
+    weekly_retention_rows: list[dict[str, object]],
+    weekly_quarterly_retention_rows: list[dict[str, object]],
+) -> str:
     totals = {
         "customers": sum(item.customers for item in monthly_metrics),
         "paid_customers": sum(item.paid_customers for item in monthly_metrics),
@@ -1748,6 +1842,8 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
         {
             "monthly": build_view_payload(monthly_metrics),
             "weekly": build_view_payload(weekly_metrics),
+            "weeklyRetention": weekly_retention_rows,
+            "quarterlyRetention": weekly_quarterly_retention_rows,
             "totals": totals,
         },
         indent=2,
@@ -1907,6 +2003,11 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       letter-spacing: -0.04em;
     }}
 
+    .tabs-card {{
+      padding: 18px 22px;
+      margin-bottom: 18px;
+    }}
+
     .chart-card {{
       padding: 22px 22px 12px;
       margin-bottom: 22px;
@@ -1914,8 +2015,9 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
 
     .tabs {{
       display: inline-flex;
+      flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 18px;
+      margin-bottom: 0;
     }}
 
     .toolbar {{
@@ -1925,6 +2027,10 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       align-items: center;
       gap: 14px;
       margin-bottom: 18px;
+    }}
+
+    .tabs-card .toolbar {{
+      margin-bottom: 0;
     }}
 
     .toolbar-actions {{
@@ -2435,13 +2541,18 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       </div>
     </details>
 
-    <section class="card chart-card">
+    <section class="card tabs-card">
       <div class="toolbar">
         <div class="tabs" role="tablist" aria-label="Cohort views">
           <button class="tab-button active" type="button" data-view="monthly">Monthly Cohorts</button>
           <button class="tab-button" type="button" data-view="weekly">Weekly Cohorts</button>
+          <button class="tab-button" type="button" data-view="weekly-retention">Monthly Plan Retention</button>
+          <button class="tab-button" type="button" data-view="quarterly-retention">Quarterly Plan Retention</button>
         </div>
       </div>
+    </section>
+
+    <section class="card chart-card">
       <div class="section-head">
         <div>
           <h2 class="section-title">Cohort Rate Comparison</h2>
@@ -2459,7 +2570,7 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       </div>
     </section>
 
-    <section class="card table-card">
+    <section class="card table-card" id="main-table-card">
       <div class="table-scroll">
         <table>
           <thead>
@@ -2486,6 +2597,43 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
             </tr>
           </thead>
           <tbody id="tbody">{initial_table_rows}</tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card table-card" id="retention-card" style="display:none;">
+      <div class="table-scroll">
+        <table id="retention-table-monthly">
+          <thead>
+            <tr>
+              <th>Cohort</th>
+              <th><span class="th-two-line">Monthly<br>Starters</span></th>
+              <th><span class="th-two-line">M1<br>Renewals</span></th>
+              <th><span class="th-two-line">M1<br>Retention</span></th>
+              <th><span class="th-two-line">M2<br>Renewals</span></th>
+              <th><span class="th-two-line">M2<br>Retention</span></th>
+              <th><span class="th-two-line">M3<br>Renewals</span></th>
+              <th><span class="th-two-line">M3<br>Retention</span></th>
+            </tr>
+          </thead>
+          <tbody id="retention-tbody"></tbody>
+        </table>
+        <table id="retention-table-quarterly" style="display:none;">
+          <thead>
+            <tr>
+              <th>Cohort</th>
+              <th><span class="th-two-line">Quarterly<br>Starters</span></th>
+              <th><span class="th-two-line">M3<br>Renewals</span></th>
+              <th><span class="th-two-line">M3<br>Retention</span></th>
+              <th><span class="th-two-line">M6<br>Renewals</span></th>
+              <th><span class="th-two-line">M6<br>Retention</span></th>
+              <th><span class="th-two-line">M9<br>Renewals</span></th>
+              <th><span class="th-two-line">M9<br>Retention</span></th>
+              <th><span class="th-two-line">M12<br>Renewals</span></th>
+              <th><span class="th-two-line">M12<br>Retention</span></th>
+            </tr>
+          </thead>
+          <tbody id="quarterly-retention-tbody"></tbody>
         </table>
       </div>
     </section>
@@ -2547,7 +2695,7 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
   <script>
     const defaultPayload = {payload};
     const clientConfig = {client_config};
-    const STORAGE_KEY = "cohort_dashboard_published_payload_v1";
+    const STORAGE_KEY = "cohort_dashboard_published_payload_v2";
     const state = {{
       payload: defaultPayload,
       uploaded: false,
@@ -2568,7 +2716,11 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       try {{
         const raw = window.localStorage.getItem(STORAGE_KEY);
         if (!raw) return null;
-        return JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        if (!parsed || !parsed.monthly || !parsed.weekly || !parsed.weeklyRetention) {{
+          return null;
+        }}
+        return parsed;
       }} catch (_error) {{
         return null;
       }}
@@ -3435,6 +3587,41 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
           );
         }});
 
+      const weeklyRetention = Array.from(groupedWeekly.keys())
+        .sort((a, b) => a.localeCompare(b))
+        .map((weekKey) => {{
+          const cohortRows = groupedWeekly.get(weekKey) || [];
+          const starterIds = [];
+          cohortRows.forEach((row) => {{
+            const customerId = String(row.id || "").trim();
+            if (!customerId || customerId.startsWith("gcus_")) return;
+            if (parseIntValue(row["Payment Count"]) < 1) return;
+            const monthKey = String(row["Created (UTC)"] || "").slice(0, 7);
+            const firstSubscription = subscriptionCreationInfo.get(customerId);
+            const family = starterFamilyForRow(row, monthKey, firstSubscription, catalog);
+            if (family === "monthly") {{
+              starterIds.push(customerId);
+            }}
+          }});
+          const uniqueStarterIds = Array.from(new Set(starterIds)).sort();
+          const denominator = uniqueStarterIds.length;
+          const milestoneCounts = subscriptionBillingCountsThrough(cohortRows, paymentsRows, clientConfig.currentDate);
+          const m1 = uniqueStarterIds.filter((customerId) => (milestoneCounts.get(customerId) || 0) >= 2).length;
+          const m2 = uniqueStarterIds.filter((customerId) => (milestoneCounts.get(customerId) || 0) >= 3).length;
+          const m3 = uniqueStarterIds.filter((customerId) => (milestoneCounts.get(customerId) || 0) >= 4).length;
+          const [weekStart, weekEnd] = weeklyRanges.get(weekKey);
+          return {{
+            cohort: `${{formatShortDate(weekStart)}}-${{formatShortDate(weekEnd)}}`,
+            monthlyStarters: denominator,
+            m1Count: m1,
+            m1Rate: denominator ? (m1 / denominator) * 100 : 0,
+            m2Count: m2,
+            m2Rate: denominator ? (m2 / denominator) * 100 : 0,
+            m3Count: m3,
+            m3Rate: denominator ? (m3 / denominator) * 100 : 0,
+          }};
+        }});
+
       const cohortRows = customersRows.filter((row) => clientConfig.targetMonths.includes(String(row["Created (UTC)"] || "").slice(0, 7)));
       const totals = {{
         customers: cohortRows.length,
@@ -3446,6 +3633,7 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       return {{
         monthly: buildViewPayload(monthlyMetrics),
         weekly: buildViewPayload(weeklyMetrics),
+        weeklyRetention,
         totals,
       }};
     }}
@@ -3493,8 +3681,48 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       `).join("");
     }}
 
+    function renderRetentionTable() {{
+      const tbody = document.getElementById("retention-tbody");
+      const rows = state.payload.weeklyRetention || [];
+      tbody.innerHTML = rows.map((row) => `
+        <tr>
+          <td class="cohort"><span class="cohort-range">${{row.cohort}}</span></td>
+          <td>${{Number(row.monthlyStarters ?? row.monthly_starters ?? 0).toLocaleString()}}</td>
+          <td>${{Number(row.m1Count ?? row.m1_count ?? 0).toLocaleString()}}</td>
+          <td class="actual">${{Number(row.m1Rate ?? row.m1_rate ?? 0).toFixed(1)}}%</td>
+          <td>${{Number(row.m2Count ?? row.m2_count ?? 0).toLocaleString()}}</td>
+          <td class="actual">${{Number(row.m2Rate ?? row.m2_rate ?? 0).toFixed(1)}}%</td>
+          <td>${{Number(row.m3Count ?? row.m3_count ?? 0).toLocaleString()}}</td>
+          <td class="actual">${{Number(row.m3Rate ?? row.m3_rate ?? 0).toFixed(1)}}%</td>
+        </tr>
+      `).join("");
+    }}
+
+    function renderQuarterlyRetentionTable() {{
+      const tbody = document.getElementById("quarterly-retention-tbody");
+      const rows = state.payload.quarterlyRetention || [];
+      tbody.innerHTML = rows.map((row) => `
+        <tr>
+          <td class="cohort"><span class="cohort-range">${{row.cohort}}</span></td>
+          <td>${{Number(row.quarterlyStarters ?? row.quarterly_starters ?? 0).toLocaleString()}}</td>
+          <td>${{Number(row.m3Count ?? row.m3_count ?? 0).toLocaleString()}}</td>
+          <td class="actual">${{Number(row.m3Rate ?? row.m3_rate ?? 0).toFixed(1)}}%</td>
+          <td>${{Number(row.m6Count ?? row.m6_count ?? 0).toLocaleString()}}</td>
+          <td class="actual">${{Number(row.m6Rate ?? row.m6_rate ?? 0).toFixed(1)}}%</td>
+          <td>${{Number(row.m9Count ?? row.m9_count ?? 0).toLocaleString()}}</td>
+          <td class="actual">${{Number(row.m9Rate ?? row.m9_rate ?? 0).toFixed(1)}}%</td>
+          <td>${{Number(row.m12Count ?? row.m12_count ?? 0).toLocaleString()}}</td>
+          <td class="actual">${{Number(row.m12Rate ?? row.m12_rate ?? 0).toFixed(1)}}%</td>
+        </tr>
+      `).join("");
+    }}
+
     function renderChart() {{
       const svg = document.getElementById("chart");
+      if (activeView === "weekly-retention" || activeView === "quarterly-retention") {{
+        svg.innerHTML = "";
+        return;
+      }}
       const view = state.payload[activeView];
       const width = 1320;
       const height = 380;
@@ -3542,12 +3770,28 @@ def render_html(monthly_metrics: list[CohortMetrics], weekly_metrics: list[Cohor
       document.querySelectorAll(".tab-button").forEach((button) => {{
         button.classList.toggle("active", button.dataset.view === nextView);
       }});
+      const isRetentionView = nextView === "weekly-retention" || nextView === "quarterly-retention";
+      document.getElementById("retention-card").style.display = isRetentionView ? "block" : "none";
+      document.getElementById("retention-table-monthly").style.display = nextView === "weekly-retention" ? "table" : "none";
+      document.getElementById("retention-table-quarterly").style.display = nextView === "quarterly-retention" ? "table" : "none";
+      document.querySelector(".chart-card").style.display = isRetentionView ? "none" : "block";
+      document.getElementById("main-table-card").style.display = isRetentionView ? "none" : "block";
       document.getElementById("section-note").textContent =
         nextView === "monthly"
           ? "Grouped bar chart for the four key rates available in the export."
-          : "Weekly cohort comparison using the same rate definitions and milestone table.";
-      renderTable();
-      renderChart();
+          : nextView === "weekly"
+            ? "Weekly cohort comparison using the same rate definitions and milestone table."
+            : nextView === "weekly-retention"
+              ? "Monthly-plan starter retention by weekly cohort, shown as renewals and retention rates."
+              : "Quarterly-plan starter retention by weekly cohort, shown as renewals and retention rates.";
+      if (nextView === "weekly-retention") {{
+        renderRetentionTable();
+      }} else if (nextView === "quarterly-retention") {{
+        renderQuarterlyRetentionTable();
+      }} else {{
+        renderTable();
+        renderChart();
+      }}
     }}
 
     function updateUploadControls() {{
@@ -3713,8 +3957,10 @@ def main() -> None:
         )
         for week_key in weekly_keys
     ]
+    weekly_retention_rows = build_weekly_plan_retention_rows(dict(weekly_grouped), weekly_ranges)
+    weekly_quarterly_retention_rows = build_weekly_quarterly_retention_rows(dict(weekly_grouped), weekly_ranges)
 
-    html = render_html(monthly_metrics, weekly_metrics)
+    html = render_html(monthly_metrics, weekly_metrics, weekly_retention_rows, weekly_quarterly_retention_rows)
     OUTPUT_HTML.write_text(html, encoding="utf-8")
     PAGES_HTML.parent.mkdir(parents=True, exist_ok=True)
     PAGES_HTML.write_text(html, encoding="utf-8")

@@ -107,6 +107,11 @@
       letter-spacing: -0.04em;
     }
 
+    .tabs-card {
+      padding: 18px 22px;
+      margin-bottom: 18px;
+    }
+
     .chart-card {
       padding: 22px 22px 12px;
       margin-bottom: 22px;
@@ -114,8 +119,9 @@
 
     .tabs {
       display: inline-flex;
+      flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 18px;
+      margin-bottom: 0;
     }
 
     .toolbar {
@@ -125,6 +131,10 @@
       align-items: center;
       gap: 14px;
       margin-bottom: 18px;
+    }
+
+    .tabs-card .toolbar {
+      margin-bottom: 0;
     }
 
     .toolbar-actions {
@@ -582,19 +592,19 @@
       <div class="card summary-grid">
         <div class="summary-pill">
           <div class="summary-label">Customers</div>
-          <div class="summary-value" id="summary-customers">2,907</div>
+          <div class="summary-value" id="summary-customers">3,014</div>
         </div>
         <div class="summary-pill">
           <div class="summary-label">Paid Customers</div>
-          <div class="summary-value" id="summary-paid">2,627</div>
+          <div class="summary-value" id="summary-paid">2,726</div>
         </div>
         <div class="summary-pill">
           <div class="summary-label">Active Customers</div>
-          <div class="summary-value" id="summary-active">1,873</div>
+          <div class="summary-value" id="summary-active">1,889</div>
         </div>
         <div class="summary-pill">
           <div class="summary-label">Repeat Customers</div>
-          <div class="summary-value" id="summary-repeat">1,368</div>
+          <div class="summary-value" id="summary-repeat">1,457</div>
         </div>
       </div>
     </section>
@@ -635,13 +645,18 @@
       </div>
     </details>
 
-    <section class="card chart-card">
+    <section class="card tabs-card">
       <div class="toolbar">
         <div class="tabs" role="tablist" aria-label="Cohort views">
           <button class="tab-button active" type="button" data-view="monthly">Monthly Cohorts</button>
           <button class="tab-button" type="button" data-view="weekly">Weekly Cohorts</button>
+          <button class="tab-button" type="button" data-view="weekly-retention">Monthly Plan Retention</button>
+          <button class="tab-button" type="button" data-view="quarterly-retention">Quarterly Plan Retention</button>
         </div>
       </div>
+    </section>
+
+    <section class="card chart-card">
       <div class="section-head">
         <div>
           <h2 class="section-title">Cohort Rate Comparison</h2>
@@ -655,11 +670,11 @@
         </div>
       </div>
       <div class="chart-wrap">
-        <svg id="chart" viewBox="0 0 1320 380" preserveAspectRatio="xMidYMid meet" aria-label="Cohort chart"><line x1="72" y1="310.0" x2="1300" y2="310.0" stroke="rgba(166,183,214,0.16)" stroke-dasharray="4 6" /><text x="58" y="314.0" fill="#9cadca" text-anchor="end" font-size="12">0%</text><line x1="72" y1="240.0" x2="1300" y2="240.0" stroke="rgba(166,183,214,0.16)" stroke-dasharray="4 6" /><text x="58" y="244.0" fill="#9cadca" text-anchor="end" font-size="12">25%</text><line x1="72" y1="170.0" x2="1300" y2="170.0" stroke="rgba(166,183,214,0.16)" stroke-dasharray="4 6" /><text x="58" y="174.0" fill="#9cadca" text-anchor="end" font-size="12">50%</text><line x1="72" y1="100.0" x2="1300" y2="100.0" stroke="rgba(166,183,214,0.16)" stroke-dasharray="4 6" /><text x="58" y="104.0" fill="#9cadca" text-anchor="end" font-size="12">75%</text><line x1="72" y1="30.0" x2="1300" y2="30.0" stroke="rgba(166,183,214,0.16)" stroke-dasharray="4 6" /><text x="58" y="34.0" fill="#9cadca" text-anchor="end" font-size="12">100%</text><rect x="136.5" y="54.920000000000016" width="40" height="255.07999999999998" rx="7" fill="#18c7f3" opacity="0.92" /><rect x="182.5" y="166.35999999999999" width="40" height="143.64000000000001" rx="7" fill="#4f8bff" opacity="0.92" /><rect x="228.5" y="168.04" width="40" height="141.96" rx="7" fill="#a45dff" opacity="0.92" /><rect x="274.5" y="262.68" width="40" height="47.31999999999999" rx="7" fill="#ffb02e" opacity="0.92" /><text x="225.5" y="354" fill="#9cadca" text-anchor="middle" font-size="15">January</text><rect x="443.5" y="56.879999999999995" width="40" height="253.12" rx="7" fill="#18c7f3" opacity="0.92" /><rect x="489.5" y="132.48" width="40" height="177.52" rx="7" fill="#4f8bff" opacity="0.92" /><rect x="535.5" y="176.72" width="40" height="133.28" rx="7" fill="#a45dff" opacity="0.92" /><rect x="581.5" y="280.88" width="40" height="29.12" rx="7" fill="#ffb02e" opacity="0.92" /><text x="532.5" y="354" fill="#9cadca" text-anchor="middle" font-size="15">February</text><rect x="750.5" y="57.16" width="40" height="252.84" rx="7" fill="#18c7f3" opacity="0.92" /><rect x="796.5" y="98.32000000000002" width="40" height="211.67999999999998" rx="7" fill="#4f8bff" opacity="0.92" /><rect x="842.5" y="196.6" width="40" height="113.4" rx="7" fill="#a45dff" opacity="0.92" /><rect x="888.5" y="303.56" width="40" height="6.4399999999999995" rx="7" fill="#ffb02e" opacity="0.92" /><text x="839.5" y="354" fill="#9cadca" text-anchor="middle" font-size="15">March</text><rect x="1057.5" y="66.12" width="40" height="243.88" rx="7" fill="#18c7f3" opacity="0.92" /><rect x="1103.5" y="67.52000000000001" width="40" height="242.48" rx="7" fill="#4f8bff" opacity="0.92" /><rect x="1149.5" y="158.51999999999998" width="40" height="151.48000000000002" rx="7" fill="#a45dff" opacity="0.92" /><rect x="1195.5" y="308.6" width="40" height="1.4000000000000001" rx="7" fill="#ffb02e" opacity="0.92" /><text x="1146.5" y="354" fill="#9cadca" text-anchor="middle" font-size="15">April</text></svg>
+        <svg id="chart" viewBox="0 0 1320 380" preserveAspectRatio="xMidYMid meet" aria-label="Cohort chart"><line x1="72" y1="310.0" x2="1300" y2="310.0" stroke="rgba(166,183,214,0.16)" stroke-dasharray="4 6" /><text x="58" y="314.0" fill="#9cadca" text-anchor="end" font-size="12">0%</text><line x1="72" y1="240.0" x2="1300" y2="240.0" stroke="rgba(166,183,214,0.16)" stroke-dasharray="4 6" /><text x="58" y="244.0" fill="#9cadca" text-anchor="end" font-size="12">25%</text><line x1="72" y1="170.0" x2="1300" y2="170.0" stroke="rgba(166,183,214,0.16)" stroke-dasharray="4 6" /><text x="58" y="174.0" fill="#9cadca" text-anchor="end" font-size="12">50%</text><line x1="72" y1="100.0" x2="1300" y2="100.0" stroke="rgba(166,183,214,0.16)" stroke-dasharray="4 6" /><text x="58" y="104.0" fill="#9cadca" text-anchor="end" font-size="12">75%</text><line x1="72" y1="30.0" x2="1300" y2="30.0" stroke="rgba(166,183,214,0.16)" stroke-dasharray="4 6" /><text x="58" y="34.0" fill="#9cadca" text-anchor="end" font-size="12">100%</text><rect x="136.5" y="54.920000000000016" width="40" height="255.07999999999998" rx="7" fill="#18c7f3" opacity="0.92" /><rect x="182.5" y="175.04" width="40" height="134.96" rx="7" fill="#4f8bff" opacity="0.92" /><rect x="228.5" y="161.6" width="40" height="148.4" rx="7" fill="#a45dff" opacity="0.92" /><rect x="274.5" y="259.6" width="40" height="50.4" rx="7" fill="#ffb02e" opacity="0.92" /><text x="225.5" y="354" fill="#9cadca" text-anchor="middle" font-size="15">January</text><rect x="443.5" y="56.879999999999995" width="40" height="253.12" rx="7" fill="#18c7f3" opacity="0.92" /><rect x="489.5" y="138.36" width="40" height="171.64" rx="7" fill="#4f8bff" opacity="0.92" /><rect x="535.5" y="176.72" width="40" height="133.28" rx="7" fill="#a45dff" opacity="0.92" /><rect x="581.5" y="279.48" width="40" height="30.52" rx="7" fill="#ffb02e" opacity="0.92" /><text x="532.5" y="354" fill="#9cadca" text-anchor="middle" font-size="15">February</text><rect x="750.5" y="57.44" width="40" height="252.56" rx="7" fill="#18c7f3" opacity="0.92" /><rect x="796.5" y="110.07999999999998" width="40" height="199.92000000000002" rx="7" fill="#4f8bff" opacity="0.92" /><rect x="842.5" y="191.83999999999997" width="40" height="118.16000000000001" rx="7" fill="#a45dff" opacity="0.92" /><rect x="888.5" y="300.48" width="40" height="9.520000000000001" rx="7" fill="#ffb02e" opacity="0.92" /><text x="839.5" y="354" fill="#9cadca" text-anchor="middle" font-size="15">March</text><rect x="1057.5" y="59.68000000000001" width="40" height="250.32" rx="7" fill="#18c7f3" opacity="0.92" /><rect x="1103.5" y="61.639999999999986" width="40" height="248.36" rx="7" fill="#4f8bff" opacity="0.92" /><rect x="1149.5" y="162.16" width="40" height="147.84" rx="7" fill="#a45dff" opacity="0.92" /><rect x="1195.5" y="309.16" width="40" height="0.84" rx="7" fill="#ffb02e" opacity="0.92" /><text x="1146.5" y="354" fill="#9cadca" text-anchor="middle" font-size="15">April</text></svg>
       </div>
     </section>
 
-    <section class="card table-card">
+    <section class="card table-card" id="main-table-card">
       <div class="table-scroll">
         <table>
           <thead>
@@ -694,18 +709,18 @@
           <td class="metric-amber">€2,440.98</td>
           <td class="muted">280</td>
           <td class="muted">€8.72</td>
-          <td>€22,106</td>
-          <td>€35,762</td>
-          <td class="metric-red">€1,224</td>
-          <td class="metric-red">€273</td>
-          <td class="metric-amber">40.3%</td>
-          <td class="metric-blue">65.2%</td>
+          <td>€22,446</td>
+          <td>€38,470</td>
+          <td class="metric-red">€1,214</td>
+          <td class="metric-red">€270</td>
+          <td class="metric-amber">40.9%</td>
+          <td class="metric-blue">70.1%</td>
           <td class="actual">49.2%</td>
-          <td class="actual">55.5%</td>
-          <td class="projected">78.1%</td>
-          <td class="projected">92.2%</td>
-          <td class="projected">101.4%</td>
-          <td class="projected">110.3%</td>
+          <td class="actual">55.6%</td>
+          <td class="projected">78.2%</td>
+          <td class="projected">92.3%</td>
+          <td class="projected">101.6%</td>
+          <td class="projected">110.4%</td>
         </tr>
         
         <tr>
@@ -716,18 +731,18 @@
           <td class="metric-amber">€2,883.34</td>
           <td class="muted">327</td>
           <td class="muted">€8.82</td>
-          <td>€22,648</td>
-          <td>€30,151</td>
-          <td class="metric-red">€285</td>
+          <td>€23,108</td>
+          <td>€31,003</td>
+          <td class="metric-red">€283</td>
           <td class="metric-red">€34</td>
-          <td class="metric-amber">41.3%</td>
-          <td class="metric-blue">55.0%</td>
-          <td class="actual">51.2%</td>
-          <td class="projected">58.2%</td>
-          <td class="projected">82.9%</td>
-          <td class="projected">99.4%</td>
-          <td class="projected">110.1%</td>
-          <td class="projected">120.3%</td>
+          <td class="metric-amber">42.1%</td>
+          <td class="metric-blue">56.5%</td>
+          <td class="actual">50.7%</td>
+          <td class="projected">57.4%</td>
+          <td class="projected">82.2%</td>
+          <td class="projected">98.5%</td>
+          <td class="projected">109.1%</td>
+          <td class="projected">119.2%</td>
         </tr>
         
         <tr>
@@ -738,42 +753,79 @@
           <td class="metric-amber">€2,638.97</td>
           <td class="muted">279</td>
           <td class="muted">€9.46</td>
-          <td>€19,558</td>
-          <td>€21,229</td>
-          <td class="metric-red">€249</td>
+          <td>€19,976</td>
+          <td>€22,376</td>
+          <td class="metric-red">€264</td>
           <td class="metric-red">€25</td>
-          <td class="metric-amber">33.3%</td>
-          <td class="metric-blue">36.2%</td>
-          <td class="projected">41.8%</td>
-          <td class="projected">47.6%</td>
-          <td class="projected">65.4%</td>
-          <td class="projected">78.0%</td>
-          <td class="projected">86.1%</td>
-          <td class="projected">94.4%</td>
+          <td class="metric-amber">34.0%</td>
+          <td class="metric-blue">38.1%</td>
+          <td class="projected">42.3%</td>
+          <td class="projected">48.0%</td>
+          <td class="projected">65.9%</td>
+          <td class="projected">78.5%</td>
+          <td class="projected">86.5%</td>
+          <td class="projected">94.7%</td>
         </tr>
         
         <tr>
           <td class="cohort">April 2026</td>
           <td class="money">€23,359</td>
-          <td>171</td>
-          <td class="muted">€137</td>
-          <td class="metric-amber">€1,234.08</td>
-          <td class="muted">102</td>
-          <td class="muted">€12.10</td>
-          <td>€5,179</td>
-          <td>€5,179</td>
-          <td class="metric-red">€61</td>
+          <td>271</td>
+          <td class="muted">€86</td>
+          <td class="metric-amber">€2,059.30</td>
+          <td class="muted">156</td>
+          <td class="muted">€13.20</td>
+          <td>€8,479</td>
+          <td>€8,479</td>
+          <td class="metric-red">€70</td>
           <td class="metric-red">€0</td>
-          <td class="metric-amber">22.2%</td>
-          <td class="metric-blue">22.2%</td>
-          <td class="projected">27.5%</td>
-          <td class="projected">31.3%</td>
-          <td class="projected">43.4%</td>
-          <td class="projected">51.8%</td>
-          <td class="projected">57.2%</td>
-          <td class="projected">62.0%</td>
+          <td class="metric-amber">36.3%</td>
+          <td class="metric-blue">36.3%</td>
+          <td class="projected">44.0%</td>
+          <td class="projected">49.4%</td>
+          <td class="projected">69.3%</td>
+          <td class="projected">82.4%</td>
+          <td class="projected">90.9%</td>
+          <td class="projected">98.7%</td>
         </tr>
         </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card table-card" id="retention-card" style="display:none;">
+      <div class="table-scroll">
+        <table id="retention-table-monthly">
+          <thead>
+            <tr>
+              <th>Cohort</th>
+              <th><span class="th-two-line">Monthly<br>Starters</span></th>
+              <th><span class="th-two-line">M1<br>Renewals</span></th>
+              <th><span class="th-two-line">M1<br>Retention</span></th>
+              <th><span class="th-two-line">M2<br>Renewals</span></th>
+              <th><span class="th-two-line">M2<br>Retention</span></th>
+              <th><span class="th-two-line">M3<br>Renewals</span></th>
+              <th><span class="th-two-line">M3<br>Retention</span></th>
+            </tr>
+          </thead>
+          <tbody id="retention-tbody"></tbody>
+        </table>
+        <table id="retention-table-quarterly" style="display:none;">
+          <thead>
+            <tr>
+              <th>Cohort</th>
+              <th><span class="th-two-line">Quarterly<br>Starters</span></th>
+              <th><span class="th-two-line">M3<br>Renewals</span></th>
+              <th><span class="th-two-line">M3<br>Retention</span></th>
+              <th><span class="th-two-line">M6<br>Renewals</span></th>
+              <th><span class="th-two-line">M6<br>Retention</span></th>
+              <th><span class="th-two-line">M9<br>Renewals</span></th>
+              <th><span class="th-two-line">M9<br>Retention</span></th>
+              <th><span class="th-two-line">M12<br>Renewals</span></th>
+              <th><span class="th-two-line">M12<br>Retention</span></th>
+            </tr>
+          </thead>
+          <tbody id="quarterly-retention-tbody"></tbody>
         </table>
       </div>
     </section>
@@ -833,8 +885,8 @@
         <div class="forecast-copy">
           <p><strong>Actual closed milestones</strong></p>
           <ul>
-            <li>Spend: €10,676. D0 actual: €4,161, M1 actual: €4,841, M2 actual: €5,352, M3 actual: €8,490.</li>
-            <li>Because this weekly cohort is already closed for M3, the displayed M3 is actual, not projected: €8,490 / €10,676 = 79.5%.</li>
+            <li>Spend: €10,676. D0 actual: €4,207, M1 actual: €4,842, M2 actual: €5,353, M3 actual: €8,491.</li>
+            <li>Because this weekly cohort is already closed for M3, the displayed M3 is actual, not projected: €8,491 / €10,676 = 79.5%.</li>
           </ul>
           <p><strong>Starter-family denominators</strong></p>
           <ul>
@@ -847,7 +899,7 @@
             <li>Monthly anchor is actual M3 retention 11.1%. Then M4 = M3 × 18%/20% = 10.0%, M5 = M4 × 14%/18% = 7.8%, M6 = M5 × 12%/14% = 6.7%.</li>
             <li>Quarterly anchor is actual M3 retention 57.1%. Then M6 = M3 × 20%/50% = 22.9%.</li>
             <li>The projected M6 tail uses the real renewal-price pools and then applies the 15% haircut: monthly tail €437, quarterly tail €998, annual tail €0.</li>
-            <li>So projected M6 = actual M3 base €8,490 + future tail €1,434 = €9,924, which is 93.0% ROAS.</li>
+            <li>So projected M6 = actual M3 base €8,491 + future tail €1,434 = €9,925, which is 93.0% ROAS.</li>
           </ul>
         </div>
       </details>
@@ -863,30 +915,30 @@
       {
         "cohort": "January",
         "paidRate": 91.1,
-        "activeRate": 51.3,
-        "repeatRate": 50.7,
-        "threePlusRate": 16.9
+        "activeRate": 48.2,
+        "repeatRate": 53.0,
+        "threePlusRate": 18.0
       },
       {
         "cohort": "February",
         "paidRate": 90.4,
-        "activeRate": 63.4,
+        "activeRate": 61.3,
         "repeatRate": 47.6,
-        "threePlusRate": 10.4
+        "threePlusRate": 10.9
       },
       {
         "cohort": "March",
-        "paidRate": 90.3,
-        "activeRate": 75.6,
-        "repeatRate": 40.5,
-        "threePlusRate": 2.3
+        "paidRate": 90.2,
+        "activeRate": 71.4,
+        "repeatRate": 42.2,
+        "threePlusRate": 3.4
       },
       {
         "cohort": "April",
-        "paidRate": 87.1,
-        "activeRate": 86.6,
-        "repeatRate": 54.1,
-        "threePlusRate": 0.5
+        "paidRate": 89.4,
+        "activeRate": 88.7,
+        "repeatRate": 52.8,
+        "threePlusRate": 0.3
       }
     ],
     "rows": [
@@ -899,18 +951,18 @@
         "upsell": "\u20ac2,440.98",
         "upsellCount": 280,
         "avg": "\u20ac8.72",
-        "d0Rev": "\u20ac22,106",
-        "revToDate": "\u20ac35,762",
-        "refunds": "\u20ac1,224",
-        "disputeLosses": "\u20ac273",
-        "d0Roas": "40.3%",
-        "roasToDate": "65.2%",
+        "d0Rev": "\u20ac22,446",
+        "revToDate": "\u20ac38,470",
+        "refunds": "\u20ac1,214",
+        "disputeLosses": "\u20ac270",
+        "d0Roas": "40.9%",
+        "roasToDate": "70.1%",
         "m1": "49.2%",
-        "m2": "55.5%",
-        "m3": "78.1%",
-        "m6": "92.2%",
-        "m9": "101.4%",
-        "m12": "110.3%",
+        "m2": "55.6%",
+        "m3": "78.2%",
+        "m6": "92.3%",
+        "m9": "101.6%",
+        "m12": "110.4%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": true,
@@ -927,18 +979,18 @@
         "upsell": "\u20ac2,883.34",
         "upsellCount": 327,
         "avg": "\u20ac8.82",
-        "d0Rev": "\u20ac22,648",
-        "revToDate": "\u20ac30,151",
-        "refunds": "\u20ac285",
+        "d0Rev": "\u20ac23,108",
+        "revToDate": "\u20ac31,003",
+        "refunds": "\u20ac283",
         "disputeLosses": "\u20ac34",
-        "d0Roas": "41.3%",
-        "roasToDate": "55.0%",
-        "m1": "51.2%",
-        "m2": "58.2%",
-        "m3": "82.9%",
-        "m6": "99.4%",
-        "m9": "110.1%",
-        "m12": "120.3%",
+        "d0Roas": "42.1%",
+        "roasToDate": "56.5%",
+        "m1": "50.7%",
+        "m2": "57.4%",
+        "m3": "82.2%",
+        "m6": "98.5%",
+        "m9": "109.1%",
+        "m12": "119.2%",
         "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
@@ -955,18 +1007,18 @@
         "upsell": "\u20ac2,638.97",
         "upsellCount": 279,
         "avg": "\u20ac9.46",
-        "d0Rev": "\u20ac19,558",
-        "revToDate": "\u20ac21,229",
-        "refunds": "\u20ac249",
+        "d0Rev": "\u20ac19,976",
+        "revToDate": "\u20ac22,376",
+        "refunds": "\u20ac264",
         "disputeLosses": "\u20ac25",
-        "d0Roas": "33.3%",
-        "roasToDate": "36.2%",
-        "m1": "41.8%",
-        "m2": "47.6%",
-        "m3": "65.4%",
-        "m6": "78.0%",
-        "m9": "86.1%",
-        "m12": "94.4%",
+        "d0Roas": "34.0%",
+        "roasToDate": "38.1%",
+        "m1": "42.3%",
+        "m2": "48.0%",
+        "m3": "65.9%",
+        "m6": "78.5%",
+        "m9": "86.5%",
+        "m12": "94.7%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
@@ -978,23 +1030,23 @@
         "spendUsd": 23358.83,
         "cohort": "April 2026",
         "spend": "\u20ac23,359",
-        "newCustomers": 171,
-        "cpa": "\u20ac137",
-        "upsell": "\u20ac1,234.08",
-        "upsellCount": 102,
-        "avg": "\u20ac12.10",
-        "d0Rev": "\u20ac5,179",
-        "revToDate": "\u20ac5,179",
-        "refunds": "\u20ac61",
+        "newCustomers": 271,
+        "cpa": "\u20ac86",
+        "upsell": "\u20ac2,059.30",
+        "upsellCount": 156,
+        "avg": "\u20ac13.20",
+        "d0Rev": "\u20ac8,479",
+        "revToDate": "\u20ac8,479",
+        "refunds": "\u20ac70",
         "disputeLosses": "\u20ac0",
-        "d0Roas": "22.2%",
-        "roasToDate": "22.2%",
-        "m1": "27.5%",
-        "m2": "31.3%",
-        "m3": "43.4%",
-        "m6": "51.8%",
-        "m9": "57.2%",
-        "m12": "62.0%",
+        "d0Roas": "36.3%",
+        "roasToDate": "36.3%",
+        "m1": "44.0%",
+        "m2": "49.4%",
+        "m3": "69.3%",
+        "m6": "82.4%",
+        "m9": "90.9%",
+        "m12": "98.7%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
@@ -1016,9 +1068,9 @@
       {
         "cohort": "W02",
         "paidRate": 90.9,
-        "activeRate": 55.1,
-        "repeatRate": 46.6,
-        "threePlusRate": 17.6
+        "activeRate": 38.1,
+        "repeatRate": 58.5,
+        "threePlusRate": 23.3
       },
       {
         "cohort": "W03",
@@ -1030,30 +1082,30 @@
       {
         "cohort": "W04",
         "paidRate": 91.5,
-        "activeRate": 56.0,
+        "activeRate": 56.4,
         "repeatRate": 51.4,
-        "threePlusRate": 12.8
+        "threePlusRate": 13.1
       },
       {
         "cohort": "W05",
         "paidRate": 92.2,
-        "activeRate": 55.5,
+        "activeRate": 55.9,
         "repeatRate": 46.5,
         "threePlusRate": 15.5
       },
       {
         "cohort": "W06",
         "paidRate": 86.3,
-        "activeRate": 59.4,
+        "activeRate": 52.5,
         "repeatRate": 46.6,
-        "threePlusRate": 11.9
+        "threePlusRate": 13.7
       },
       {
         "cohort": "W07",
         "paidRate": 90.4,
-        "activeRate": 67.4,
+        "activeRate": 64.8,
         "repeatRate": 49.1,
-        "threePlusRate": 11.3
+        "threePlusRate": 11.7
       },
       {
         "cohort": "W08",
@@ -1072,21 +1124,21 @@
       {
         "cohort": "W10",
         "paidRate": 93.5,
-        "activeRate": 70.6,
-        "repeatRate": 43.8,
-        "threePlusRate": 2.0
+        "activeRate": 63.2,
+        "repeatRate": 48.8,
+        "threePlusRate": 5.5
       },
       {
         "cohort": "W11",
         "paidRate": 88.9,
-        "activeRate": 76.4,
-        "repeatRate": 29.3,
-        "threePlusRate": 0.5
+        "activeRate": 67.8,
+        "repeatRate": 31.2,
+        "threePlusRate": 1.4
       },
       {
         "cohort": "W12",
-        "paidRate": 89.8,
-        "activeRate": 78.5,
+        "paidRate": 89.3,
+        "activeRate": 78.0,
         "repeatRate": 36.7,
         "threePlusRate": 1.1
       },
@@ -1099,10 +1151,17 @@
       },
       {
         "cohort": "W14",
-        "paidRate": 87.2,
-        "activeRate": 86.6,
-        "repeatRate": 55.2,
+        "paidRate": 86.7,
+        "activeRate": 86.1,
+        "repeatRate": 54.4,
         "threePlusRate": 0.6
+      },
+      {
+        "cohort": "W15",
+        "paidRate": 94.9,
+        "activeRate": 93.9,
+        "repeatRate": 51.5,
+        "threePlusRate": 0.0
       }
     ],
     "rows": [
@@ -1115,18 +1174,18 @@
         "upsell": "\u20ac452.08",
         "upsellCount": 53,
         "avg": "\u20ac8.53",
-        "d0Rev": "\u20ac4,161",
-        "revToDate": "\u20ac8,792",
-        "refunds": "\u20ac431",
-        "disputeLosses": "\u20ac96",
-        "d0Roas": "39.0%",
-        "roasToDate": "82.4%",
-        "m1": "45.3%",
+        "d0Rev": "\u20ac4,207",
+        "revToDate": "\u20ac8,840",
+        "refunds": "\u20ac427",
+        "disputeLosses": "\u20ac95",
+        "d0Roas": "39.4%",
+        "roasToDate": "82.8%",
+        "m1": "45.4%",
         "m2": "50.1%",
         "m3": "79.5%",
         "m6": "93.0%",
         "m9": "102.2%",
-        "m12": "110.6%",
+        "m12": "110.7%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": false,
@@ -1143,21 +1202,21 @@
         "upsell": "\u20ac385.99",
         "upsellCount": 45,
         "avg": "\u20ac8.58",
-        "d0Rev": "\u20ac4,196",
-        "revToDate": "\u20ac6,551",
-        "refunds": "\u20ac330",
+        "d0Rev": "\u20ac4,250",
+        "revToDate": "\u20ac8,937",
+        "refunds": "\u20ac328",
         "disputeLosses": "\u20ac34",
-        "d0Roas": "43.5%",
-        "roasToDate": "67.9%",
-        "m1": "54.7%",
+        "d0Roas": "44.1%",
+        "roasToDate": "92.6%",
+        "m1": "54.8%",
         "m2": "63.0%",
-        "m3": "84.4%",
-        "m6": "99.4%",
-        "m9": "109.1%",
-        "m12": "120.6%",
+        "m3": "90.1%",
+        "m6": "104.0%",
+        "m9": "113.3%",
+        "m12": "124.5%",
         "m1Projected": false,
         "m2Projected": false,
-        "m3Projected": true,
+        "m3Projected": false,
         "m6Projected": true,
         "m9Projected": true,
         "m12Projected": true
@@ -1171,18 +1230,18 @@
         "upsell": "\u20ac523.03",
         "upsellCount": 61,
         "avg": "\u20ac8.57",
-        "d0Rev": "\u20ac4,648",
-        "revToDate": "\u20ac7,066",
-        "refunds": "\u20ac311",
+        "d0Rev": "\u20ac4,729",
+        "revToDate": "\u20ac7,147",
+        "refunds": "\u20ac308",
         "disputeLosses": "\u20ac0",
-        "d0Roas": "43.2%",
-        "roasToDate": "65.7%",
+        "d0Roas": "43.9%",
+        "roasToDate": "66.4%",
         "m1": "55.0%",
         "m2": "63.2%",
-        "m3": "84.3%",
-        "m6": "99.2%",
-        "m9": "108.8%",
-        "m12": "117.9%",
+        "m3": "84.2%",
+        "m6": "99.1%",
+        "m9": "108.6%",
+        "m12": "117.6%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": true,
@@ -1199,18 +1258,18 @@
         "upsell": "\u20ac829.44",
         "upsellCount": 93,
         "avg": "\u20ac8.92",
-        "d0Rev": "\u20ac6,739",
-        "revToDate": "\u20ac9,793",
-        "refunds": "\u20ac102",
-        "disputeLosses": "\u20ac143",
-        "d0Roas": "37.0%",
-        "roasToDate": "53.7%",
+        "d0Rev": "\u20ac6,799",
+        "revToDate": "\u20ac9,888",
+        "refunds": "\u20ac101",
+        "disputeLosses": "\u20ac142",
+        "d0Roas": "37.3%",
+        "roasToDate": "54.2%",
         "m1": "44.5%",
-        "m2": "49.2%",
-        "m3": "71.7%",
-        "m6": "84.3%",
-        "m9": "92.9%",
-        "m12": "100.4%",
+        "m2": "49.3%",
+        "m3": "72.0%",
+        "m6": "84.8%",
+        "m9": "93.4%",
+        "m12": "101.0%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": true,
@@ -1227,18 +1286,18 @@
         "upsell": "\u20ac729.08",
         "upsellCount": 82,
         "avg": "\u20ac8.89",
-        "d0Rev": "\u20ac5,605",
-        "revToDate": "\u20ac8,268",
-        "refunds": "\u20ac68",
+        "d0Rev": "\u20ac5,785",
+        "revToDate": "\u20ac8,483",
+        "refunds": "\u20ac67",
         "disputeLosses": "\u20ac0",
-        "d0Roas": "42.2%",
-        "roasToDate": "62.3%",
+        "d0Roas": "43.6%",
+        "roasToDate": "63.9%",
         "m1": "52.4%",
-        "m2": "58.2%",
-        "m3": "84.5%",
-        "m6": "99.6%",
-        "m9": "109.8%",
-        "m12": "118.3%",
+        "m2": "58.5%",
+        "m3": "84.9%",
+        "m6": "100.2%",
+        "m9": "110.5%",
+        "m12": "119.1%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": true,
@@ -1255,20 +1314,20 @@
         "upsell": "\u20ac657.03",
         "upsellCount": 74,
         "avg": "\u20ac8.88",
-        "d0Rev": "\u20ac5,023",
-        "revToDate": "\u20ac6,796",
-        "refunds": "\u20ac89",
-        "disputeLosses": "\u20ac21",
-        "d0Roas": "41.7%",
-        "roasToDate": "56.5%",
-        "m1": "50.5%",
-        "m2": "56.8%",
-        "m3": "81.6%",
-        "m6": "97.5%",
-        "m9": "108.0%",
-        "m12": "117.8%",
+        "d0Rev": "\u20ac5,123",
+        "revToDate": "\u20ac7,142",
+        "refunds": "\u20ac88",
+        "disputeLosses": "\u20ac20",
+        "d0Roas": "42.6%",
+        "roasToDate": "59.3%",
+        "m1": "49.2%",
+        "m2": "53.5%",
+        "m3": "77.4%",
+        "m6": "90.4%",
+        "m9": "99.2%",
+        "m12": "107.9%",
         "m1Projected": false,
-        "m2Projected": true,
+        "m2Projected": false,
         "m3Projected": true,
         "m6Projected": true,
         "m9Projected": true,
@@ -1283,18 +1342,18 @@
         "upsell": "\u20ac753.82",
         "upsellCount": 85,
         "avg": "\u20ac8.87",
-        "d0Rev": "\u20ac5,643",
-        "revToDate": "\u20ac7,399",
+        "d0Rev": "\u20ac5,750",
+        "revToDate": "\u20ac7,618",
         "refunds": "\u20ac96",
         "disputeLosses": "\u20ac0",
-        "d0Roas": "41.9%",
-        "roasToDate": "55.0%",
-        "m1": "52.7%",
-        "m2": "60.0%",
-        "m3": "85.3%",
-        "m6": "102.3%",
-        "m9": "113.3%",
-        "m12": "124.1%",
+        "d0Roas": "42.7%",
+        "roasToDate": "56.6%",
+        "m1": "51.9%",
+        "m2": "58.7%",
+        "m3": "84.0%",
+        "m6": "100.6%",
+        "m9": "111.5%",
+        "m12": "122.1%",
         "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
@@ -1311,18 +1370,18 @@
         "upsell": "\u20ac762.27",
         "upsellCount": 88,
         "avg": "\u20ac8.66",
-        "d0Rev": "\u20ac5,961",
-        "revToDate": "\u20ac7,766",
-        "refunds": "\u20ac61",
+        "d0Rev": "\u20ac6,062",
+        "revToDate": "\u20ac7,867",
+        "refunds": "\u20ac60",
         "disputeLosses": "\u20ac13",
-        "d0Roas": "37.9%",
-        "roasToDate": "49.4%",
+        "d0Roas": "38.5%",
+        "roasToDate": "50.0%",
         "m1": "48.0%",
         "m2": "54.6%",
-        "m3": "75.8%",
-        "m6": "90.5%",
-        "m9": "100.0%",
-        "m12": "109.6%",
+        "m3": "75.9%",
+        "m6": "90.7%",
+        "m9": "100.3%",
+        "m12": "109.9%",
         "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
@@ -1339,18 +1398,18 @@
         "upsell": "\u20ac624.46",
         "upsellCount": 71,
         "avg": "\u20ac8.80",
-        "d0Rev": "\u20ac6,184",
-        "revToDate": "\u20ac7,993",
-        "refunds": "\u20ac44",
+        "d0Rev": "\u20ac6,285",
+        "revToDate": "\u20ac8,095",
+        "refunds": "\u20ac43",
         "disputeLosses": "\u20ac25",
-        "d0Roas": "43.9%",
-        "roasToDate": "56.8%",
+        "d0Roas": "44.6%",
+        "roasToDate": "57.5%",
         "m1": "54.2%",
-        "m2": "61.6%",
-        "m3": "89.2%",
-        "m6": "107.3%",
-        "m9": "119.1%",
-        "m12": "130.0%",
+        "m2": "61.5%",
+        "m3": "89.1%",
+        "m6": "107.1%",
+        "m9": "118.8%",
+        "m12": "129.6%",
         "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
@@ -1367,19 +1426,19 @@
         "upsell": "\u20ac619.67",
         "upsellCount": 70,
         "avg": "\u20ac8.85",
-        "d0Rev": "\u20ac5,063",
-        "revToDate": "\u20ac5,626",
-        "refunds": "\u20ac71",
+        "d0Rev": "\u20ac5,164",
+        "revToDate": "\u20ac6,250",
+        "refunds": "\u20ac70",
         "disputeLosses": "\u20ac0",
-        "d0Roas": "33.9%",
-        "roasToDate": "37.7%",
-        "m1": "41.7%",
-        "m2": "47.1%",
-        "m3": "65.3%",
-        "m6": "77.7%",
-        "m9": "85.7%",
-        "m12": "94.0%",
-        "m1Projected": true,
+        "d0Roas": "34.6%",
+        "roasToDate": "41.8%",
+        "m1": "39.0%",
+        "m2": "43.2%",
+        "m3": "60.9%",
+        "m6": "71.9%",
+        "m9": "79.2%",
+        "m12": "87.1%",
+        "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
         "m6Projected": true,
@@ -1395,18 +1454,18 @@
         "upsell": "\u20ac525.97",
         "upsellCount": 59,
         "avg": "\u20ac8.91",
-        "d0Rev": "\u20ac4,601",
-        "revToDate": "\u20ac4,601",
+        "d0Rev": "\u20ac4,753",
+        "revToDate": "\u20ac4,960",
         "refunds": "\u20ac0",
         "disputeLosses": "\u20ac0",
-        "d0Roas": "30.8%",
-        "roasToDate": "30.8%",
-        "m1": "39.0%",
-        "m2": "44.6%",
-        "m3": "61.0%",
-        "m6": "72.9%",
-        "m9": "80.5%",
-        "m12": "88.0%",
+        "d0Roas": "31.8%",
+        "roasToDate": "33.2%",
+        "m1": "39.5%",
+        "m2": "44.9%",
+        "m3": "61.7%",
+        "m6": "73.5%",
+        "m9": "81.0%",
+        "m12": "88.5%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
@@ -1423,18 +1482,18 @@
         "upsell": "\u20ac628.60",
         "upsellCount": 62,
         "avg": "\u20ac10.14",
-        "d0Rev": "\u20ac4,091",
-        "revToDate": "\u20ac4,091",
-        "refunds": "\u20ac109",
+        "d0Rev": "\u20ac4,224",
+        "revToDate": "\u20ac4,224",
+        "refunds": "\u20ac126",
         "disputeLosses": "\u20ac0",
-        "d0Roas": "37.0%",
-        "roasToDate": "37.0%",
-        "m1": "47.2%",
-        "m2": "54.3%",
-        "m3": "72.6%",
-        "m6": "86.7%",
-        "m9": "95.5%",
-        "m12": "104.5%",
+        "d0Roas": "38.2%",
+        "roasToDate": "38.2%",
+        "m1": "48.3%",
+        "m2": "55.2%",
+        "m3": "73.5%",
+        "m6": "87.4%",
+        "m9": "96.2%",
+        "m12": "105.2%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
@@ -1453,7 +1512,7 @@
         "avg": "\u20ac11.49",
         "d0Rev": "\u20ac2,948",
         "revToDate": "\u20ac2,948",
-        "refunds": "\u20ac60",
+        "refunds": "\u20ac59",
         "disputeLosses": "\u20ac0",
         "d0Roas": "27.6%",
         "roasToDate": "27.6%",
@@ -1474,23 +1533,51 @@
         "spendUsd": 12972.939999999999,
         "cohort": "Apr 2-Apr 8",
         "spend": "\u20ac12,973",
-        "newCustomers": 151,
-        "cpa": "\u20ac86",
-        "upsell": "\u20ac1,096.86",
-        "upsellCount": 92,
-        "avg": "\u20ac11.92",
-        "d0Rev": "\u20ac4,630",
-        "revToDate": "\u20ac4,630",
-        "refunds": "\u20ac48",
+        "newCustomers": 157,
+        "cpa": "\u20ac83",
+        "upsell": "\u20ac1,140.99",
+        "upsellCount": 95,
+        "avg": "\u20ac12.01",
+        "d0Rev": "\u20ac4,842",
+        "revToDate": "\u20ac4,842",
+        "refunds": "\u20ac57",
         "disputeLosses": "\u20ac0",
-        "d0Roas": "35.7%",
-        "roasToDate": "35.7%",
-        "m1": "44.1%",
-        "m2": "49.9%",
-        "m3": "69.2%",
-        "m6": "82.5%",
-        "m9": "91.0%",
-        "m12": "98.9%",
+        "d0Roas": "37.3%",
+        "roasToDate": "37.3%",
+        "m1": "46.0%",
+        "m2": "52.0%",
+        "m3": "72.3%",
+        "m6": "86.1%",
+        "m9": "95.1%",
+        "m12": "103.2%",
+        "m1Projected": true,
+        "m2Projected": true,
+        "m3Projected": true,
+        "m6Projected": true,
+        "m9Projected": true,
+        "m12Projected": true
+      },
+      {
+        "spendUsd": 9255.99,
+        "cohort": "Apr 9-Apr 15",
+        "spend": "\u20ac9,256",
+        "newCustomers": 94,
+        "cpa": "\u20ac98",
+        "upsell": "\u20ac781.09",
+        "upsellCount": 51,
+        "avg": "\u20ac15.32",
+        "d0Rev": "\u20ac3,087",
+        "revToDate": "\u20ac3,087",
+        "refunds": "\u20ac0",
+        "disputeLosses": "\u20ac0",
+        "d0Roas": "33.4%",
+        "roasToDate": "33.4%",
+        "m1": "39.0%",
+        "m2": "42.8%",
+        "m3": "61.1%",
+        "m6": "72.1%",
+        "m9": "79.5%",
+        "m12": "86.7%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
@@ -1500,11 +1587,345 @@
       }
     ]
   },
+  "weeklyRetention": [
+    {
+      "cohort": "Jan 1-Jan 7",
+      "monthly_starters": 63,
+      "m1_count": 33,
+      "m1_rate": 52.38095238095239,
+      "m2_count": 16,
+      "m2_rate": 25.396825396825395,
+      "m3_count": 7,
+      "m3_rate": 11.11111111111111
+    },
+    {
+      "cohort": "Jan 8-Jan 14",
+      "monthly_starters": 72,
+      "m1_count": 39,
+      "m1_rate": 54.166666666666664,
+      "m2_count": 23,
+      "m2_rate": 31.944444444444443,
+      "m3_count": 9,
+      "m3_rate": 12.5
+    },
+    {
+      "cohort": "Jan 15-Jan 21",
+      "monthly_starters": 90,
+      "m1_count": 47,
+      "m1_rate": 52.22222222222223,
+      "m2_count": 26,
+      "m2_rate": 28.888888888888886,
+      "m3_count": 1,
+      "m3_rate": 1.1111111111111112
+    },
+    {
+      "cohort": "Jan 22-Jan 28",
+      "monthly_starters": 100,
+      "m1_count": 57,
+      "m1_rate": 56.99999999999999,
+      "m2_count": 25,
+      "m2_rate": 25.0,
+      "m3_count": 2,
+      "m3_rate": 2.0
+    },
+    {
+      "cohort": "Jan 29-Feb 4",
+      "monthly_starters": 74,
+      "m1_count": 51,
+      "m1_rate": 68.91891891891892,
+      "m2_count": 23,
+      "m2_rate": 31.08108108108108,
+      "m3_count": 0,
+      "m3_rate": 0.0
+    },
+    {
+      "cohort": "Feb 5-Feb 11",
+      "monthly_starters": 63,
+      "m1_count": 34,
+      "m1_rate": 53.96825396825397,
+      "m2_count": 15,
+      "m2_rate": 23.809523809523807,
+      "m3_count": 0,
+      "m3_rate": 0.0
+    },
+    {
+      "cohort": "Feb 12-Feb 18",
+      "monthly_starters": 70,
+      "m1_count": 45,
+      "m1_rate": 64.28571428571429,
+      "m2_count": 3,
+      "m2_rate": 4.285714285714286,
+      "m3_count": 0,
+      "m3_rate": 0.0
+    },
+    {
+      "cohort": "Feb 19-Feb 25",
+      "monthly_starters": 96,
+      "m1_count": 52,
+      "m1_rate": 54.166666666666664,
+      "m2_count": 0,
+      "m2_rate": 0.0,
+      "m3_count": 0,
+      "m3_rate": 0.0
+    },
+    {
+      "cohort": "Feb 26-Mar 4",
+      "monthly_starters": 89,
+      "m1_count": 53,
+      "m1_rate": 59.55056179775281,
+      "m2_count": 2,
+      "m2_rate": 2.247191011235955,
+      "m3_count": 2,
+      "m3_rate": 2.247191011235955
+    },
+    {
+      "cohort": "Mar 5-Mar 11",
+      "monthly_starters": 73,
+      "m1_count": 32,
+      "m1_rate": 43.83561643835616,
+      "m2_count": 2,
+      "m2_rate": 2.73972602739726,
+      "m3_count": 2,
+      "m3_rate": 2.73972602739726
+    },
+    {
+      "cohort": "Mar 12-Mar 18",
+      "monthly_starters": 73,
+      "m1_count": 8,
+      "m1_rate": 10.95890410958904,
+      "m2_count": 0,
+      "m2_rate": 0.0,
+      "m3_count": 0,
+      "m3_rate": 0.0
+    },
+    {
+      "cohort": "Mar 19-Mar 25",
+      "monthly_starters": 68,
+      "m1_count": 0,
+      "m1_rate": 0.0,
+      "m2_count": 0,
+      "m2_rate": 0.0,
+      "m3_count": 0,
+      "m3_rate": 0.0
+    },
+    {
+      "cohort": "Mar 26-Apr 1",
+      "monthly_starters": 43,
+      "m1_count": 0,
+      "m1_rate": 0.0,
+      "m2_count": 0,
+      "m2_rate": 0.0,
+      "m3_count": 0,
+      "m3_rate": 0.0
+    },
+    {
+      "cohort": "Apr 2-Apr 8",
+      "monthly_starters": 69,
+      "m1_count": 0,
+      "m1_rate": 0.0,
+      "m2_count": 0,
+      "m2_rate": 0.0,
+      "m3_count": 0,
+      "m3_rate": 0.0
+    },
+    {
+      "cohort": "Apr 9-Apr 15",
+      "monthly_starters": 32,
+      "m1_count": 0,
+      "m1_rate": 0.0,
+      "m2_count": 0,
+      "m2_rate": 0.0,
+      "m3_count": 0,
+      "m3_rate": 0.0
+    }
+  ],
+  "quarterlyRetention": [
+    {
+      "cohort": "Jan 1-Jan 7",
+      "quarterly_starters": 77,
+      "m3_count": 44,
+      "m3_rate": 57.14285714285714,
+      "m6_count": 0,
+      "m6_rate": 0.0,
+      "m9_count": 0,
+      "m9_rate": 0.0,
+      "m12_count": 0,
+      "m12_rate": 0.0
+    },
+    {
+      "cohort": "Jan 8-Jan 14",
+      "quarterly_starters": 60,
+      "m3_count": 34,
+      "m3_rate": 56.666666666666664,
+      "m6_count": 0,
+      "m6_rate": 0.0,
+      "m9_count": 0,
+      "m9_rate": 0.0,
+      "m12_count": 0,
+      "m12_rate": 0.0
+    },
+    {
+      "cohort": "Jan 15-Jan 21",
+      "quarterly_starters": 70,
+      "m3_count": 2,
+      "m3_rate": 2.857142857142857,
+      "m6_count": 0,
+      "m6_rate": 0.0,
+      "m9_count": 0,
+      "m9_rate": 0.0,
+      "m12_count": 0,
+      "m12_rate": 0.0
+    },
+    {
+      "cohort": "Jan 22-Jan 28",
+      "quarterly_starters": 133,
+      "m3_count": 8,
+      "m3_rate": 6.015037593984962,
+      "m6_count": 1,
+      "m6_rate": 0.7518796992481203,
+      "m9_count": 0,
+      "m9_rate": 0.0,
+      "m12_count": 0,
+      "m12_rate": 0.0
+    },
+    {
+      "cohort": "Jan 29-Feb 4",
+      "quarterly_starters": 112,
+      "m3_count": 2,
+      "m3_rate": 1.7857142857142856,
+      "m6_count": 0,
+      "m6_rate": 0.0,
+      "m9_count": 0,
+      "m9_rate": 0.0,
+      "m12_count": 0,
+      "m12_rate": 0.0
+    },
+    {
+      "cohort": "Feb 5-Feb 11",
+      "quarterly_starters": 96,
+      "m3_count": 9,
+      "m3_rate": 9.375,
+      "m6_count": 0,
+      "m6_rate": 0.0,
+      "m9_count": 0,
+      "m9_rate": 0.0,
+      "m12_count": 0,
+      "m12_rate": 0.0
+    },
+    {
+      "cohort": "Feb 12-Feb 18",
+      "quarterly_starters": 102,
+      "m3_count": 4,
+      "m3_rate": 3.9215686274509802,
+      "m6_count": 0,
+      "m6_rate": 0.0,
+      "m9_count": 0,
+      "m9_rate": 0.0,
+      "m12_count": 0,
+      "m12_rate": 0.0
+    },
+    {
+      "cohort": "Feb 19-Feb 25",
+      "quarterly_starters": 100,
+      "m3_count": 0,
+      "m3_rate": 0.0,
+      "m6_count": 0,
+      "m6_rate": 0.0,
+      "m9_count": 0,
+      "m9_rate": 0.0,
+      "m12_count": 0,
+      "m12_rate": 0.0
+    },
+    {
+      "cohort": "Feb 26-Mar 4",
+      "quarterly_starters": 117,
+      "m3_count": 3,
+      "m3_rate": 2.564102564102564,
+      "m6_count": 0,
+      "m6_rate": 0.0,
+      "m9_count": 0,
+      "m9_rate": 0.0,
+      "m12_count": 0,
+      "m12_rate": 0.0
+    },
+    {
+      "cohort": "Mar 5-Mar 11",
+      "quarterly_starters": 83,
+      "m3_count": 2,
+      "m3_rate": 2.4096385542168677,
+      "m6_count": 0,
+      "m6_rate": 0.0,
+      "m9_count": 0,
+      "m9_rate": 0.0,
+      "m12_count": 0,
+      "m12_rate": 0.0
+    },
+    {
+      "cohort": "Mar 12-Mar 18",
+      "quarterly_starters": 73,
+      "m3_count": 0,
+      "m3_rate": 0.0,
+      "m6_count": 0,
+      "m6_rate": 0.0,
+      "m9_count": 0,
+      "m9_rate": 0.0,
+      "m12_count": 0,
+      "m12_rate": 0.0
+    },
+    {
+      "cohort": "Mar 19-Mar 25",
+      "quarterly_starters": 58,
+      "m3_count": 0,
+      "m3_rate": 0.0,
+      "m6_count": 0,
+      "m6_rate": 0.0,
+      "m9_count": 0,
+      "m9_rate": 0.0,
+      "m12_count": 0,
+      "m12_rate": 0.0
+    },
+    {
+      "cohort": "Mar 26-Apr 1",
+      "quarterly_starters": 40,
+      "m3_count": 0,
+      "m3_rate": 0.0,
+      "m6_count": 0,
+      "m6_rate": 0.0,
+      "m9_count": 0,
+      "m9_rate": 0.0,
+      "m12_count": 0,
+      "m12_rate": 0.0
+    },
+    {
+      "cohort": "Apr 2-Apr 8",
+      "quarterly_starters": 76,
+      "m3_count": 0,
+      "m3_rate": 0.0,
+      "m6_count": 0,
+      "m6_rate": 0.0,
+      "m9_count": 0,
+      "m9_rate": 0.0,
+      "m12_count": 0,
+      "m12_rate": 0.0
+    },
+    {
+      "cohort": "Apr 9-Apr 15",
+      "quarterly_starters": 53,
+      "m3_count": 0,
+      "m3_rate": 0.0,
+      "m6_count": 0,
+      "m6_rate": 0.0,
+      "m9_count": 0,
+      "m9_rate": 0.0,
+      "m12_count": 0,
+      "m12_rate": 0.0
+    }
+  ],
   "totals": {
-    "customers": 2907,
-    "paid_customers": 2627,
-    "active_customers": 1873,
-    "repeat_customers": 1368
+    "customers": 3014,
+    "paid_customers": 2726,
+    "active_customers": 1889,
+    "repeat_customers": 1457
   }
 };
     const clientConfig = {
@@ -1514,7 +1935,7 @@
     "2026-03",
     "2026-04"
   ],
-  "currentDate": "2026-04-08",
+  "currentDate": "2026-04-14",
   "projectedNetRevenueFactor": 0.85,
   "retentionRates": {
     "monthly": {
@@ -3242,11 +3663,12 @@
       "2026-03-12": 14952.0,
       "2026-03-19": 11061.0,
       "2026-03-26": 10678.9,
-      "2026-04-02": 12972.939999999999
+      "2026-04-02": 12972.939999999999,
+      "2026-04-09": 9255.99
     }
   }
 };
-    const STORAGE_KEY = "cohort_dashboard_published_payload_v1";
+    const STORAGE_KEY = "cohort_dashboard_published_payload_v2";
     const state = {
       payload: defaultPayload,
       uploaded: false,
@@ -3267,7 +3689,11 @@
       try {
         const raw = window.localStorage.getItem(STORAGE_KEY);
         if (!raw) return null;
-        return JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        if (!parsed || !parsed.monthly || !parsed.weekly || !parsed.weeklyRetention) {
+          return null;
+        }
+        return parsed;
       } catch (_error) {
         return null;
       }
@@ -4134,6 +4560,41 @@
           );
         });
 
+      const weeklyRetention = Array.from(groupedWeekly.keys())
+        .sort((a, b) => a.localeCompare(b))
+        .map((weekKey) => {
+          const cohortRows = groupedWeekly.get(weekKey) || [];
+          const starterIds = [];
+          cohortRows.forEach((row) => {
+            const customerId = String(row.id || "").trim();
+            if (!customerId || customerId.startsWith("gcus_")) return;
+            if (parseIntValue(row["Payment Count"]) < 1) return;
+            const monthKey = String(row["Created (UTC)"] || "").slice(0, 7);
+            const firstSubscription = subscriptionCreationInfo.get(customerId);
+            const family = starterFamilyForRow(row, monthKey, firstSubscription, catalog);
+            if (family === "monthly") {
+              starterIds.push(customerId);
+            }
+          });
+          const uniqueStarterIds = Array.from(new Set(starterIds)).sort();
+          const denominator = uniqueStarterIds.length;
+          const milestoneCounts = subscriptionBillingCountsThrough(cohortRows, paymentsRows, clientConfig.currentDate);
+          const m1 = uniqueStarterIds.filter((customerId) => (milestoneCounts.get(customerId) || 0) >= 2).length;
+          const m2 = uniqueStarterIds.filter((customerId) => (milestoneCounts.get(customerId) || 0) >= 3).length;
+          const m3 = uniqueStarterIds.filter((customerId) => (milestoneCounts.get(customerId) || 0) >= 4).length;
+          const [weekStart, weekEnd] = weeklyRanges.get(weekKey);
+          return {
+            cohort: `${formatShortDate(weekStart)}-${formatShortDate(weekEnd)}`,
+            monthlyStarters: denominator,
+            m1Count: m1,
+            m1Rate: denominator ? (m1 / denominator) * 100 : 0,
+            m2Count: m2,
+            m2Rate: denominator ? (m2 / denominator) * 100 : 0,
+            m3Count: m3,
+            m3Rate: denominator ? (m3 / denominator) * 100 : 0,
+          };
+        });
+
       const cohortRows = customersRows.filter((row) => clientConfig.targetMonths.includes(String(row["Created (UTC)"] || "").slice(0, 7)));
       const totals = {
         customers: cohortRows.length,
@@ -4145,6 +4606,7 @@
       return {
         monthly: buildViewPayload(monthlyMetrics),
         weekly: buildViewPayload(weeklyMetrics),
+        weeklyRetention,
         totals,
       };
     }
@@ -4192,8 +4654,48 @@
       `).join("");
     }
 
+    function renderRetentionTable() {
+      const tbody = document.getElementById("retention-tbody");
+      const rows = state.payload.weeklyRetention || [];
+      tbody.innerHTML = rows.map((row) => `
+        <tr>
+          <td class="cohort"><span class="cohort-range">${row.cohort}</span></td>
+          <td>${Number(row.monthlyStarters ?? row.monthly_starters ?? 0).toLocaleString()}</td>
+          <td>${Number(row.m1Count ?? row.m1_count ?? 0).toLocaleString()}</td>
+          <td class="actual">${Number(row.m1Rate ?? row.m1_rate ?? 0).toFixed(1)}%</td>
+          <td>${Number(row.m2Count ?? row.m2_count ?? 0).toLocaleString()}</td>
+          <td class="actual">${Number(row.m2Rate ?? row.m2_rate ?? 0).toFixed(1)}%</td>
+          <td>${Number(row.m3Count ?? row.m3_count ?? 0).toLocaleString()}</td>
+          <td class="actual">${Number(row.m3Rate ?? row.m3_rate ?? 0).toFixed(1)}%</td>
+        </tr>
+      `).join("");
+    }
+
+    function renderQuarterlyRetentionTable() {
+      const tbody = document.getElementById("quarterly-retention-tbody");
+      const rows = state.payload.quarterlyRetention || [];
+      tbody.innerHTML = rows.map((row) => `
+        <tr>
+          <td class="cohort"><span class="cohort-range">${row.cohort}</span></td>
+          <td>${Number(row.quarterlyStarters ?? row.quarterly_starters ?? 0).toLocaleString()}</td>
+          <td>${Number(row.m3Count ?? row.m3_count ?? 0).toLocaleString()}</td>
+          <td class="actual">${Number(row.m3Rate ?? row.m3_rate ?? 0).toFixed(1)}%</td>
+          <td>${Number(row.m6Count ?? row.m6_count ?? 0).toLocaleString()}</td>
+          <td class="actual">${Number(row.m6Rate ?? row.m6_rate ?? 0).toFixed(1)}%</td>
+          <td>${Number(row.m9Count ?? row.m9_count ?? 0).toLocaleString()}</td>
+          <td class="actual">${Number(row.m9Rate ?? row.m9_rate ?? 0).toFixed(1)}%</td>
+          <td>${Number(row.m12Count ?? row.m12_count ?? 0).toLocaleString()}</td>
+          <td class="actual">${Number(row.m12Rate ?? row.m12_rate ?? 0).toFixed(1)}%</td>
+        </tr>
+      `).join("");
+    }
+
     function renderChart() {
       const svg = document.getElementById("chart");
+      if (activeView === "weekly-retention" || activeView === "quarterly-retention") {
+        svg.innerHTML = "";
+        return;
+      }
       const view = state.payload[activeView];
       const width = 1320;
       const height = 380;
@@ -4241,12 +4743,28 @@
       document.querySelectorAll(".tab-button").forEach((button) => {
         button.classList.toggle("active", button.dataset.view === nextView);
       });
+      const isRetentionView = nextView === "weekly-retention" || nextView === "quarterly-retention";
+      document.getElementById("retention-card").style.display = isRetentionView ? "block" : "none";
+      document.getElementById("retention-table-monthly").style.display = nextView === "weekly-retention" ? "table" : "none";
+      document.getElementById("retention-table-quarterly").style.display = nextView === "quarterly-retention" ? "table" : "none";
+      document.querySelector(".chart-card").style.display = isRetentionView ? "none" : "block";
+      document.getElementById("main-table-card").style.display = isRetentionView ? "none" : "block";
       document.getElementById("section-note").textContent =
         nextView === "monthly"
           ? "Grouped bar chart for the four key rates available in the export."
-          : "Weekly cohort comparison using the same rate definitions and milestone table.";
-      renderTable();
-      renderChart();
+          : nextView === "weekly"
+            ? "Weekly cohort comparison using the same rate definitions and milestone table."
+            : nextView === "weekly-retention"
+              ? "Monthly-plan starter retention by weekly cohort, shown as renewals and retention rates."
+              : "Quarterly-plan starter retention by weekly cohort, shown as renewals and retention rates.";
+      if (nextView === "weekly-retention") {
+        renderRetentionTable();
+      } else if (nextView === "quarterly-retention") {
+        renderQuarterlyRetentionTable();
+      } else {
+        renderTable();
+        renderChart();
+      }
     }
 
     function updateUploadControls() {
