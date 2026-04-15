@@ -163,9 +163,9 @@ DAILY_SPEND_OVERRIDE_EUR = {
 CURRENT_DATE = date(2026, 4, 14)
 PROJECTED_NET_REVENUE_FACTOR = 0.85
 RETENTION_RATE_BENCHMARKS = {
-    "monthly": {1: 0.55, 2: 0.27, 3: 0.12, 4: 0.10, 5: 0.05, 6: 0.03, 7: 0.03},
+    "monthly": {1: 0.55, 2: 0.27, 3: 0.12, 4: 0.09, 5: 0.08, 6: 0.08, 7: 0.07, 8: 0.06, 9: 0.05, 10: 0.03, 11: 0.02, 12: 0.01},
     "quarterly": {3: 0.55, 6: 0.30, 9: 0.15, 12: 0.10},
-    "annual": {12: 0.40},
+    "annual": {12: 0.35},
 }
 PLAN_REVENUE_SCHEDULES = {
     "monthly_19_60": {"family": "monthly", "intro": 19.60, "full_price": 39.99},
@@ -1876,7 +1876,7 @@ def render_html(
           </ul>
           <p><strong>How M6 is projected from the last actual month</strong></p>
           <ul>
-            <li>Monthly anchor is actual M3 retention {(week_example["actual_retention"].get("monthly", {}).get(3, 0.0) * 100):.1f}%. Then M4 = M3 × 10%/12% = {(week_example["monthly_m4"] * 100):.1f}%, M5 = M4 × 5%/10% = {(week_example["monthly_m5"] * 100):.1f}%, M6 = M5 × 3%/5% = {(week_example["monthly_m6"] * 100):.1f}%.</li>
+            <li>Monthly anchor is actual M3 retention {(week_example["actual_retention"].get("monthly", {}).get(3, 0.0) * 100):.1f}%. Then M4 = M3 × 9%/12% = {(week_example["monthly_m4"] * 100):.1f}%, M5 = M4 × 8%/9% = {(week_example["monthly_m5"] * 100):.1f}%, M6 = M5 × 8%/8% = {(week_example["monthly_m6"] * 100):.1f}%.</li>
             <li>Quarterly anchor is actual M3 retention {(week_example["actual_retention"].get("quarterly", {}).get(3, 0.0) * 100):.1f}%. Then M6 = M3 × 30%/55% = {(week_example["quarterly_m6"] * 100):.1f}%.</li>
             <li>The projected M6 tail uses the real renewal-price pools and then applies the 15% haircut: monthly tail {format_usd(week_example["monthly_m6_tail"])}, quarterly tail {format_usd(week_example["quarterly_m6_tail"])}, annual tail {format_usd(week_example["annual_m6_tail"])}.</li>
             <li>So projected M6 = actual M3 base {format_usd(week_example["m3"])} + future tail {format_usd(week_example["monthly_m6_tail"] + week_example["quarterly_m6_tail"] + week_example["annual_m6_tail"])} = {format_usd(week_example["m6"])}, which is {(week_example["m6"] / week_example["spend"] * 100):.1f}% ROAS.</li>
@@ -2773,9 +2773,9 @@ def render_html(
         <div class="forecast-block">
           <h3>Benchmark Rates Used</h3>
           <ul>
-            <li>Monthly: M1 55%, M2 27%, M3 12%, M4 10%, M5 5%, M6 3%, M7 3%.</li>
+            <li>Monthly: M1 55%, M2 27%, M3 12%, M4 9%, M5 8%, M6 8%, M7 7%, M8 6%, M9 5%, M10 3%, M11 2%, M12 1%.</li>
             <li>Quarterly: M3 55%, M6 30%, M9 15%, M12 10%.</li>
-            <li>Annual: M12 40%.</li>
+            <li>Annual: M12 35%.</li>
           </ul>
         </div>
 
