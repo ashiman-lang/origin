@@ -325,7 +325,8 @@
     table {
       width: 100%;
       min-width: 1660px;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
     }
 
     thead {
@@ -347,6 +348,10 @@
       white-space: normal;
       line-height: 1.25;
       min-width: 86px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: linear-gradient(180deg, rgba(48, 64, 94, 0.98), rgba(34, 47, 71, 0.98));
     }
 
     .th-two-line {
@@ -385,7 +390,53 @@
     }
 
     th:first-child {
-      z-index: 2;
+      z-index: 6;
+    }
+
+    #main-table-card th:first-child,
+    #main-table-card td:first-child {
+      left: 0;
+      min-width: 170px;
+      width: 170px;
+      z-index: 4;
+    }
+
+    #main-table-card th:nth-child(2),
+    #main-table-card td:nth-child(2),
+    #main-table-card th:nth-child(3),
+    #main-table-card td:nth-child(3),
+    #main-table-card th:nth-child(4),
+    #main-table-card td:nth-child(4) {
+      position: sticky;
+      z-index: 3;
+      background: linear-gradient(180deg, rgba(41, 56, 83, 0.98), rgba(27, 39, 61, 0.98));
+    }
+
+    #main-table-card th:nth-child(2),
+    #main-table-card td:nth-child(2) {
+      left: 170px;
+      min-width: 110px;
+      width: 110px;
+    }
+
+    #main-table-card th:nth-child(3),
+    #main-table-card td:nth-child(3) {
+      left: 280px;
+      min-width: 90px;
+      width: 90px;
+    }
+
+    #main-table-card th:nth-child(4),
+    #main-table-card td:nth-child(4) {
+      left: 370px;
+      min-width: 90px;
+      width: 90px;
+    }
+
+    #main-table-card thead th:nth-child(2),
+    #main-table-card thead th:nth-child(3),
+    #main-table-card thead th:nth-child(4) {
+      z-index: 6;
     }
 
     tbody tr:hover {
@@ -778,10 +829,10 @@
           <td class="metric-blue">70.1%</td>
           <td class="actual">49.2%</td>
           <td class="actual">55.6%</td>
-          <td class="projected">78.2%</td>
-          <td class="projected">92.3%</td>
-          <td class="projected">101.6%</td>
-          <td class="projected">110.4%</td>
+          <td class="projected">79.7%</td>
+          <td class="projected">91.2%</td>
+          <td class="projected">97.8%</td>
+          <td class="projected">105.0%</td>
         </tr>
         
         <tr>
@@ -799,11 +850,11 @@
           <td class="metric-amber">42.1%</td>
           <td class="metric-blue">56.5%</td>
           <td class="actual">50.7%</td>
-          <td class="projected">57.4%</td>
-          <td class="projected">82.2%</td>
-          <td class="projected">98.5%</td>
-          <td class="projected">109.1%</td>
-          <td class="projected">119.2%</td>
+          <td class="projected">55.4%</td>
+          <td class="projected">81.0%</td>
+          <td class="projected">92.7%</td>
+          <td class="projected">99.7%</td>
+          <td class="projected">107.8%</td>
         </tr>
         
         <tr>
@@ -821,11 +872,11 @@
           <td class="metric-amber">34.0%</td>
           <td class="metric-blue">38.1%</td>
           <td class="projected">42.3%</td>
-          <td class="projected">48.0%</td>
-          <td class="projected">65.9%</td>
-          <td class="projected">78.5%</td>
-          <td class="projected">86.5%</td>
-          <td class="projected">94.7%</td>
+          <td class="projected">46.3%</td>
+          <td class="projected">64.5%</td>
+          <td class="projected">73.2%</td>
+          <td class="projected">78.1%</td>
+          <td class="projected">84.7%</td>
         </tr>
         
         <tr>
@@ -843,11 +894,11 @@
           <td class="metric-amber">36.3%</td>
           <td class="metric-blue">36.3%</td>
           <td class="projected">44.0%</td>
-          <td class="projected">49.4%</td>
-          <td class="projected">69.3%</td>
-          <td class="projected">82.4%</td>
-          <td class="projected">90.9%</td>
-          <td class="projected">98.7%</td>
+          <td class="projected">47.8%</td>
+          <td class="projected">68.4%</td>
+          <td class="projected">77.8%</td>
+          <td class="projected">83.3%</td>
+          <td class="projected">89.5%</td>
         </tr>
         </tbody>
         </table>
@@ -907,9 +958,9 @@
         <div class="forecast-block">
           <h3>Benchmark Rates Used</h3>
           <ul>
-            <li>Monthly: M1 55%, M2 38%, M3 20%, M4 18%, M5 14%, M6 12%, M7 10%, M8 7%, M9 7%, M10 6%, M11 6%, M12 5%.</li>
-            <li>Quarterly: M3 50%, M6 20%, M9 15%, M12 10%.</li>
-            <li>Annual: M12 30%.</li>
+            <li>Monthly: M1 55%, M2 27%, M3 12%, M4 10%, M5 5%, M6 3%, M7 3%.</li>
+            <li>Quarterly: M3 55%, M6 20%, M9 15%, M12 10%.</li>
+            <li>Annual: M12 40%.</li>
           </ul>
         </div>
 
@@ -926,7 +977,7 @@
         <div class="forecast-block">
           <h3>How Future Revenue Is Added</h3>
           <ul>
-            <li>Later milestone retention is projected by applying the benchmark month-over-month ratio to the last actual retention (for example: if actual M1 retention = 46% and the monthly benchmark goes from M1 55% to M2 38%, then predicted M2 retention = 46% × 38% / 55% = 31.8%).</li>
+            <li>Later milestone retention is projected by applying the benchmark month-over-month ratio to the last actual retention (for example: if actual M1 retention = 46% and the monthly benchmark goes from M1 55% to M2 27%, then predicted M2 retention = 46% × 27% / 55% = 22.6%).</li>
             <li>The projected future tail uses each priced customer’s real full renewal price, not a generic bucket price.</li>
             <li>First-day upsell revenue stays inside cumulative predicted ROAS, and projected future revenue gets a 15% haircut for refunds and fees.</li>
           </ul>
@@ -950,10 +1001,10 @@
           </ul>
           <p><strong>How M6 is projected from the last actual month</strong></p>
           <ul>
-            <li>Monthly anchor is actual M3 retention 11.1%. Then M4 = M3 × 18%/20% = 10.0%, M5 = M4 × 14%/18% = 7.8%, M6 = M5 × 12%/14% = 6.7%.</li>
-            <li>Quarterly anchor is actual M3 retention 57.1%. Then M6 = M3 × 20%/50% = 22.9%.</li>
-            <li>The projected M6 tail uses the real renewal-price pools and then applies the 15% haircut: monthly tail €437, quarterly tail €998, annual tail €0.</li>
-            <li>So projected M6 = actual M3 base €8,491 + future tail €1,434 = €9,925, which is 93.0% ROAS.</li>
+            <li>Monthly anchor is actual M3 retention 11.1%. Then M4 = M3 × 10%/12% = 9.3%, M5 = M4 × 5%/10% = 4.6%, M6 = M5 × 3%/5% = 2.8%.</li>
+            <li>Quarterly anchor is actual M3 retention 57.1%. Then M6 = M3 × 20%/55% = 20.8%.</li>
+            <li>The projected M6 tail uses the real renewal-price pools and then applies the 15% haircut: monthly tail €298, quarterly tail €907, annual tail €0.</li>
+            <li>So projected M6 = actual M3 base €8,491 + future tail €1,205 = €9,695, which is 90.8% ROAS.</li>
           </ul>
         </div>
       </details>
@@ -1013,10 +1064,10 @@
         "roasToDate": "70.1%",
         "m1": "49.2%",
         "m2": "55.6%",
-        "m3": "78.2%",
-        "m6": "92.3%",
-        "m9": "101.6%",
-        "m12": "110.4%",
+        "m3": "79.7%",
+        "m6": "91.2%",
+        "m9": "97.8%",
+        "m12": "105.0%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": true,
@@ -1040,11 +1091,11 @@
         "d0Roas": "42.1%",
         "roasToDate": "56.5%",
         "m1": "50.7%",
-        "m2": "57.4%",
-        "m3": "82.2%",
-        "m6": "98.5%",
-        "m9": "109.1%",
-        "m12": "119.2%",
+        "m2": "55.4%",
+        "m3": "81.0%",
+        "m6": "92.7%",
+        "m9": "99.7%",
+        "m12": "107.8%",
         "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
@@ -1068,11 +1119,11 @@
         "d0Roas": "34.0%",
         "roasToDate": "38.1%",
         "m1": "42.3%",
-        "m2": "48.0%",
-        "m3": "65.9%",
-        "m6": "78.5%",
-        "m9": "86.5%",
-        "m12": "94.7%",
+        "m2": "46.3%",
+        "m3": "64.5%",
+        "m6": "73.2%",
+        "m9": "78.1%",
+        "m12": "84.7%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
@@ -1096,11 +1147,11 @@
         "d0Roas": "36.3%",
         "roasToDate": "36.3%",
         "m1": "44.0%",
-        "m2": "49.4%",
-        "m3": "69.3%",
-        "m6": "82.4%",
-        "m9": "90.9%",
-        "m12": "98.7%",
+        "m2": "47.8%",
+        "m3": "68.4%",
+        "m6": "77.8%",
+        "m9": "83.3%",
+        "m12": "89.5%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
@@ -1237,9 +1288,9 @@
         "m1": "45.4%",
         "m2": "50.1%",
         "m3": "79.5%",
-        "m6": "93.0%",
-        "m9": "102.2%",
-        "m12": "110.7%",
+        "m6": "90.8%",
+        "m9": "97.7%",
+        "m12": "104.8%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": false,
@@ -1265,9 +1316,9 @@
         "m1": "54.8%",
         "m2": "63.0%",
         "m3": "90.1%",
-        "m6": "104.0%",
-        "m9": "113.3%",
-        "m12": "124.5%",
+        "m6": "101.4%",
+        "m9": "107.6%",
+        "m12": "117.7%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": false,
@@ -1292,10 +1343,10 @@
         "roasToDate": "66.4%",
         "m1": "55.0%",
         "m2": "63.2%",
-        "m3": "84.2%",
-        "m6": "99.1%",
-        "m9": "108.6%",
-        "m12": "117.6%",
+        "m3": "85.4%",
+        "m6": "96.9%",
+        "m9": "102.9%",
+        "m12": "109.7%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": true,
@@ -1320,10 +1371,10 @@
         "roasToDate": "54.2%",
         "m1": "44.5%",
         "m2": "49.3%",
-        "m3": "72.0%",
-        "m6": "84.8%",
-        "m9": "93.4%",
-        "m12": "101.0%",
+        "m3": "73.7%",
+        "m6": "84.6%",
+        "m9": "91.2%",
+        "m12": "97.6%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": true,
@@ -1348,10 +1399,10 @@
         "roasToDate": "63.9%",
         "m1": "52.4%",
         "m2": "58.5%",
-        "m3": "84.9%",
-        "m6": "100.2%",
-        "m9": "110.5%",
-        "m12": "119.1%",
+        "m3": "86.8%",
+        "m6": "99.7%",
+        "m9": "107.4%",
+        "m12": "114.2%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": true,
@@ -1376,10 +1427,10 @@
         "roasToDate": "59.3%",
         "m1": "49.2%",
         "m2": "53.5%",
-        "m3": "77.4%",
-        "m6": "90.4%",
-        "m9": "99.2%",
-        "m12": "107.9%",
+        "m3": "79.3%",
+        "m6": "90.5%",
+        "m9": "97.5%",
+        "m12": "105.5%",
         "m1Projected": false,
         "m2Projected": false,
         "m3Projected": true,
@@ -1403,11 +1454,11 @@
         "d0Roas": "42.7%",
         "roasToDate": "56.6%",
         "m1": "51.9%",
-        "m2": "58.7%",
-        "m3": "84.0%",
-        "m6": "100.6%",
-        "m9": "111.5%",
-        "m12": "122.1%",
+        "m2": "56.7%",
+        "m3": "82.8%",
+        "m6": "94.8%",
+        "m9": "101.9%",
+        "m12": "110.5%",
         "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
@@ -1431,11 +1482,11 @@
         "d0Roas": "38.5%",
         "roasToDate": "50.0%",
         "m1": "48.0%",
-        "m2": "54.6%",
-        "m3": "75.9%",
-        "m6": "90.7%",
-        "m9": "100.3%",
-        "m12": "109.9%",
+        "m2": "52.7%",
+        "m3": "74.4%",
+        "m6": "84.7%",
+        "m9": "90.6%",
+        "m12": "98.2%",
         "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
@@ -1459,11 +1510,11 @@
         "d0Roas": "44.6%",
         "roasToDate": "57.5%",
         "m1": "54.2%",
-        "m2": "61.5%",
-        "m3": "89.1%",
-        "m6": "107.1%",
-        "m9": "118.8%",
-        "m12": "129.6%",
+        "m2": "59.4%",
+        "m3": "87.8%",
+        "m6": "100.8%",
+        "m9": "108.5%",
+        "m12": "116.9%",
         "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
@@ -1487,11 +1538,11 @@
         "d0Roas": "34.6%",
         "roasToDate": "41.8%",
         "m1": "39.0%",
-        "m2": "43.2%",
-        "m3": "60.9%",
-        "m6": "71.9%",
-        "m9": "79.2%",
-        "m12": "87.1%",
+        "m2": "42.0%",
+        "m3": "60.3%",
+        "m6": "68.5%",
+        "m9": "73.5%",
+        "m12": "80.4%",
         "m1Projected": false,
         "m2Projected": true,
         "m3Projected": true,
@@ -1515,11 +1566,11 @@
         "d0Roas": "31.8%",
         "roasToDate": "33.2%",
         "m1": "39.5%",
-        "m2": "44.9%",
-        "m3": "61.7%",
-        "m6": "73.5%",
-        "m9": "81.0%",
-        "m12": "88.5%",
+        "m2": "43.3%",
+        "m3": "60.4%",
+        "m6": "68.5%",
+        "m9": "73.2%",
+        "m12": "79.0%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
@@ -1543,11 +1594,11 @@
         "d0Roas": "38.2%",
         "roasToDate": "38.2%",
         "m1": "48.3%",
-        "m2": "55.2%",
-        "m3": "73.5%",
-        "m6": "87.4%",
-        "m9": "96.2%",
-        "m12": "105.2%",
+        "m2": "53.2%",
+        "m3": "71.5%",
+        "m6": "80.6%",
+        "m9": "85.6%",
+        "m12": "92.4%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
@@ -1571,11 +1622,11 @@
         "d0Roas": "27.6%",
         "roasToDate": "27.6%",
         "m1": "34.2%",
-        "m2": "38.8%",
-        "m3": "52.3%",
-        "m6": "62.0%",
-        "m9": "68.3%",
-        "m12": "75.3%",
+        "m2": "37.4%",
+        "m3": "51.1%",
+        "m6": "57.8%",
+        "m9": "61.5%",
+        "m12": "67.3%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
@@ -1599,11 +1650,11 @@
         "d0Roas": "37.3%",
         "roasToDate": "37.3%",
         "m1": "46.0%",
-        "m2": "52.0%",
-        "m3": "72.3%",
-        "m6": "86.1%",
-        "m9": "95.1%",
-        "m12": "103.2%",
+        "m2": "50.2%",
+        "m3": "71.0%",
+        "m6": "80.7%",
+        "m9": "86.4%",
+        "m12": "92.5%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
@@ -1627,11 +1678,11 @@
         "d0Roas": "33.4%",
         "roasToDate": "33.4%",
         "m1": "39.0%",
-        "m2": "42.8%",
-        "m3": "61.1%",
-        "m6": "72.1%",
-        "m9": "79.5%",
-        "m12": "86.7%",
+        "m2": "41.7%",
+        "m3": "60.8%",
+        "m6": "69.2%",
+        "m9": "74.4%",
+        "m12": "80.7%",
         "m1Projected": true,
         "m2Projected": true,
         "m3Projected": true,
@@ -2099,26 +2150,21 @@
   "retentionRates": {
     "monthly": {
       "1": 0.55,
-      "2": 0.38,
-      "3": 0.2,
-      "4": 0.18,
-      "5": 0.14,
-      "6": 0.12,
-      "7": 0.1,
-      "8": 0.07,
-      "9": 0.07,
-      "10": 0.06,
-      "11": 0.06,
-      "12": 0.05
+      "2": 0.27,
+      "3": 0.12,
+      "4": 0.1,
+      "5": 0.05,
+      "6": 0.03,
+      "7": 0.03
     },
     "quarterly": {
-      "3": 0.5,
+      "3": 0.55,
       "6": 0.2,
       "9": 0.15,
       "12": 0.1
     },
     "annual": {
-      "12": 0.3
+      "12": 0.4
     }
   },
   "planRevenueSchedules": {

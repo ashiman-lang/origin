@@ -163,9 +163,9 @@ DAILY_SPEND_OVERRIDE_EUR = {
 CURRENT_DATE = date(2026, 4, 14)
 PROJECTED_NET_REVENUE_FACTOR = 0.85
 RETENTION_RATE_BENCHMARKS = {
-    "monthly": {1: 0.55, 2: 0.38, 3: 0.20, 4: 0.18, 5: 0.14, 6: 0.12, 7: 0.10, 8: 0.07, 9: 0.07, 10: 0.06, 11: 0.06, 12: 0.05},
-    "quarterly": {3: 0.50, 6: 0.20, 9: 0.15, 12: 0.10},
-    "annual": {12: 0.30},
+    "monthly": {1: 0.55, 2: 0.27, 3: 0.12, 4: 0.10, 5: 0.05, 6: 0.03, 7: 0.03},
+    "quarterly": {3: 0.55, 6: 0.20, 9: 0.15, 12: 0.10},
+    "annual": {12: 0.40},
 }
 PLAN_REVENUE_SCHEDULES = {
     "monthly_19_60": {"family": "monthly", "intro": 19.60, "full_price": 39.99},
@@ -1876,8 +1876,8 @@ def render_html(
           </ul>
           <p><strong>How M6 is projected from the last actual month</strong></p>
           <ul>
-            <li>Monthly anchor is actual M3 retention {(week_example["actual_retention"].get("monthly", {}).get(3, 0.0) * 100):.1f}%. Then M4 = M3 × 18%/20% = {(week_example["monthly_m4"] * 100):.1f}%, M5 = M4 × 14%/18% = {(week_example["monthly_m5"] * 100):.1f}%, M6 = M5 × 12%/14% = {(week_example["monthly_m6"] * 100):.1f}%.</li>
-            <li>Quarterly anchor is actual M3 retention {(week_example["actual_retention"].get("quarterly", {}).get(3, 0.0) * 100):.1f}%. Then M6 = M3 × 20%/50% = {(week_example["quarterly_m6"] * 100):.1f}%.</li>
+            <li>Monthly anchor is actual M3 retention {(week_example["actual_retention"].get("monthly", {}).get(3, 0.0) * 100):.1f}%. Then M4 = M3 × 10%/12% = {(week_example["monthly_m4"] * 100):.1f}%, M5 = M4 × 5%/10% = {(week_example["monthly_m5"] * 100):.1f}%, M6 = M5 × 3%/5% = {(week_example["monthly_m6"] * 100):.1f}%.</li>
+            <li>Quarterly anchor is actual M3 retention {(week_example["actual_retention"].get("quarterly", {}).get(3, 0.0) * 100):.1f}%. Then M6 = M3 × 20%/55% = {(week_example["quarterly_m6"] * 100):.1f}%.</li>
             <li>The projected M6 tail uses the real renewal-price pools and then applies the 15% haircut: monthly tail {format_usd(week_example["monthly_m6_tail"])}, quarterly tail {format_usd(week_example["quarterly_m6_tail"])}, annual tail {format_usd(week_example["annual_m6_tail"])}.</li>
             <li>So projected M6 = actual M3 base {format_usd(week_example["m3"])} + future tail {format_usd(week_example["monthly_m6_tail"] + week_example["quarterly_m6_tail"] + week_example["annual_m6_tail"])} = {format_usd(week_example["m6"])}, which is {(week_example["m6"] / week_example["spend"] * 100):.1f}% ROAS.</li>
           </ul>
@@ -2228,7 +2228,8 @@ def render_html(
     table {{
       width: 100%;
       min-width: 1660px;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
     }}
 
     thead {{
@@ -2250,6 +2251,10 @@ def render_html(
       white-space: normal;
       line-height: 1.25;
       min-width: 86px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: linear-gradient(180deg, rgba(48, 64, 94, 0.98), rgba(34, 47, 71, 0.98));
     }}
 
     .th-two-line {{
@@ -2288,7 +2293,53 @@ def render_html(
     }}
 
     th:first-child {{
-      z-index: 2;
+      z-index: 6;
+    }}
+
+    #main-table-card th:first-child,
+    #main-table-card td:first-child {{
+      left: 0;
+      min-width: 170px;
+      width: 170px;
+      z-index: 4;
+    }}
+
+    #main-table-card th:nth-child(2),
+    #main-table-card td:nth-child(2),
+    #main-table-card th:nth-child(3),
+    #main-table-card td:nth-child(3),
+    #main-table-card th:nth-child(4),
+    #main-table-card td:nth-child(4) {{
+      position: sticky;
+      z-index: 3;
+      background: linear-gradient(180deg, rgba(41, 56, 83, 0.98), rgba(27, 39, 61, 0.98));
+    }}
+
+    #main-table-card th:nth-child(2),
+    #main-table-card td:nth-child(2) {{
+      left: 170px;
+      min-width: 110px;
+      width: 110px;
+    }}
+
+    #main-table-card th:nth-child(3),
+    #main-table-card td:nth-child(3) {{
+      left: 280px;
+      min-width: 90px;
+      width: 90px;
+    }}
+
+    #main-table-card th:nth-child(4),
+    #main-table-card td:nth-child(4) {{
+      left: 370px;
+      min-width: 90px;
+      width: 90px;
+    }}
+
+    #main-table-card thead th:nth-child(2),
+    #main-table-card thead th:nth-child(3),
+    #main-table-card thead th:nth-child(4) {{
+      z-index: 6;
     }}
 
     tbody tr:hover {{
@@ -2722,9 +2773,9 @@ def render_html(
         <div class="forecast-block">
           <h3>Benchmark Rates Used</h3>
           <ul>
-            <li>Monthly: M1 55%, M2 38%, M3 20%, M4 18%, M5 14%, M6 12%, M7 10%, M8 7%, M9 7%, M10 6%, M11 6%, M12 5%.</li>
-            <li>Quarterly: M3 50%, M6 20%, M9 15%, M12 10%.</li>
-            <li>Annual: M12 30%.</li>
+            <li>Monthly: M1 55%, M2 27%, M3 12%, M4 10%, M5 5%, M6 3%, M7 3%.</li>
+            <li>Quarterly: M3 55%, M6 20%, M9 15%, M12 10%.</li>
+            <li>Annual: M12 40%.</li>
           </ul>
         </div>
 
@@ -2741,7 +2792,7 @@ def render_html(
         <div class="forecast-block">
           <h3>How Future Revenue Is Added</h3>
           <ul>
-            <li>Later milestone retention is projected by applying the benchmark month-over-month ratio to the last actual retention (for example: if actual M1 retention = 46% and the monthly benchmark goes from M1 55% to M2 38%, then predicted M2 retention = 46% × 38% / 55% = 31.8%).</li>
+            <li>Later milestone retention is projected by applying the benchmark month-over-month ratio to the last actual retention (for example: if actual M1 retention = 46% and the monthly benchmark goes from M1 55% to M2 27%, then predicted M2 retention = 46% × 27% / 55% = 22.6%).</li>
             <li>The projected future tail uses each priced customer’s real full renewal price, not a generic bucket price.</li>
             <li>First-day upsell revenue stays inside cumulative predicted ROAS, and projected future revenue gets a 15% haircut for refunds and fees.</li>
           </ul>
