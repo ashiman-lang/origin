@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Securio Weekly Cohort Dashboard</title>
+  <style>
+    :root {
+      --bg: #09142b;
+      --bg-2: #0f1d3e;
+      --panel: rgba(36, 50, 78, 0.9);
+      --panel-strong: rgba(26, 38, 62, 0.96);
+      --line: rgba(164, 181, 214, 0.16);
+      --text: #e6eefc;
+      --muted: #9aabc8;
+      --amber: #ffb53e;
+      --blue: #5a92ff;
+      --red: #ff7a95;
+      --green: #55d695;
+      --cyan: #8fd3ff;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(90, 146, 255, 0.18), transparent 30%),
+        radial-gradient(circle at top right, rgba(255, 181, 62, 0.12), transparent 26%),
+        linear-gradient(180deg, var(--bg-2), var(--bg));
+      padding: 32px 18px 52px;
+    }
+
+    .shell {
+      max-width: 1640px;
+      margin: 0 auto;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(42, 58, 90, 0.94), rgba(27, 39, 61, 0.97));
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-copy {
+      padding: 28px;
+    }
+
+    .eyebrow {
+      color: var(--cyan);
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2rem, 4vw, 3.6rem);
+      line-height: 0.98;
+      letter-spacing: -0.05em;
+    }
+
+    .subtitle {
+      margin: 0;
+      max-width: 54ch;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      padding: 18px;
+    }
+
+    .summary-pill {
+      background: rgba(12, 19, 35, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .summary-label {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .summary-value {
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+    }
+
+    .panel {
+      padding: 22px;
+      margin-bottom: 18px;
+    }
+
+    .upload-card {
+      padding: 18px 20px;
+      margin-bottom: 18px;
+    }
+
+    .upload-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .upload-row input[type="file"] {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .panel-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 1.15rem;
+    }
+
+    .panel-note {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .status.error {
+      color: var(--red);
+    }
+
+    .status.success {
+      color: var(--green);
+    }
+
+    .action-button {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(12, 20, 38, 0.45);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .action-button:hover {
+      border-color: rgba(90, 146, 255, 0.45);
+    }
+
+    .action-button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .chart-wrap {
+      overflow-x: auto;
+    }
+
+    svg {
+      width: 100%;
+      min-width: 860px;
+      height: 320px;
+      display: block;
+    }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend i {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+    }
+
+    .tabs {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 10px;
+      background: rgba(16, 26, 47, 0.62);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      margin-bottom: 18px;
+    }
+
+    .tab-button {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(12, 20, 38, 0.55);
+      color: #b9c7e3;
+      border-radius: 999px;
+      padding: 14px 18px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .tab-button.active {
+      color: var(--text);
+      background: linear-gradient(180deg, rgba(81, 120, 203, 0.95), rgba(56, 89, 158, 0.92));
+      border-color: rgba(132, 167, 255, 0.7);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    table {
+      width: 100%;
+      min-width: 1420px;
+      border-collapse: collapse;
+      background: rgba(27, 39, 61, 0.96);
+    }
+
+    thead th {
+      text-align: left;
+      color: #a8bad7;
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 20px 18px;
+      background: rgba(39, 54, 83, 0.9);
+      border-bottom: 1px solid var(--line);
+    }
+
+    tbody td {
+      padding: 22px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-size: 0.98rem;
+      white-space: nowrap;
+    }
+
+    tbody tr:nth-child(odd) td:first-child,
+    tbody tr:nth-child(odd) td:nth-child(2),
+    tbody tr:nth-child(odd) td:nth-child(3),
+    tbody tr:nth-child(odd) td:nth-child(4) {
+      background: rgba(57, 77, 116, 0.34);
+    }
+
+    tbody tr:nth-child(even) td:first-child,
+    tbody tr:nth-child(even) td:nth-child(2),
+    tbody tr:nth-child(even) td:nth-child(3),
+    tbody tr:nth-child(even) td:nth-child(4) {
+      background: rgba(44, 62, 97, 0.28);
+    }
+
+    td.cohort {
+      font-size: 1.02rem;
+      font-weight: 700;
+    }
+
+    .metric-amber {
+      color: var(--amber);
+      font-weight: 600;
+    }
+
+    .metric-blue {
+      color: var(--blue);
+      font-weight: 600;
+    }
+
+    .metric-red {
+      color: var(--red);
+      font-weight: 600;
+    }
+
+    .metric-green {
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    .metric-muted {
+      color: var(--muted);
+    }
+
+    .mix {
+      display: inline-flex;
+      flex-direction: column;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .retention-cell {
+      display: inline-flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 72px;
+    }
+
+    .retention-pct {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .retention-count {
+      color: #cbd7ef;
+      font-size: 0.96rem;
+      font-weight: 600;
+    }
+
+    .retention-cell.projected .retention-pct,
+    .retention-cell.projected .retention-count {
+      color: var(--muted);
+    }
+
+    .footer {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    @media (max-width: 980px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <article class="card hero-copy">
+        <div class="eyebrow">Securio Weekly Dashboard</div>
+        <h1>Weekly cohort view for your latest customer and payment exports.</h1>
+        <p class="subtitle">
+          This version keeps the look and density of the screenshot, but only uses metrics available in the provided CSVs.
+          Revenue comes from the customer export's PLN totals and is converted to USD for the dashboard. Ad spend is shown in USD using the manually entered May 9 and May 10 screenshot amounts, and milestone ROAS uses benchmark-based forecasts for future renewals.
+        </p>
+      </article>
+      <aside class="card summary-grid" id="summary-grid"></aside>
+    </section>
+
+
+    <section class="card upload-card">
+      <div class="panel-head">
+        <div>
+          <h2 class="panel-title">Published snapshot</h2>
+          <p class="panel-note">This GitHub Pages version is a static snapshot. Live Stripe refresh and Meta CSV upload are available only in the local dashboard server.</p>
+        </div>
+      </div>
+    </section>
+
+
+    <div class="tabs" id="dashboard-tabs">
+      <button class="tab-button active" type="button" data-tab="weekly">Weekly Cohorts</button>
+      <button class="tab-button" type="button" data-tab="week-trial-retention">1-Week Trial Retention</button>
+      <button class="tab-button" type="button" data-tab="month-plan-retention">1-Month Plan Retention</button>
+      <button class="tab-button" type="button" data-tab="quarterly-retention">3-Month Plan Retention</button>
+    </div>
+
+    <section class="tab-panel active" data-panel="weekly">
+      <section class="card panel">
+        <div class="panel-head">
+          <div>
+            <h2 class="panel-title">Volume by cohort week</h2>
+            <p class="panel-note">Bars compare new customers, paid customers, and payment rows for each acquisition week.</p>
+          </div>
+          <div class="panel-actions">
+            <div class="status" id="generated-at"></div>
+            <div class="status" id="refresh-status"></div>
+            <button class="action-button" type="button" disabled>Update unavailable on static publish</button>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <svg id="cohort-chart" viewBox="0 0 1100 320" preserveAspectRatio="none"></svg>
+        </div>
+        <div class="legend">
+          <span><i style="background:#8fd3ff"></i>New customers</span>
+          <span><i style="background:#55d695"></i>Paid customers</span>
+          <span><i style="background:#ffb53e"></i>Payment rows</span>
+        </div>
+      </section>
+
+      <section class="card panel">
+        <div class="panel-head">
+          <div>
+            <h2 class="panel-title">Weekly cohort table</h2>
+            <p class="panel-note">Weekly cohorts with live spend, paid customer counts, current revenue, and projected milestone ROAS.</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Cohort</th>
+                <th>Ad Spend USD</th>
+                <th>Paid</th>
+                <th>CPA</th>
+                <th>D0 Rev</th>
+                <th>Net Rev To Date</th>
+                <th>Refunds</th>
+                <th>Dispute Losses</th>
+                <th>D0 ROAS</th>
+                <th>ROAS To Date</th>
+                <th>M1</th>
+                <th>M2</th>
+                <th>M3</th>
+                <th>M6</th>
+                <th>M9</th>
+                <th>M12</th>
+              </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
+        <div class="footer">
+          Revenue values come from the customer export columns `Total Spend`, `Refunded Volume`, and `Dispute Losses`, treated as PLN and converted to USD with `PLN_TO_USD_RATE = 0.26`. Ad spend uses uploaded Meta rows in PLN and converts them to USD. Milestone ROAS uses your retention benchmark table and real offer renewal prices in USD. Later retention is projected from the last actual retention point using the benchmark ratio, projected renewals are rounded to whole users, and once a projected tail hits `1` two times in a row the cohort is treated as dead and all later projected renewals go to `0`. Projected future revenue also uses a 15% haircut.
+        </div>
+      </section>
+    </section>
+
+    <section class="tab-panel" data-panel="week-trial-retention">
+      <section class="card panel">
+        <div class="panel-head">
+          <div>
+            <h2 class="panel-title">1-Week Trial retention</h2>
+            <p class="panel-note">Starter counts, projected LTV to month 12, and actual / projected renewal retention for the 1-week trial offer by cohort week. Projected cells anchor to the last actual point, round to whole users, and stop after two consecutive projected `1`s.</p>
+          </div>
+        </div>
+        <div class="table-wrap" id="week-trial-retention-wrap"></div>
+      </section>
+    </section>
+
+    <section class="tab-panel" data-panel="month-plan-retention">
+      <section class="card panel">
+        <div class="panel-head">
+          <div>
+            <h2 class="panel-title">1-Month plan retention</h2>
+            <p class="panel-note">Starter counts, projected LTV to month 12, and actual / projected renewal retention for the 1-month plan by cohort week. Projected cells anchor to the last actual point, round to whole users, and stop after two consecutive projected `1`s.</p>
+          </div>
+        </div>
+        <div class="table-wrap" id="month-plan-retention-wrap"></div>
+      </section>
+    </section>
+
+    <section class="tab-panel" data-panel="quarterly-retention">
+      <section class="card panel">
+        <div class="panel-head">
+          <div>
+            <h2 class="panel-title">3-Month plan retention</h2>
+            <p class="panel-note">Starter counts, projected LTV to month 12, and actual / projected renewal retention for the 3-month plan by cohort week. Projected cells anchor to the last actual point, round to whole users, and stop after two consecutive projected `1`s.</p>
+          </div>
+        </div>
+        <div class="table-wrap" id="quarterly-retention-wrap"></div>
+      </section>
+    </section>
+  </div>
+
+  <script>
+    const state = {
+      payload: {"generatedAt":"2026-05-28 12:38","summary":{"cohorts":2,"newCustomers":6,"paidCustomers":3,"paidRate":50.0,"payments":3,"spendUsd":568.94,"usdGross":45.39,"usdNet":45.39,"usdRefunds":0.0,"plnGross":174.59,"plnNet":174.59,"plnRefunds":0.0},"rows":[{"cohortDate":"2026-05-11","cohort":"May 11-May 17","spendUsd":0.0,"newCustomers":2,"paidCustomers":0,"cpaUsd":0.0,"paidRate":0.0,"payments":0,"d0RevenueUsd":0.0,"netRevenueUsd":0.0,"refundsUsd":0.0,"disputeLossesUsd":0.0,"d0Roas":0.0,"roasToDate":0.0,"m1Roas":0.0,"m2Roas":0.0,"m3Roas":0.0,"m6Roas":0.0,"m9Roas":0.0,"m12Roas":0.0,"trialing":0,"active":0,"incomplete":2,"blankStatus":0,"usdGross":0.0,"usdNet":0.0,"usdRefunds":0.0,"usdDisputes":0.0,"plnGross":0.0,"plnNet":0.0,"plnRefunds":0.0,"plnDisputes":0.0,"topPlan":"price_1TRrqiE235Ujkbvqdys0vgxI","planMix":[{"name":"price_1TRrqiE235Ujkbvqdys0vgxI","count":1},{"name":"price_1TRrg8E235UjkbvqtTcBo00E","count":1}]},{"cohortDate":"2026-05-04","cohort":"May 4-May 10","spendUsd":568.94,"newCustomers":4,"paidCustomers":3,"cpaUsd":189.65,"paidRate":75.0,"payments":3,"d0RevenueUsd":45.39,"netRevenueUsd":45.39,"refundsUsd":0.0,"disputeLossesUsd":0.0,"d0Roas":8.0,"roasToDate":8.0,"m1Roas":12.5,"m2Roas":16.9,"m3Roas":24.4,"m6Roas":24.4,"m9Roas":24.4,"m12Roas":24.4,"trialing":2,"active":1,"incomplete":0,"blankStatus":1,"usdGross":45.39,"usdNet":45.39,"usdRefunds":0.0,"usdDisputes":0.0,"plnGross":174.59,"plnNet":174.59,"plnRefunds":0.0,"plnDisputes":0.0,"topPlan":"price_1TRrRPE235UjkbvqWSR7X8AC","planMix":[{"name":"price_1TRrRPE235UjkbvqWSR7X8AC","count":2},{"name":"price_1TRrqiE235Ujkbvqdys0vgxI","count":1},{"name":"No plan","count":1}]}],"retentionTables":{"1-Week Trial":[{"cohortDate":"2026-05-04","cohort":"May 4-May 10","starters":2,"ltvUsd":36.97,"milestones":[{"label":"M1","count":1,"pct":50.0,"projected":true},{"label":"M2","count":1,"pct":50.0,"projected":true},{"label":"M3","count":0,"pct":0.0,"projected":true}]}],"1-Month Plan":[],"3-Month Plan":[{"cohortDate":"2026-05-04","cohort":"May 4-May 10","starters":1,"ltvUsd":84.49,"milestones":[{"label":"Q1","count":1,"pct":100.0,"projected":true},{"label":"Q2","count":0,"pct":0.0,"projected":true},{"label":"Q3","count":0,"pct":0.0,"projected":true}]}]}}
+    };
+
+    function money(value) {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(value);
+    }
+
+    function count(value) {
+      return new Intl.NumberFormat("en-US").format(value);
+    }
+
+    function pct(value) {
+      return `${value.toFixed(1)}%`;
+    }
+
+    function renderSummary() {
+      const summary = state.payload.summary;
+      const cards = [
+        ["Cohort Weeks", count(summary.cohorts)],
+        ["New Customers", count(summary.newCustomers)],
+        ["Paid Customers", count(summary.paidCustomers)],
+        ["Paid Rate", pct(summary.paidRate)],
+        ["Payments", count(summary.payments)],
+        ["Ad Spend USD", money(summary.spendUsd)],
+        ["USD Net", money(summary.usdNet)],
+        ["PLN Net", `${summary.plnNet.toFixed(2)} PLN`],
+        ["PLN Refunds", `${summary.plnRefunds.toFixed(2)} PLN`]
+      ];
+      document.getElementById("summary-grid").innerHTML = cards.map(([label, value]) => `
+        <div class="summary-pill">
+          <div class="summary-label">${label}</div>
+          <div class="summary-value">${value}</div>
+        </div>
+      `).join("");
+      document.getElementById("generated-at").textContent = `Updated ${state.payload.generatedAt}`;
+    }
+
+    function renderChart() {
+      const rows = state.payload.rows;
+      const svg = document.getElementById("cohort-chart");
+      const width = 1100;
+      const height = 320;
+      const margin = { top: 28, right: 28, bottom: 56, left: 28 };
+      const innerHeight = height - margin.top - margin.bottom;
+      const groupWidth = (width - margin.left - margin.right) / Math.max(rows.length, 1);
+      const barWidth = Math.min(28, Math.max(16, groupWidth / 5));
+      const maxCount = Math.max(...rows.map((row) => Math.max(row.newCustomers, row.paidCustomers, row.payments)), 1);
+
+      let markup = "";
+      for (let grid = 0; grid <= 4; grid += 1) {
+        const y = margin.top + (innerHeight / 4) * grid;
+        markup += `<line x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" stroke="rgba(255,255,255,0.08)" />`;
+      }
+
+      rows.forEach((row, index) => {
+        const baseX = margin.left + index * groupWidth + groupWidth / 2 - (barWidth * 1.75);
+        const newHeight = (row.newCustomers / maxCount) * innerHeight;
+        const paidHeight = (row.paidCustomers / maxCount) * innerHeight;
+        const paymentHeight = (row.payments / maxCount) * innerHeight;
+        const bars = [
+          [baseX, newHeight, "#8fd3ff"],
+          [baseX + barWidth + 10, paidHeight, "#55d695"],
+          [baseX + (barWidth + 10) * 2, paymentHeight, "#ffb53e"],
+        ];
+        bars.forEach(([x, barHeight, color]) => {
+          const y = margin.top + innerHeight - barHeight;
+          markup += `<rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="8" fill="${color}" opacity="0.95" />`;
+        });
+        markup += `<text x="${margin.left + index * groupWidth + groupWidth / 2}" y="${height - 24}" fill="#9aabc8" text-anchor="middle" font-size="14">${row.cohort}</text>`;
+      });
+
+      svg.innerHTML = markup;
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById("table-body");
+      tbody.innerHTML = state.payload.rows.map((row) => `
+        <tr>
+          <td class="cohort">${row.cohort}</td>
+          <td class="metric-amber">${money(row.spendUsd)}</td>
+          <td>${count(row.paidCustomers)}</td>
+          <td>${money(row.cpaUsd)}</td>
+          <td>${money(row.d0RevenueUsd)}</td>
+          <td class="metric-blue">${money(row.netRevenueUsd)}</td>
+          <td class="metric-red">${money(row.refundsUsd)}</td>
+          <td class="metric-red">${money(row.disputeLossesUsd)}</td>
+          <td class="metric-amber">${pct(row.d0Roas)}</td>
+          <td class="metric-blue">${pct(row.roasToDate)}</td>
+          <td>${pct(row.m1Roas)}</td>
+          <td>${pct(row.m2Roas)}</td>
+          <td>${pct(row.m3Roas)}</td>
+          <td>${pct(row.m6Roas)}</td>
+          <td>${pct(row.m9Roas)}</td>
+          <td>${pct(row.m12Roas)}</td>
+        </tr>
+      `).join("");
+    }
+
+    function renderRetentionTables() {
+      const tables = state.payload.retentionTables || {};
+      const configs = [
+        ["1-Week Trial", "week-trial-retention-wrap"],
+        ["1-Month Plan", "month-plan-retention-wrap"],
+        ["3-Month Plan", "quarterly-retention-wrap"]
+      ];
+      configs.forEach(([family, elementId]) => {
+        const rows = tables[family] || [];
+        const wrap = document.getElementById(elementId);
+        if (!wrap) return;
+        if (!rows.length) {
+          wrap.innerHTML = `<div class="footer" style="padding:18px;">No ${family} plan starters in the current dataset yet.</div>`;
+          return;
+        }
+        const milestoneHeaders = (rows[0].milestones || []).map((item) => `<th>${item.label} % / #</th>`).join("");
+        const body = rows.map((row) => `
+          <tr>
+            <td class="cohort">${row.cohort}</td>
+            <td>${count(row.starters)}</td>
+            <td class="metric-blue">${money(row.ltvUsd)}</td>
+            ${(row.milestones || []).map((item) => `
+              <td>
+                <div class="retention-cell ${item.projected ? "projected" : ""}">
+                  <span class="retention-pct">${pct(item.pct)}</span>
+                  <span class="retention-count">${count(item.count)}</span>
+                </div>
+              </td>
+            `).join("")}
+          </tr>
+        `).join("");
+        wrap.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>Cohort</th>
+                <th>${family.charAt(0).toUpperCase() + family.slice(1)} Starters</th>
+                <th>LTV to M12</th>
+                ${milestoneHeaders}
+              </tr>
+            </thead>
+            <tbody>${body}</tbody>
+          </table>
+        `;
+      });
+    }
+
+    function initTabs() {
+      const buttons = Array.from(document.querySelectorAll("[data-tab]"));
+      const panels = Array.from(document.querySelectorAll("[data-panel]"));
+      function activate(tabId) {
+        buttons.forEach((button) => {
+          button.classList.toggle("active", button.dataset.tab === tabId);
+        });
+        panels.forEach((panel) => {
+          panel.classList.toggle("active", panel.dataset.panel === tabId);
+        });
+      }
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => activate(button.dataset.tab));
+      });
+    }
+
+    async function handleRefreshNow() {
+      const button = document.getElementById("refresh-now");
+      const status = document.getElementById("refresh-status");
+      if (!button) return;
+      button.disabled = true;
+      const originalText = button.textContent;
+      button.textContent = "Updating...";
+      if (status) {
+        status.textContent = "";
+        status.className = "status";
+      }
+      try {
+        const response = await fetch("/api/refresh", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({})
+        });
+        const result = await response.json();
+        if (!response.ok || !result.ok) {
+          throw new Error(result.error || "Refresh failed");
+        }
+        if (result.payload) {
+          state.payload = result.payload;
+          renderSummary();
+          renderChart();
+          renderTable();
+          renderRetentionTables();
+        }
+        if (status) {
+          status.textContent = "Updated from Stripe";
+          status.className = "status success";
+        }
+      } catch (error) {
+        console.warn("Manual refresh failed", error);
+        if (status) {
+          status.textContent = error.message || "Refresh failed";
+          status.className = "status error";
+        }
+      } finally {
+        button.disabled = false;
+        button.textContent = originalText;
+      }
+    }
+
+    async function handleMetaSpendUpload() {
+      const fileInput = document.getElementById("meta-spend-file");
+      const status = document.getElementById("upload-status");
+      const button = document.getElementById("upload-meta-spend");
+      const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+      if (!file) {
+        if (status) {
+          status.textContent = "Choose a CSV first";
+          status.className = "status error";
+        }
+        return;
+      }
+      button.disabled = true;
+      const originalText = button.textContent;
+      button.textContent = "Uploading...";
+      if (status) {
+        status.textContent = "";
+        status.className = "status";
+      }
+      try {
+        const csvText = await file.text();
+        const response = await fetch("/api/meta-spend", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ csvText })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.ok) {
+          throw new Error(result.error || "Upload failed");
+        }
+        if (result.payload) {
+          state.payload = result.payload;
+          renderSummary();
+          renderChart();
+          renderTable();
+          renderRetentionTables();
+        }
+        if (status) {
+          status.textContent = `Loaded ${result.rows || 0} spend day(s)`;
+          status.className = "status success";
+        }
+      } catch (error) {
+        console.warn("Meta CSV upload failed", error);
+        if (status) {
+          status.textContent = error.message || "Upload failed";
+          status.className = "status error";
+        }
+      } finally {
+        button.disabled = false;
+        button.textContent = originalText;
+      }
+    }
+
+    async function refreshFromApi() {}
+
+    renderSummary();
+    renderChart();
+    renderTable();
+    renderRetentionTables();
+    initTabs();
+    const refreshButton = document.getElementById("refresh-now");
+    if (refreshButton && false) {
+      refreshButton.addEventListener("click", handleRefreshNow);
+    }
+    const uploadButton = document.getElementById("upload-meta-spend");
+    if (uploadButton && false) {
+      uploadButton.addEventListener("click", handleMetaSpendUpload);
+    }
+    refreshFromApi();
+    setInterval(refreshFromApi, 30000);
+  </script>
+</body>
+</html>
