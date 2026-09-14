@@ -1647,9 +1647,9 @@ def build_view_payload(metrics: list[CohortMetrics]) -> dict[str, object]:
             "m1Projected": not milestone_is_closed_from_end(item.cohort_end_date, 1),
             "m2Projected": not milestone_is_closed_from_end(item.cohort_end_date, 2),
             "m3Projected": not milestone_is_closed_from_end(item.cohort_end_date, 3),
-            "m6Projected": True,
-            "m9Projected": True,
-            "m12Projected": True,
+            "m6Projected": not milestone_is_closed_from_end(item.cohort_end_date, 6),
+            "m9Projected": not milestone_is_closed_from_end(item.cohort_end_date, 9),
+            "m12Projected": not milestone_is_closed_from_end(item.cohort_end_date, 12),
         }
         for item in metrics
     ]
@@ -3561,9 +3561,9 @@ def render_html(
           m1Projected: !milestoneClosedFromEnd(item.cohortEndDate, 1),
           m2Projected: !milestoneClosedFromEnd(item.cohortEndDate, 2),
           m3Projected: !milestoneClosedFromEnd(item.cohortEndDate, 3),
-          m6Projected: true,
-          m9Projected: true,
-          m12Projected: true,
+          m6Projected: !milestoneClosedFromEnd(item.cohortEndDate, 6),
+          m9Projected: !milestoneClosedFromEnd(item.cohortEndDate, 9),
+          m12Projected: !milestoneClosedFromEnd(item.cohortEndDate, 12),
         }})),
       }};
     }}
