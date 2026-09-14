@@ -1089,25 +1089,21 @@ def build_weekly_plan_retention_rows(
         starter_ids = sorted(set(starter_ids))
         denominator = len(starter_ids)
         milestone_counts = subscription_billing_counts_through(cohort_rows, CURRENT_DATE)
-        m1 = sum(1 for customer_id in starter_ids if milestone_counts.get(customer_id, 0) >= 2)
-        m2 = sum(1 for customer_id in starter_ids if milestone_counts.get(customer_id, 0) >= 3)
-        m3 = sum(1 for customer_id in starter_ids if milestone_counts.get(customer_id, 0) >= 4)
         week_start, week_end = weekly_ranges[week_key]
-        rows_out.append(
-            {
-                "cohort": f"{format_short_date(week_start)}-{format_short_date(week_end)}",
-                "monthly_starters": denominator,
-                "m1_count": m1,
-                "m1_rate": (m1 / denominator * 100) if denominator else 0.0,
-                "m1_closed": milestone_is_closed_from_end(week_end, 1),
-                "m2_count": m2,
-                "m2_rate": (m2 / denominator * 100) if denominator else 0.0,
-                "m2_closed": milestone_is_closed_from_end(week_end, 2),
-                "m3_count": m3,
-                "m3_rate": (m3 / denominator * 100) if denominator else 0.0,
-                "m3_closed": milestone_is_closed_from_end(week_end, 3),
-            }
-        )
+        retention_row: dict[str, object] = {
+            "cohort": f"{format_short_date(week_start)}-{format_short_date(week_end)}",
+            "monthly_starters": denominator,
+        }
+        for month in range(1, 13):
+            renewed = sum(
+                1
+                for customer_id in starter_ids
+                if milestone_counts.get(customer_id, 0) >= month + 1
+            )
+            retention_row[f"m{month}_count"] = renewed
+            retention_row[f"m{month}_rate"] = (renewed / denominator * 100) if denominator else 0.0
+            retention_row[f"m{month}_closed"] = milestone_is_closed_from_end(week_end, month)
+        rows_out.append(retention_row)
     return rows_out
 
 
@@ -2760,6 +2756,15 @@ def render_html(
               <th><span class="th-two-line">M1<br>% / #</span></th>
               <th><span class="th-two-line">M2<br>% / #</span></th>
               <th><span class="th-two-line">M3<br>% / #</span></th>
+              <th><span class="th-two-line">M4<br>% / #</span></th>
+              <th><span class="th-two-line">M5<br>% / #</span></th>
+              <th><span class="th-two-line">M6<br>% / #</span></th>
+              <th><span class="th-two-line">M7<br>% / #</span></th>
+              <th><span class="th-two-line">M8<br>% / #</span></th>
+              <th><span class="th-two-line">M9<br>% / #</span></th>
+              <th><span class="th-two-line">M10<br>% / #</span></th>
+              <th><span class="th-two-line">M11<br>% / #</span></th>
+              <th><span class="th-two-line">M12<br>% / #</span></th>
             </tr>
           </thead>
           <tbody id="retention-tbody"></tbody>
@@ -3748,23 +3753,18 @@ def render_html(
           const uniqueStarterIds = Array.from(new Set(starterIds)).sort();
           const denominator = uniqueStarterIds.length;
           const milestoneCounts = subscriptionBillingCountsThrough(cohortRows, paymentsRows, clientConfig.currentDate);
-          const m1 = uniqueStarterIds.filter((customerId) => (milestoneCounts.get(customerId) || 0) >= 2).length;
-          const m2 = uniqueStarterIds.filter((customerId) => (milestoneCounts.get(customerId) || 0) >= 3).length;
-          const m3 = uniqueStarterIds.filter((customerId) => (milestoneCounts.get(customerId) || 0) >= 4).length;
           const [weekStart, weekEnd] = weeklyRanges.get(weekKey);
-          return {{
+          const retention = {{
             cohort: `${{formatShortDate(weekStart)}}-${{formatShortDate(weekEnd)}}`,
             monthlyStarters: denominator,
-            m1Count: m1,
-            m1Rate: denominator ? (m1 / denominator) * 100 : 0,
-            m1Closed: milestoneClosedFromEnd(weekEnd, 1),
-            m2Count: m2,
-            m2Rate: denominator ? (m2 / denominator) * 100 : 0,
-            m2Closed: milestoneClosedFromEnd(weekEnd, 2),
-            m3Count: m3,
-            m3Rate: denominator ? (m3 / denominator) * 100 : 0,
-            m3Closed: milestoneClosedFromEnd(weekEnd, 3),
           }};
+          for (let month = 1; month <= 12; month += 1) {{
+            const renewed = uniqueStarterIds.filter((customerId) => (milestoneCounts.get(customerId) || 0) >= month + 1).length;
+            retention[`m${{month}}Count`] = renewed;
+            retention[`m${{month}}Rate`] = denominator ? (renewed / denominator) * 100 : 0;
+            retention[`m${{month}}Closed`] = milestoneClosedFromEnd(weekEnd, month);
+          }}
+          return retention;
         }});
 
       const quarterlyRetention = Array.from(groupedWeekly.keys())
@@ -3872,28 +3872,23 @@ def render_html(
     function renderRetentionTable() {{
       const tbody = document.getElementById("retention-tbody");
       const rows = state.payload.weeklyRetention || [];
+      const metricCell = (row, month) => {{
+        const rate = row[`m${{month}}Rate`] ?? row[`m${{month}}_rate`] ?? 0;
+        const count = row[`m${{month}}Count`] ?? row[`m${{month}}_count`] ?? 0;
+        const closed = row[`m${{month}}Closed`] ?? row[`m${{month}}_closed`];
+        return `
+          <td>
+            <div class="retention-metric ${{closed ? 'closed' : 'open'}}">
+              <span class="rate">${{Number(rate).toFixed(1)}}%</span>
+              <span class="count">${{Number(count).toLocaleString()}}</span>
+            </div>
+          </td>`;
+      }};
       tbody.innerHTML = rows.map((row) => `
         <tr>
           <td class="cohort"><span class="cohort-range">${{row.cohort}}</span></td>
           <td>${{Number(row.monthlyStarters ?? row.monthly_starters ?? 0).toLocaleString()}}</td>
-          <td>
-            <div class="retention-metric ${{(row.m1Closed ?? row.m1_closed) ? 'closed' : 'open'}}">
-              <span class="rate">${{Number(row.m1Rate ?? row.m1_rate ?? 0).toFixed(1)}}%</span>
-              <span class="count">${{Number(row.m1Count ?? row.m1_count ?? 0).toLocaleString()}}</span>
-            </div>
-          </td>
-          <td>
-            <div class="retention-metric ${{(row.m2Closed ?? row.m2_closed) ? 'closed' : 'open'}}">
-              <span class="rate">${{Number(row.m2Rate ?? row.m2_rate ?? 0).toFixed(1)}}%</span>
-              <span class="count">${{Number(row.m2Count ?? row.m2_count ?? 0).toLocaleString()}}</span>
-            </div>
-          </td>
-          <td>
-            <div class="retention-metric ${{(row.m3Closed ?? row.m3_closed) ? 'closed' : 'open'}}">
-              <span class="rate">${{Number(row.m3Rate ?? row.m3_rate ?? 0).toFixed(1)}}%</span>
-              <span class="count">${{Number(row.m3Count ?? row.m3_count ?? 0).toLocaleString()}}</span>
-            </div>
-          </td>
+          ${{Array.from({{ length: 12 }}, (_, index) => metricCell(row, index + 1)).join("")}}
         </tr>
       `).join("");
     }}
