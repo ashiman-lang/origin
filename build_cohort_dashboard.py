@@ -10,9 +10,10 @@ from pathlib import Path
 from statistics import median
 
 
-INPUT_CSV = Path("/Users/annashiman/Downloads/unified_customers (55).csv")
+INPUT_CSV = Path("/Users/annashiman/Downloads/unified_customers (80).csv")
 PRICES_CSV = Path("/Users/annashiman/Downloads/prices (3).csv")
-PAYMENTS_CSV = Path("/Users/annashiman/Downloads/unified_payments (38).csv")
+PAYMENTS_CSV = Path("/Users/annashiman/Downloads/unified_payments (49).csv")
+PAYMENT_CUSTOMERS_CSV = Path("/Users/annashiman/Downloads/unified_payments (50).csv")
 SPEND_CSV = Path("/Users/annashiman/Downloads/Spend (1).csv")
 OUTPUT_HTML = Path("/Users/annashiman/Documents/Playground/cohort_dashboard_jan_apr.html")
 PAGES_HTML = Path("/Users/annashiman/Documents/Playground/docs/index.html")
@@ -160,7 +161,7 @@ DAILY_SPEND_OVERRIDE_EUR = {
     "2026-01-30": 1663.32,
     "2026-01-31": 1611.93,
 }
-CURRENT_DATE = date(2026, 4, 14)
+CURRENT_DATE = date(2026, 9, 14)
 PROJECTED_NET_REVENUE_FACTOR = 0.85
 RETENTION_RATE_BENCHMARKS = {
     "monthly": {1: 0.55, 2: 0.27, 3: 0.12, 4: 0.09, 5: 0.08, 6: 0.08, 7: 0.07, 8: 0.06, 9: 0.05, 10: 0.03, 11: 0.02, 12: 0.01},
@@ -1311,6 +1312,19 @@ def load_payments_rows() -> list[dict[str, str]]:
 
     with PAYMENTS_CSV.open(newline="", encoding="utf-8-sig") as handle:
         rows = list(csv.DictReader(handle))
+
+    # Stripe's export splits payment details and Customer ID into separate files.
+    # Join them by charge ID so every dated transaction remains attributable to its cohort.
+    with PAYMENT_CUSTOMERS_CSV.open(newline="", encoding="utf-8-sig") as handle:
+        customer_rows = csv.DictReader(handle)
+        customer_ids = {
+            (row.get("id") or "").strip(): (row.get("Customer ID") or "").strip()
+            for row in customer_rows
+            if (row.get("id") or "").strip()
+        }
+
+    for row in rows:
+        row["Customer ID"] = customer_ids.get((row.get("id") or "").strip(), "")
 
     load_payments_rows._cache = rows
     return rows
