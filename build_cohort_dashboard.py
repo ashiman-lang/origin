@@ -1195,9 +1195,11 @@ def build_metrics(
     for _row, customer_id, family, _full_price_eur in prepared_rows:
         family_customers[family].append(customer_id)
 
+    # September closes intermediate monthly milestones too (M4, M5, etc.).
+    # Build counts for every possible milestone before anchoring forecasts.
     milestone_counts = {
         month: subscription_billing_counts_through(rows, CURRENT_DATE)
-        for month in {1, 2, 3, 6, 9, 12}
+        for month in range(1, 13)
     }
     actual_retention_rates: dict[str, dict[int, float]] = defaultdict(dict)
     for family, customer_ids in family_customers.items():
@@ -1302,7 +1304,21 @@ def build_metrics(
 
 def load_rows() -> list[dict[str, str]]:
     with INPUT_CSV.open(newline="", encoding="utf-8-sig") as handle:
-        return list(csv.DictReader(handle))
+        rows = list(csv.DictReader(handle))
+
+    # New customer exports omit Payment Count. Reconstruct it from successful
+    # payments so the existing cohort, retention, and forecast calculations
+    # retain the same definition across Stripe export versions.
+    if rows and "Payment Count" not in rows[0]:
+        payment_counts = Counter(
+            (payment.get("Customer ID") or "").strip()
+            for payment in load_payments_rows()
+            if payment.get("Status") == "Paid" and (payment.get("Customer ID") or "").strip()
+        )
+        for row in rows:
+            row["Payment Count"] = str(payment_counts.get((row.get("id") or "").strip(), 0))
+
+    return rows
 
 
 def load_payments_rows() -> list[dict[str, str]]:
@@ -1685,7 +1701,7 @@ def build_week_prediction_example() -> dict[str, object]:
 
     milestone_counts = {
         month: subscription_billing_counts_through(rows, CURRENT_DATE)
-        for month in (1, 2, 3, 6, 9, 12)
+        for month in range(1, 13)
     }
     actual_retention_rates: dict[str, dict[int, float]] = defaultdict(dict)
     for family, customer_ids in family_customers.items():
